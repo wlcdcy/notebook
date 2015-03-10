@@ -1,4 +1,4 @@
 notebook
 ========
 
-notebook :record log
+notebook :record log.
