@@ -3,4 +3,4 @@ notebook
 
 notebook :record log.
 
-test for hiwork;dasfasdf
+test for hiwork;
