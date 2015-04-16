@@ -3,4 +3,4 @@ notebook
 
 notebook :record log.
 hh
-test for hiworkfg
+test for hiwork
