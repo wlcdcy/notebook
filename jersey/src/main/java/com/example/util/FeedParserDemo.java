@@ -32,7 +32,7 @@ public class FeedParserDemo {
 					String link, String description, String permalink)
 					throws FeedParserException {
 
-				System.out.println(String.format("Found a new published article:[%s]:[%s][%s]", title,description,permalink));
+				System.out.println(String.format("Found a new published article:[%s]:[%s][%s] [%s]", title,description,permalink,link));
 
 			}
 
@@ -56,7 +56,7 @@ public class FeedParserDemo {
 		};
 
 
-		String resource = "http://www.duanwenxue.com/data/rss/1.xml";
+		String resource ="http://forum.eetasia.com/rss/rssblog.jspa?blogID=753";// "http://www.duanwenxue.com/data/rss/1.xml";
 
 		if (args.length == 1)
 			resource = args[0];

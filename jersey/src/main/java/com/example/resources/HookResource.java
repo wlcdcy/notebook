@@ -132,6 +132,26 @@ public class HookResource {
 		}
 	}
 	
+	@Path("/gitosc")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+//	public void gitosc_json(@Context HttpServletRequest req ,Map<String,Object> jsonData) {
+	public void gitosc_json(@Context HttpServletRequest req ,@FormParam("hook") String data) {
+		ObjectMapper omap = new ObjectMapper();
+//		try {
+//			logger.debug(omap.writeValueAsString(jsonData));
+//			
+//		} catch (JsonGenerationException e) {
+//			e.printStackTrace();
+//		} catch (JsonMappingException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+		logger.debug(data);
+	}
+	
 	@POST
 	@Path("/weibo")
 	@Produces(MediaType.APPLICATION_JSON)
