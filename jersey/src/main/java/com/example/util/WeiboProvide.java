@@ -25,9 +25,9 @@ import org.apache.http.util.EntityUtils;
 
 public class WeiboProvide {
 	
-	static String app_key="1121941913";
+	static String app_key="4158348570";//"1121941913";
 	//static String access_token="2.00qaELFG_2YvNB01357c5fdatiIVPB";
-	static String app_secret ="2b3626dc0a956bc98e5b05afd1dbb608";
+	static String app_secret ="668d4cb0010c190c39e750cce37d06ca";//"2b3626dc0a956bc98e5b05afd1dbb608";
 	static List<Map<String,Object>> ls = new ArrayList<Map<String,Object>>();
 	static int since_id=0;
 

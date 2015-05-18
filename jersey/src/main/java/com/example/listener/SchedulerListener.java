@@ -21,7 +21,7 @@ public class SchedulerListener extends HttpServlet implements ServletContextList
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static String expr ="0 1/5 * * * ? *";// "0 1/5 15 * * ? *";//"1/5 * * * * ? *";
+	private static String expr ="0 0/5 8-20 * * ? *";// "0 1/5 15 * * ? *";//"1/5 * * * * ? *";
 	
 	private Scheduler s =null;
 	
@@ -47,7 +47,6 @@ public class SchedulerListener extends HttpServlet implements ServletContextList
 	    Trigger trigger = newTrigger().withIdentity("weibo", "robots").withSchedule(cronSchedule(expr).withMisfireHandlingInstructionFireAndProceed()).forJob("weibo", "robots").build();
 	    scheduler.scheduleJob(jobDetail, trigger);
 	    scheduler.start();
-	    //scheduler.shutdown();
 	    return scheduler;
 	}
 
