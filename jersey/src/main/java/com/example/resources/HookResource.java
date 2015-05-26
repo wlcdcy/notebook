@@ -180,17 +180,6 @@ public class HookResource {
 
 	/**
 	 * 
-	 * msg_id 告警消息ID 
-	 * task_id 监控项目ID 
-	 * task_type 监控项目类型，参考 监控项目 
-	 * fault_time 故障发生时间(unix时间戳) 
-	 * task_status 监控任务状态， 1 为不可用，0 为恢复可用 
-	 * task_summary 监控项目摘要
-	 * content 告警消息内容,对内容进行了urlencode，需要urldecode得到内容 
-	 * token使用msg_id、task_id、fault_time和您的回调token 这4个参数连接并MD5后的值，用来您对消息做校验
-	 * 
-	 * 
-	 * 
 	 * @param msg_id	告警消息ID 
 	 * @param task_id	监控项目ID
 	 * @param task_type	监控项目类型，参考 监控项目
@@ -367,7 +356,7 @@ public class HookResource {
 	 */
 	@GET
 	@Path("/weibo/auth")
-	public void auth(@QueryParam("code") String auth_token) {
+	public void weibo_auth(@QueryParam("code") String auth_token) {
 		System.out.println(auth_token);
 		try {
 			String access_token = WeiboProvide.getAccessToken(auth_token);
@@ -404,7 +393,7 @@ public class HookResource {
 	 */
 	@GET
 	@Path("/weibo/unauth")
-	public void unauth(@QueryParam("code") String access_token) {
+	public void weibo_unauth(@QueryParam("code") String access_token) {
 		System.out.println(access_token);
 	}
 
