@@ -43,27 +43,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.util.WeiboProvide;
+import com.sun.jersey.multipart.FormDataBodyPart;
+import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/hooks")
 public class HookResource {
 	Logger logger = LoggerFactory.getLogger(HookResource.class);
-	
-//	微博全局变量声明
+
+	// 微博全局变量声明
 	// String appKey="1121941913";
 	String access_token = "0ebc90cad97041ac57615c0af924f729";
 	String appSecret = "2b3626dc0a956bc98e5b05afd1dbb608";
-	
 
-	//	监控宝全局变量声明
-	
+	// 监控宝全局变量声明
+
 	/**
 	 * 推送的一个msgid的集合。用户防止msg重复接收。
 	 */
 	public static final List<String> jkbao_msgIds = new ArrayList<String>();
 	/**
-	 * 监控宝生成的，需要在hiwork配置时，设置这个token,做数据校验用，确保请求来自于监控宝   （类似签名的效果）
+	 * 监控宝生成的，需要在hiwork配置时，设置这个token,做数据校验用，确保请求来自于监控宝 （类似签名的效果）
 	 */
-	public static String jkbao_token="f0d3c622161133da8c9a675095b585aa";
+	public static String jkbao_token = "efc4f368e17fceb424074e52672e544d";
+
 	/**
 	 * 测试服务状态服务
 	 * 
@@ -180,14 +182,22 @@ public class HookResource {
 
 	/**
 	 * 
-	 * @param msg_id	告警消息ID 
-	 * @param task_id	监控项目ID
-	 * @param task_type	监控项目类型，参考 监控项目
-	 * @param fault_time	故障发生时间(unix时间戳)
-	 * @param task_status	监控任务状态， 1 为不可用，0 为恢复可用
-	 * @param task_summary	监控项目摘要
-	 * @param content	告警消息内容,对内容进行了urlencode，需要urldecode得到内容
-	 * @param token		使用msg_id、task_id、fault_time和您的回调token 这4个参数连接并MD5后的值，用来您对消息做校验
+	 * @param msg_id
+	 *            告警消息ID
+	 * @param task_id
+	 *            监控项目ID
+	 * @param task_type
+	 *            监控项目类型，参考 监控项目
+	 * @param fault_time
+	 *            故障发生时间(unix时间戳)
+	 * @param task_status
+	 *            监控任务状态， 1 为不可用，0 为恢复可用
+	 * @param task_summary
+	 *            监控项目摘要
+	 * @param content
+	 *            告警消息内容,对内容进行了urlencode，需要urldecode得到内容
+	 * @param token
+	 *            使用msg_id、task_id、fault_time和您的回调token 这4个参数连接并MD5后的值，用来您对消息做校验
 	 */
 	@Path("/jkbao")
 	@GET
@@ -202,58 +212,84 @@ public class HookResource {
 			@QueryParam("content") String content,
 			@QueryParam("token") String token) {
 
-//		检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
-		if(jkbao_msgIds.contains(msg_id)){
+		// 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
+		if (jkbao_msgIds.contains(msg_id)) {
 			return;
 		}
-		
-		if(StringUtils.endsWith(token,MD5.hex(String.format("%s%s%s%s", msg_id,task_id,fault_time,jkbao_token)))){
+
+		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s",
+				msg_id, task_id, fault_time, jkbao_token)))) {
 			try {
-				String msg = URLDecoder.decode(content,"UTF-8");
+				String msg = URLDecoder.decode(content, "UTF-8");
 				logger.info(msg);
-				// TODO	模板渲染，推送到指定频道。
+				// TODO 模板渲染，推送到指定频道。
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 			jkbao_msgIds.add(msg_id);
 		}
-		
-		return ;
+
+		return;
 	}
 
 	@Path("/jkbao")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
-	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void jkbao_post(@FormParam("msg_id") String msg_id,
-			@FormParam("task_id") String task_id,
-			@FormParam("task_type") String task_type,
-			@FormParam("fault_time") String fault_time,
-			@FormParam("message_type") String message_type,
-			@FormParam("message_status") String message_status,
-			@FormParam("task_summary") String task_summary,
-			@FormParam("content") String content,
-			@FormParam("token") String token,
-			@FormParam("message_detail") String message_detail) {
-		
-//		检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
-		if(jkbao_msgIds.contains(msg_id)){
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public void jkbao_post(
+			@FormDataParam("msg_id") List<FormDataBodyPart> msg_idObjs,
+			@FormDataParam("task_id") List<FormDataBodyPart> task_idObjs,
+			@FormDataParam("task_type") List<FormDataBodyPart> task_typeObjs,
+			@FormDataParam("fault_time") List<FormDataBodyPart> fault_timeObjs,
+			@FormDataParam("message_type") List<FormDataBodyPart> message_typeObjs,
+			@FormDataParam("message_status") List<FormDataBodyPart> message_statusObjs,
+			@FormDataParam("task_summary") List<FormDataBodyPart> task_summaryObjs,
+			@FormDataParam("content") List<FormDataBodyPart> contentObjs,
+			@FormDataParam("token") List<FormDataBodyPart> tokenObjs,
+			@FormDataParam("message_detail") List<FormDataBodyPart> message_detailObjs) {
+
+		String msg_id = jkbao_parseFormDataBodyParts(msg_idObjs);
+		String task_id = jkbao_parseFormDataBodyParts(task_idObjs);
+		String task_type = jkbao_parseFormDataBodyParts(task_typeObjs);
+		String fault_time = jkbao_parseFormDataBodyParts(fault_timeObjs);
+		String message_type = jkbao_parseFormDataBodyParts(message_typeObjs);
+		String message_status = jkbao_parseFormDataBodyParts(message_statusObjs);
+		String task_summary = jkbao_parseFormDataBodyParts(task_summaryObjs);
+		String content = jkbao_parseFormDataBodyParts(contentObjs);
+		String token = jkbao_parseFormDataBodyParts(tokenObjs);
+		String message_detail = jkbao_parseFormDataBodyParts(message_detailObjs);
+
+		// 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
+		if (jkbao_msgIds.contains(msg_id)) {
 			return;
 		}
-		
-		if(StringUtils.endsWith(token,MD5.hex(String.format("%s%s%s%s", msg_id,task_id,fault_time,jkbao_token)))){
+
+		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s",
+				msg_id, task_id, fault_time, jkbao_token)))) {
 			try {
-				String msg = URLDecoder.decode(content,"UTF-8");
+				String msg = URLDecoder.decode(content, "UTF-8");
 				logger.info(msg);
-				// TODO	模板渲染，推送到指定频道。
+				// TODO 模板渲染，推送到指定频道。
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
 			}
 			jkbao_msgIds.add(msg_id);
 		}
-		
-		return ;
 
+		return;
+
+	}
+
+	private String jkbao_parseFormDataBodyParts(List<FormDataBodyPart> dataObjs) {
+		if (dataObjs != null && !dataObjs.isEmpty()) {
+			for (FormDataBodyPart dataObj : dataObjs) {
+				String data = dataObj.getValueAs(String.class);
+				logger.info(data);
+				return data;
+			}
+
+		}
+		return null;
 	}
 
 	/**
@@ -292,7 +328,7 @@ public class HookResource {
 				// while ((line = in.readLine()) != null) {
 				// sb.append(line);
 				// }
-				
+
 				// TODO 根据业务对消息进行处理。处理完成可以返回空串，也可以返回回复消息。
 				System.out.println("received message : " + text);
 				JSONObject jsonObj = JSONObject.fromObject(text);
