@@ -291,6 +291,143 @@ public class HookResource {
 		}
 		return null;
 	}
+	
+	@POST
+	@Path("/sendcloud")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void sendCloud(@Context HttpServletRequest req, String token){
+//		String SendCloud_APP_KEY="";
+		//TODO  use error .can't receive data
+		String content_type=req.getContentType();
+		byte[] b = new byte[req.getContentLength()];
+		try {
+			req.getInputStream().read(b);
+			String msg = new String(b,req.getCharacterEncoding());
+			logger.info(msg);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		logger.info(token);
+	}
+	
+	
+	
+	@POST
+	@Path("/bitbucket/post")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public void bitbucket_post(@Context HttpServletRequest req, @FormParam("payload") String payload){
+		logger.info(payload);
+		//TODO generate msg use jsonData  and broadcast
+	}
+	
+	@POST
+	@Path("/bitbucket/pull")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void bitbucket_pull(@Context HttpServletRequest req, Map<String,Object> jsonData){
+		logger.info(jsonData.toString());
+		//TODO generate msg use jsonData  and broadcast
+	}
+	
+	@POST
+	@Path("/gitcafe")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void gitcafe(@Context HttpServletRequest req, Map<String,Object> jsonData){
+		logger.info(jsonData.toString());
+		//TODO generate msg use jsonData  and broadcast
+	}
+	
+	@POST
+	@Path("/getsentry")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void getsentry(@Context HttpServletRequest req, Map<String,Object> jsonData){
+		logger.info(jsonData.toString());
+//		[help] https://github.com/getsentry/sentry-webhooks
+		
+		//TODO generate msg use jsonData  and broadcast
+	}
+	
+	
+	@POST
+	@Path("/relic")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public void newrelic(@Context HttpServletRequest req, @FormParam("alert") String alert, @FormParam("deployment") String deployment){
+		logger.info(alert);logger.info(deployment);
+//		警告信息 和 部署发布通知两类信息
+		
+//		[set]  servers -> INTEGRATIONS  |alerting notifications | webhook
+//		[help] https://rpm.newrelic.com/accounts/1000941/integrations?page=alerting#tab-integrations=_webhook
+		
+		//TODO generate msg use jsonData  and broadcast
+		
+	}
+	
+	@POST
+	@Path("/worktile")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void worktile(@Context HttpServletRequest req,Map<String,Object> jsonData){
+		
+//		**********以任务评论为例 列举数据模型*************************		
+//		1:action
+//		2:data
+//		2.1:tid
+//		2.2:name
+//		2.3:entry_id
+//		2.4:entry_name
+//		2.5:create_date
+//		2.6:comment
+//		2.6.1:cid
+//		2.6.2:message
+//		2.6.3:create_date
+//		2.6.4:create_by
+//		2.6.4.1:uid
+//		2.6.4.2:name
+//		2.6.4.2:display_name
+//		2.7:project
+//		2.7.1:pid
+//		2.7.2:name
+		
+//		********************************************
+		logger.info(jsonData.toString());
+		//TODO generate msg use jsonData  and broadcast
+		
+	}
+	
+	
+	@POST
+	@Path("/tower")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public void tower(@Context HttpServletRequest req,Map<String,Object> jsonData){
+		logger.info(jsonData.toString());
+//		**********以讨论的评论为例 列举数据模型*************************		
+//		1:action
+//		2:data
+//		2.1:project
+//		2.1.1:guid
+//		2.1.2:name
+//		2.2:topic
+//		2.2.1:guid
+//		2.2.2:title
+//		2.2.3:updated_at
+//		2.2.4:handler
+//		2.2.4.1:guid
+//		2.2.4.2:nickname
+//		2.3:comment
+//		2.3.1:guid
+//		2.3.2:content
+//		********************************************
+		
+		//TODO generate msg use jsonData  and broadcast
+		
+	}
 
 	/**
 	 * 微博粉丝互动服务
