@@ -293,6 +293,29 @@ public class HookResource {
 		return null;
 	}
 	
+	
+	/**创建webhook配置时检查url使用。此时的content-type is JSON
+	 * @param req
+	 * @return
+	 */
+	@POST
+	@Path("/fir")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public String fir(@Context HttpServletRequest req,
+			@FormParam("icon") String icon,
+			@FormParam("msg") String msg,
+			@FormParam("name") String name,
+			@FormParam("changelog") String changelog,
+			@FormParam("platform") String platform,
+			@FormParam("release_type") String release_type,
+			@FormParam("build") String build) {
+		String content_type = req.getContentType();
+		// TODO generate msg and broadcast
+		
+		return content_type;
+	}
+	
 	/**创建webhook配置时检查url使用。此时的content-type is JSON
 	 * @param req
 	 * @return
