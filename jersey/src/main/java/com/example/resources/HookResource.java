@@ -58,13 +58,19 @@ public class HookResource {
 	// 监控宝全局变量声明
 
 	/**
-	 * 推送的一个msgid的集合。用户防止msg重复接收。
+	 * 推送的一个msgid的集合。防止重复接收。
 	 */
 	public static final List<String> jkbao_msgIds = new ArrayList<String>();
 	/**
 	 * 监控宝生成的，需要在hiwork配置时，设置这个token,做数据校验用，确保请求来自于监控宝 （类似签名的效果）
 	 */
 	public static String jkbao_token = "efc4f368e17fceb424074e52672e544d";
+
+	// 金数据全局变量声明
+	/**
+	 * 推送表单的serial_number的集合。防止重复接收。
+	 */
+	public static final List<String> jsj_serials = new ArrayList<String>();
 
 	/**
 	 * 测试服务状态服务
@@ -292,9 +298,43 @@ public class HookResource {
 		}
 		return null;
 	}
-	
-	
-	/**创建webhook配置时检查url使用。此时的content-type is JSON
+
+	@POST
+	@Path("jsj")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String jsj(@Context HttpServletRequest req,
+			Map<String, Object> jsonData) {
+//		String api_key="tj_drkod2HhNtz69i7V40w";
+//		String api_secret="uvnVDVbHlcMmtE6huIxy6Q";
+		
+		String content_type = req.getContentType();
+
+		// {form=x8GO5U, entry={serial_number=1, field_1=大熊, field_7=一定能来,
+		// field_2=13800000000, field_3=[日期1, 日期2, 日期3, 日期4], field_4=[菜类1],
+		// field_6=带两个家属, creator_name=, created_at=2015-06-03T03:28:51Z,
+		// updated_at=2015-06-03T03:28:51Z, info_remote_ip=1.80.205.127}}
+
+		
+		String form =(String) jsonData.get("form");
+		String serial_number = String.valueOf(((Map) jsonData.get("entry")).get("serial_number"));
+		
+		logger.info(form);
+		
+		if (!jsj_serials.contains(serial_number)) {
+			logger.info((String) ((Map) jsonData.get("entry")).get("DateTime"));
+			// TODO generate link address and broadcast(通知有新数据，通过链接查看详情)
+			String url=String.format("https://www.jinshuju.net/forms/%s/entries?utm_source=%s", form,"hiwork.cc");
+			logger.info(url);
+			
+			jsj_serials.add(serial_number);
+		}
+		return content_type;
+	}
+
+	/**
+	 * 创建webhook配置时检查url使用。此时的content-type is JSON
+	 * 
 	 * @param req
 	 * @return
 	 */
@@ -303,8 +343,7 @@ public class HookResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String fir(@Context HttpServletRequest req,
-			@FormParam("icon") String icon,
-			@FormParam("msg") String msg,
+			@FormParam("icon") String icon, @FormParam("msg") String msg,
 			@FormParam("name") String name,
 			@FormParam("changelog") String changelog,
 			@FormParam("platform") String platform,
@@ -316,7 +355,8 @@ public class HookResource {
 		return content_type;
 	}
 	
-	/**创建webhook配置时检查url使用。此时的content-type is JSON
+	/**
+	 * 创建webhook配置时检查url使用。此时的content-type is JSON
 	 * @param req
 	 * @return
 	 */
@@ -331,7 +371,9 @@ public class HookResource {
 		return content_type;
 	}
 
-	/**事件通知时使用。此时的content-type is FORM
+	/**
+	 * 事件通知时使用。此时的content-type is FORM
+	 * 
 	 * @param req
 	 * @param event
 	 * @param message
