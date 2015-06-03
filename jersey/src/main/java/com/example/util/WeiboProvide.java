@@ -22,8 +22,12 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WeiboProvide {
+	
+	public static Logger logger = LoggerFactory.getLogger(WeiboProvide.class);
 	
 	static String app_key="4158348570";//"1121941913";
 	//static String access_token="2.00qaELFG_2YvNB01357c5fdatiIVPB";
@@ -50,20 +54,19 @@ public class WeiboProvide {
 		
 		CloseableHttpClient httpclient = HttpClients.createDefault();
 		String getUrl = String.format("%s?source=%s&access_token=%s&since_id=%s", url,app_key,access_token,since_id);
-		System.out.println(getUrl);
-		 
+		logger.info(getUrl); 
 		HttpGet httpGet = new HttpGet(getUrl);
 		//HttpGet httpGet = new HttpGet(String.format("%s?&access_token=%s", url,access_token));
 		CloseableHttpResponse response=null;
 		
 		try {
 			response = httpclient.execute(httpGet);
-//		    System.out.println(response.getStatusLine());
 		    HttpEntity entity = response.getEntity();
 		    String resp_content=EntityUtils.toString(entity);
 		    EntityUtils.consume(entity);
 		    
-		    System.out.println(resp_content);
+		    logger.info(resp_content); 
+		    
 		    JSONObject jsonObj=JSONObject.fromObject(resp_content);  
 		    List<Map> msgs =JSONArray.toList((JSONArray)jsonObj.get("statuses"),Map.class);
 		    if(msgs!=null && msgs.size()>0){
@@ -71,7 +74,8 @@ public class WeiboProvide {
 //		    	获取最新微博的id
 			    since_id = (Long)msgs.get(0).get("id");
 			    for(Map msg :msgs){
-			    	System.out.println(String.format("%d %s %s",msg.get("id"), msg.get("created_at"), msg.get("text")));
+			    	logger.info(String.format("%d %s %s",msg.get("id"), msg.get("created_at"), msg.get("text")));
+			    	
 			    	Map<String,Object> m=new HashMap<String,Object>();
 			    	m.put("id",msg.get("id"));
 			    	m.put("created_at", msg.get("created_at"));
@@ -115,12 +119,13 @@ public class WeiboProvide {
 		CloseableHttpResponse response = httpclient.execute(httpPost);
 
 		try {
-		    System.out.println(response.getStatusLine());
+		    logger.info(""+response.getStatusLine()); 
 		    HttpEntity entity = response.getEntity();
 		    String resp_content=EntityUtils.toString(entity);
 		    EntityUtils.consume(entity);
 		    
-		    System.out.println(resp_content);
+		    logger.info(resp_content); 
+		    
 		    JSONObject jsonObj=JSONObject.fromObject(resp_content);
 //		    jsonObj.get("expires_in");
 //		    jsonObj.get("remind_in");
@@ -140,7 +145,7 @@ public class WeiboProvide {
 		map.put("token", token);
 		map.put("data", l);
 		String json =JSONObject.fromObject(map).toString();
-		System.out.println(json);
+		logger.info(json);
 		
 		HttpPost httpPost = new HttpPost(url);
 		StringEntity entity = new StringEntity(json, ContentType.APPLICATION_JSON);
