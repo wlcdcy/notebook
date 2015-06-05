@@ -46,7 +46,7 @@ import com.example.util.WeiboProvide;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
-@Path("/hooks")
+@Path("/webhook")
 public class HookResource {
 	Logger logger = LoggerFactory.getLogger(HookResource.class);
 
