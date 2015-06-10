@@ -63,7 +63,7 @@ public class MailUtils {
 
 	}
 
-	/**
+	/** 代发邮件
 	 * @param subject
 	 *            邮件主题
 	 * @param content
