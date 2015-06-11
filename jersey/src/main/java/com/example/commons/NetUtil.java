@@ -1,4 +1,4 @@
-package com.example.util;
+package com.example.commons;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,7 +32,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-public class NetUtils {
+public class NetUtil {
 	public static void main1(String[] args) throws SocketException, IOException {
 
 		if (args.length != 2 && args.length != 3 && args.length != 5) {
@@ -96,7 +96,7 @@ public class NetUtils {
 	 * @param ssl	true支持https
 	 * @return
 	 */
-	public CloseableHttpClient getHttpClient(boolean ssl) {
+	public static CloseableHttpClient getHttpClient(boolean ssl) {
 		if (!ssl) {
 			return HttpClients.createDefault();
 		}
@@ -145,7 +145,7 @@ public class NetUtils {
 	 * @param keystore			default【 "d:/hiwork.keystore"】;
 	 * @return
 	 */
-	public CloseableHttpClient getHttpClient(String keystore) {
+	public static CloseableHttpClient getHttpClient(String keystore) {
 		// 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式;
 		// 1、需要从浏览器导出证书 xxx.cer；
 		// 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
