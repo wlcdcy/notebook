@@ -21,7 +21,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.example.commons.OscUtil;
+import com.example.commons.OscUtils;
 
 @Path("/webhook/osc")
 public class OscResource {
@@ -39,7 +39,7 @@ public class OscResource {
 	@GET
 	public static void oauth2Auth(@Context HttpServletResponse resp){
 		try {
-			resp.sendRedirect(OscUtil.getOauth2AuthUrl());
+			resp.sendRedirect(OscUtils.getOauth2AuthUrl());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -49,12 +49,12 @@ public class OscResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public static String auth_back(@QueryParam("code") String code,@QueryParam("state") String state){
-		OscUtil.auth_code = code;
+		OscUtils.auth_code = code;
 		logger.info(String.format("auth code is : %s", code));
 		logger.info(String.format("res state is : %s", state));
 		
 		//fetch access token
-		OscUtil.fetchOauth2Token(code);
+		OscUtils.fetchOauth2Token(code);
 		return "";
 	}
 	
@@ -66,7 +66,7 @@ public class OscResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public static String search(String catalog,String words){
 		Map<String,String> data = new HashMap<String,String>();
-		data.put("access_token", OscUtil.access_token);
+		data.put("access_token", OscUtils.access_token);
 		data.put("catalog", catalog);
 		data.put("q", words);
 		data.put("dataType", "json");
@@ -88,7 +88,7 @@ public class OscResource {
 		}
 		logger.info(String.format("req_data is : %s", req_data));
 		
-		return OscUtil.search(catalog,words);
+		return OscUtils.search(catalog,words);
 		
 	}
 	

@@ -67,7 +67,7 @@ public class OscUtils {
 			req_url = buildReqeustUrl(req_url,req_data);
 			
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
-			CloseableHttpClient httpclient = NetClientUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
 			HttpPost httpPost = new HttpPost(req_url);
 			httpPost.addHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 			CloseableHttpResponse response =httpclient.execute(httpPost);
@@ -89,7 +89,7 @@ public class OscUtils {
 	private static String get_request(String req_url){
 		try {
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
-			CloseableHttpClient httpclient = NetClientUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
 			httpget.addHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 			CloseableHttpResponse response =httpclient.execute(httpget);
@@ -113,7 +113,7 @@ public class OscUtils {
 			req_url = buildReqeustUrl(req_url,params);
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
 			
-			CloseableHttpClient httpclient = NetClientUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
 			
 			HttpRequestBase httpRequest = getHttpRequestBase(method,req_url);
 			if(httpRequest==null){
