@@ -23,6 +23,7 @@ import org.apache.commons.net.io.CopyStreamException;
 import org.apache.commons.net.smtp.SMTPClient;
 import org.apache.commons.net.smtp.SMTPReply;
 import org.apache.commons.net.smtp.SimpleSMTPHeader;
+import org.apache.james.jdkim.DKIMSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,6 +129,14 @@ public class MailUtils {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	
+	public void sendMailWithDKIM(){
+		DKIMSigner dkimSigner = new DKIMSigner(<signingDomain>, <selector>, <privateKey>);
+		Message msg = new SMTPDKIMMessage(session, dkimSigner);
+		// fill the message here
+		transport.sendMessage(msg, msg.getAllRecipients());
 	}
 
 	// 代发邮件

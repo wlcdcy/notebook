@@ -170,6 +170,12 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.5.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.james.jdkim</groupId>
+			<artifactId>apache-jdkim-library</artifactId>
+			<version>0.2</version>
+		</dependency>
+		
 
 	</dependencies>
 	<build>
