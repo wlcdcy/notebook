@@ -21,6 +21,9 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.nntp.NNTPClient;
 import org.apache.commons.net.nntp.NewsgroupInfo;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -31,8 +34,12 @@ import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NetClientUtils {
+	public static Logger logger = LoggerFactory.getLogger(NetClientUtils.class);
 	public static void main1(String[] args) throws SocketException, IOException {
 
 		if (args.length != 2 && args.length != 3 && args.length != 5) {
@@ -178,6 +185,23 @@ public class NetClientUtils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static void main(String[] args){
+		String url="http://view.icoffer.cn/x/_layouts/xlviewerinternal.aspx?WOPISrc=http://api.hiwork.cc/fileserver/wopi/files/5395";
+		CloseableHttpClient hpclient=createHttpClient(false);
+		HttpGet hpget = new HttpGet(url);
+		try {
+			CloseableHttpResponse resp = hpclient.execute(hpget);
+			logger.info(resp.toString());
+			if(resp.getStatusLine().getStatusCode()<300){
+				logger.info(EntityUtils.toString(resp.getEntity()));
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
