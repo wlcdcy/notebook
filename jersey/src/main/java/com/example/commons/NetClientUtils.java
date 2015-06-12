@@ -2,44 +2,50 @@ package com.example.commons;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.SocketException;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.logging.Level;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import net.sf.json.JSONObject;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.nntp.NNTPClient;
 import org.apache.commons.net.nntp.NewsgroupInfo;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NetClientUtils {
 	public static Logger logger = LoggerFactory.getLogger(NetClientUtils.class);
+
 	public static void main1(String[] args) throws SocketException, IOException {
 
 		if (args.length != 2 && args.length != 3 && args.length != 5) {
@@ -99,8 +105,11 @@ public class NetClientUtils {
 		}
 	}
 
-	/** 获取同时支持http和https的HttpClient对象
-	 * @param ssl	true支持https
+	/**
+	 * 获取同时支持http和https的HttpClient对象
+	 * 
+	 * @param ssl
+	 *            true支持https
 	 * @return
 	 */
 	public static CloseableHttpClient createHttpClient(boolean ssl) {
@@ -132,8 +141,7 @@ public class NetClientUtils {
 			e.printStackTrace();
 		}
 
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx,
-				SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
 		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory
 				.getSocketFactory();
 
@@ -148,36 +156,46 @@ public class NetClientUtils {
 		return httpclinet;
 	}
 
+	public static CloseableHttpClient createHttpClient() {
+		SSLContext ctx = getSslContext();// SSLContexts.createSystemDefault();
+
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
+		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.INSTANCE;
+		Registry<ConnectionSocketFactory> r = RegistryBuilder
+				.<ConnectionSocketFactory> create().register("http", plainsf)
+				.register("https", sslsf).build();
+
+		HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
+				r);
+		CloseableHttpClient httpclinet = HttpClients.custom()
+				.setConnectionManager(cm).build();
+		return httpclinet;
+	}
+
 	/**
-	 * @param keystore			default【 "d:/hiwork.keystore"】;
+	 * @param keystore
+	 *            default【 "d:/hiwork.keystore"】;
 	 * @return
 	 */
 	public static CloseableHttpClient createHttpClient(String keystore) {
 		// 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式;
 		// 1、需要从浏览器导出证书 xxx.cer；
 		// 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
-		
 		try {
-			KeyStore trustStore = KeyStore.getInstance(KeyStore
-					.getDefaultType());
-			FileInputStream instream = new FileInputStream(new File(keystore));
-			try {
-				trustStore.load(instream, "111111".toCharArray());
-			} finally {
-				instream.close();
-			}
-			SSLContext sslcontext = SSLContexts.custom().useTLS()
-					.loadTrustMaterial(trustStore).build();
+			SSLContext sslcontext = SSLContexts
+					.custom()
+					.loadTrustMaterial(new File(keystore),
+							"111111".toCharArray(),
+							new TrustSelfSignedStrategy()).build();
 			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
 					sslcontext);
+
 			return HttpClients.custom().setSSLSocketFactory(sslsf).build();
 		} catch (KeyManagementException e) {
 			e.printStackTrace();
-		} catch (KeyStoreException e) {
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
 			e.printStackTrace();
 		} catch (CertificateException e) {
 			e.printStackTrace();
@@ -186,22 +204,64 @@ public class NetClientUtils {
 		}
 		return null;
 	}
-	
-	public static void main(String[] args){
-		String url="http://view.icoffer.cn/x/_layouts/xlviewerinternal.aspx?WOPISrc=http://api.hiwork.cc/fileserver/wopi/files/5395";
-		CloseableHttpClient hpclient=createHttpClient(false);
-		HttpGet hpget = new HttpGet(url);
+
+	private static SSLContext getSslContext() {
+		SSLContext ctx = null;
 		try {
-			CloseableHttpResponse resp = hpclient.execute(hpget);
-			logger.info(resp.toString());
-			if(resp.getStatusLine().getStatusCode()<300){
-				logger.info(EntityUtils.toString(resp.getEntity()));
-			}
-		} catch (ClientProtocolException e) {
+			ctx = SSLContext.getInstance("TLS");
+			X509TrustManager tm = new X509TrustManager() {
+				public void checkClientTrusted(X509Certificate[] xcs,
+						String string) throws CertificateException {
+				}
+
+				public void checkServerTrusted(X509Certificate[] xcs,
+						String string) throws CertificateException {
+				}
+
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+			};
+			ctx.init(null, new TrustManager[] { tm }, null);
+
+		} catch (KeyManagementException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
+		return ctx;
+	}
+	
+	public static void testJenkins(){
+
+		String webHooks = "https://api.hiwork.cc/api/sendmsg";
+		String token = "204913c1-9669-4f71-8afa-35445bb721e1";
+		CloseableHttpClient client = createHttpClient("d:/hiwork.ks");
+		HttpPost post = new HttpPost(webHooks);
+		try {
+			JSONObject json = new JSONObject();
+			json.put("token", token);
+			json.put("data", "hello hiwork");
+			StringEntity postData = new StringEntity(json.toString());
+			post.setEntity(postData);
+			post.setHeader("content-type", "application/json");
+			CloseableHttpResponse response = client.execute(post);
+			int responseCode = response.getStatusLine().getStatusCode();
+
+			if (responseCode != HttpStatus.SC_OK) {
+				logger.info("HiWork post may have failed. Response: "+ IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+			} else {
+				logger.info("Posting succeeded, Response data:"+ IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+			}
+		} catch (Exception e) {
+			logger.info("Error posting to hiwork", e);
+		} finally {
+			post.releaseConnection();
+		}
+	}
+
+	public static void main(String[] args) {
+		testJenkins();
 	}
 
 }

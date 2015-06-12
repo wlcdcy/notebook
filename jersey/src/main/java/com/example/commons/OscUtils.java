@@ -300,7 +300,7 @@ public class OscUtils {
 				continue;
 			}
 			if(value instanceof InputStream){
-				entityBuilder.addBinaryBody(key, (InputStream)value);
+				entityBuilder.addBinaryBody(key, (InputStream)value,ContentType.MULTIPART_FORM_DATA,"key");
 				continue;
 			}
 			if(value instanceof byte[]){
@@ -317,9 +317,7 @@ public class OscUtils {
 	public static void main(String [] args) throws FileNotFoundException{
 //		search("news","java");
 //		pub_posts(2,100,"java招聘推荐","",null);
-		
-		pub_tweet("@小编辑 ：/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用，",new FileInputStream("d:/20150612113904.png"));
-		
+		pub_tweet("@开源中国  @乔布斯  【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",new FileInputStream("d:/20150612113904.png"));
 		
 	}
 
