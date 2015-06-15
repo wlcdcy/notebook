@@ -25,7 +25,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -121,6 +124,10 @@ public class OscUtils {
 		return res_data;
 	}
 	
+	/**	发布一条纯文本的动弹
+	 * @param msg	消息内容
+	 * @return
+	 */
 	public static String pub_tweet(String msg){
 //		access_token	true	string	oauth2_token获取的access_token	
 //		msg	true		string	动弹内容	
@@ -136,7 +143,12 @@ public class OscUtils {
 		return res_data;
 	}
 	
-	public static String pub_tweet(String msg,InputStream img){
+	/**	发布一条带图片的的动弹
+	 * @param msg	消息内容
+	 * @param img	img(object type)可以是File、InputStram、byte[]类型
+	 * @return
+	 */
+	public static String pub_tweet(String msg, Object img){
 		if(img==null){
 			return pub_tweet(msg);
 		}
@@ -296,15 +308,19 @@ public class OscUtils {
 				continue;
 			}
 			if(value instanceof File){
-				entityBuilder.addBinaryBody(key, (File)value);
+				ContentType contentType = ContentType.create(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+				FileBody fileBody = new FileBody((File)value,contentType);
+				entityBuilder.addPart(key, fileBody);
 				continue;
 			}
 			if(value instanceof InputStream){
-				entityBuilder.addBinaryBody(key, (InputStream)value,ContentType.MULTIPART_FORM_DATA,"key");
+				InputStreamBody inputBody = new InputStreamBody((InputStream)value, "img.png");
+				entityBuilder.addPart(key, inputBody);
 				continue;
 			}
 			if(value instanceof byte[]){
-				entityBuilder.addBinaryBody(key, (byte[])value);
+				ByteArrayBody  byteBody = new ByteArrayBody((byte[])value,"img.png");
+				entityBuilder.addPart(key, byteBody);
 				continue;
 			}
 			logger.info(String.format("not found object type for %s param",key));
@@ -317,7 +333,28 @@ public class OscUtils {
 	public static void main(String [] args) throws FileNotFoundException{
 //		search("news","java");
 //		pub_posts(2,100,"java招聘推荐","",null);
-		pub_tweet("@开源中国  @乔布斯  【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",new FileInputStream("d:/20150612113904.png"));
+		File f =new File("d:/20150612113904.png");
+		
+		byte[] b = new byte[Integer.valueOf(""+f.length())] ;
+		
+		InputStream in = new FileInputStream(f);
+		
+		try {
+//			ImageInputStream  imageIs=null;
+//			imageIs = ImageIO.createImageInputStream(in);
+//			imageIs.read(b);
+			
+//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
+//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
+			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",in);
+			
+		} finally{
+			try {
+				in.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		
 	}
 
