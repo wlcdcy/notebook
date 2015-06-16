@@ -344,9 +344,9 @@ public class OscUtils {
 //			imageIs = ImageIO.createImageInputStream(in);
 //			imageIs.read(b);
 			
-//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
-//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
-			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题;天才都这这么炼成的】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",in);
+//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
+//			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
+			pub_tweet("@开源中国  @乔布斯  @小编辑  【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
 			
 		} finally{
 			try {
