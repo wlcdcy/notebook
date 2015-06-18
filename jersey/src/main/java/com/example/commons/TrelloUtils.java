@@ -46,7 +46,7 @@ public class TrelloUtils {
 			if (StringUtils.equals(name, "hiwork")) {
 				createWebHook(
 						"http://36.46.254.24:808/jersey/webhook/trello/board/callback",
-						"broad webhook", id);
+						"board webhook", id);
 				break;
 			}
 
@@ -86,6 +86,9 @@ public class TrelloUtils {
 		return req_url;
 	}
 
+	/**获取使用Oauth方式的授权认证地址
+	 * @return
+	 */
 	public static String getOauthUrl() {
 		String callback = "http://36.46.254.24:808/jersey/webhook/trello/auth/callback";
 		String scope = "read,write,account";
@@ -106,6 +109,11 @@ public class TrelloUtils {
 		return req_url;
 	}
 
+	/**获取使用Oauth方式授权后的访问token
+	 * @param Oauth_token
+	 * @param oauth_verifier
+	 * @return
+	 */
 	public static String getAccessToken(String Oauth_token,
 			String oauth_verifier) {
 		OAuthService service = new ServiceBuilder().provider(TrelloApi.class)
@@ -116,8 +124,14 @@ public class TrelloUtils {
 		return access_token.getToken();
 	}
 
+	/**创建一个board的webhook,该board上的事件变化都会推送到callback地址上。
+	 * @param callback	接收通知服务地址
+	 * @param desc		描述信息
+	 * @param model		board id。
+	 * @return
+	 */
 	public static String createWebHook(String callback, String desc,
-			String model) {
+			String board_id) {
 		// https://trello.com/1/tokens/[USER_TOKEN]/webhooks/?key=[APPLICATION_KEY]"
 		String req_url = String.format(
 				"https://trello.com/1/tokens/%s/webhooks/?key=%s",
@@ -126,7 +140,7 @@ public class TrelloUtils {
 		Map<String, String> value = new HashMap<String, String>();
 		value.put("callbackURL", callback);
 		value.put("description", desc);
-		value.put("idModel", model);
+		value.put("idModel", board_id);
 		String req_data = null;
 		try {
 			req_data = mapper.writeValueAsString(value);
@@ -165,7 +179,8 @@ public class TrelloUtils {
 		return "";
 	}
 
-	/**
+	/**获取授权用户的信息（包含所有的board）。
+	 * @param username	用户名称
 	 * @return
 	 */
 	public static String members(String username) {
@@ -178,6 +193,10 @@ public class TrelloUtils {
 		return resp_body;
 	}
 
+	/**	获取授权用户的左右board
+	 * @param member_info	用户信息（members方法的返回值）
+	 * @return
+	 */
 	public static List<Map> getBoards(String member_info) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {

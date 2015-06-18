@@ -552,6 +552,9 @@ public class HookResource {
 	}
 	
 	
+	/**重定向到认证授权地址
+	 * @param resp
+	 */
 	@GET
 	@Path("/trello/auth")
 	public void trelloOauth(@Context HttpServletResponse resp){
@@ -562,6 +565,12 @@ public class HookResource {
 		}	
 	}
 	
+	/**授权回调服务。接收trello授权的认证token，以及验证信息。
+	 * @param req
+	 * @param oauth_token
+	 * @param oauth_verifier
+	 * @return
+	 */
 	@GET
 	@Path("/trello/auth/callback")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -574,6 +583,11 @@ public class HookResource {
 		return "is ok!";
 	}
 	
+	/**board事件通知接收服务
+	 * @param req
+	 * @param json_obj
+	 * @return
+	 */
 	@POST
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -591,6 +605,11 @@ public class HookResource {
 		return content_type;
 	}
 	
+	/**创建board事件通知接收服务时的验证服务。
+	 * @param req
+	 * @param resp
+	 * @return
+	 */
 	@HEAD
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
