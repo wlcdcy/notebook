@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -30,6 +31,7 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
@@ -39,10 +41,20 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.util.MD5;
+import org.jsoup.nodes.Document;
+import org.scribe.builder.ServiceBuilder;
+import org.scribe.builder.api.TrelloApi;
+import org.scribe.model.Token;
+import org.scribe.oauth.OAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.OscUtils;
+import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
+import com.helger.html.hc.html.HCBody;
+import com.helger.html.hc.html.HCHead;
+import com.helger.html.hc.html.HCHtml;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -52,8 +64,10 @@ public class HookResource {
 
 	// 微博全局变量声明
 	// String appKey="1121941913";
-	String access_token = "0ebc90cad97041ac57615c0af924f729";
-	String appSecret = "2b3626dc0a956bc98e5b05afd1dbb608";
+	String weibo_access_token = "0ebc90cad97041ac57615c0af924f729";
+	String weibo_app_secret = "2b3626dc0a956bc98e5b05afd1dbb608";
+	
+	public static String trello_access_token="";
 
 	// 监控宝全局变量声明
 
@@ -210,7 +224,7 @@ public class HookResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void jkbao_get(@QueryParam("msg_id") String msg_id,
+	public String jkbao_get(@QueryParam("msg_id") String msg_id,
 			@QueryParam("task_id") String task_id,
 			@QueryParam("task_type") String task_type,
 			@QueryParam("fault_time") String fault_time,
@@ -221,7 +235,7 @@ public class HookResource {
 
 		// 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
 		if (jkbao_msgIds.contains(msg_id)) {
-			return;
+			return "";
 		}
 
 		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s",
@@ -236,7 +250,7 @@ public class HookResource {
 			jkbao_msgIds.add(msg_id);
 		}
 
-		return;
+		return "";
 	}
 
 	@Path("/jkbao")
@@ -536,6 +550,53 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 
 	}
+	
+	
+	@GET
+	@Path("/trello/auth")
+	public void trelloOauth(@Context HttpServletResponse resp){
+		try {
+			resp.sendRedirect(TrelloUtils.getOauthUrl());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	@GET
+	@Path("/trello/auth/callback")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String trelloOauthCallBack(@Context HttpServletRequest req ,@QueryParam("oauth_token") String oauth_token,@QueryParam("oauth_verifier") String oauth_verifier){
+		logger.info("oauth_token : "+oauth_token);
+		logger.info("oauth_verifier: "+oauth_verifier);
+		String access_token = TrelloUtils.getAccessToken(oauth_token,oauth_verifier);
+		trello_access_token = access_token;
+		logger.info("access_token: "+access_token);
+		return "is ok!";
+	}
+	
+	@POST
+	@Path("/trello/board/callback")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String trelloBoardCallBack(@Context HttpServletRequest req,Map<String,Object> json_obj){
+		String content_type = req.getContentType();
+		try {
+			logger.info("push data : "+ new ObjectMapper().writeValueAsString(json_obj));
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return content_type;
+	}
+	
+	@HEAD
+	@Path("/trello/board/callback")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String trelloBoardCallBack_head(@Context HttpServletRequest req,@Context HttpServletResponse resp){
+		return "is ok";
+	}
 
 	/**
 	 * 微博粉丝互动服务
@@ -707,7 +768,7 @@ public class HookResource {
 		// return false;
 		// }
 		// return true;
-		return validateSHA(getSignContent(nonce, timestamp, appSecret),
+		return validateSHA(getSignContent(nonce, timestamp, weibo_app_secret),
 				signature);
 
 	}
