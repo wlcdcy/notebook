@@ -7,13 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
@@ -33,7 +38,7 @@ public class TrelloUtils {
 		// get();
 		// getAuthUrl();
 
-		String body = members("overturn");
+		String body = getMembers(); // getMembers("overturn");
 		List<Map> boards = getBoards(body);
 		for (Map board : boards) {
 			String name = (String) board.get("name");
@@ -44,14 +49,27 @@ public class TrelloUtils {
 			logger.info(String.format("name : %s ###### id : %s", name, id));
 
 			if (StringUtils.equals(name, "hiwork")) {
-				createWebHook(
-						"http://36.46.254.24:808/jersey/webhook/trello/board/callback",
+				String resp_webhook = createWebHook(
+						"http://36.45.175.60:808/jersey/webhook/trello/board/callback",
 						"board webhook", id);
+				ObjectMapper mapper = new ObjectMapper();
+				try {
+					my_webhook_id = (String) mapper.readValue(resp_webhook,
+							Map.class).get("id");
+				} catch (JsonParseException e) {
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				break;
 			}
 
 		}
 
+		updateWebookWithModelId(my_webhook_id, "5582849aea1bb63179d15e57");
+		deleteWebhook(my_webhook_id);
 	}
 
 	public static Logger logger = LoggerFactory.getLogger(TrelloUtils.class);
@@ -59,8 +77,9 @@ public class TrelloUtils {
 	public static String secret = "b97c687707005760d7a7c710a66f28ae9eddb964916decb93e171549f6d4fcd3";
 	public static String board_id = "4d5ea62fd76aa1136000000c";
 
-	public static String my_auth_token = "7bbdc42be2f211072520d2a01c42688b";
-	public static String my_access_token = "cb8004d7fa87d18c852f49f99c78ff2a196143cabe7622455a2dd570914da1bf";
+	public static String my_auth_token = "3ae0ffa2bf8a13456ff882fe09a507eb165207dea8750cc2f3fe48a00d687286";
+	public static String my_access_token = "3ae0ffa2bf8a13456ff882fe09a507eb165207dea8750cc2f3fe48a00d687286";
+	public static String my_webhook_id = "558a15e0a7fff9c6a1d795d4";
 
 	public static String get() {
 		String url = "https://api.trello.com/1/board/4d5ea62fd76aa1136000000c";
@@ -86,11 +105,14 @@ public class TrelloUtils {
 		return req_url;
 	}
 
-	/**获取使用Oauth方式的授权认证地址
+	/**
+	 * 获取使用Oauth方式的授权认证地址
+	 * 
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String getOauthUrl() {
-		String callback = "http://36.46.254.24:808/jersey/webhook/trello/auth/callback";
+		String callback = "http://36.45.175.60:808/jersey/webhook/trello/auth/callback";
 		String scope = "read,write,account";
 		OAuthService service = new ServiceBuilder().provider(TrelloApi.class)
 				.apiKey(key).apiSecret(secret).callback(callback).scope(scope)
@@ -109,7 +131,9 @@ public class TrelloUtils {
 		return req_url;
 	}
 
-	/**获取使用Oauth方式授权后的访问token
+	/**
+	 * 获取使用Oauth方式授权后的访问token
+	 * 
 	 * @param Oauth_token
 	 * @param oauth_verifier
 	 * @return
@@ -117,17 +141,22 @@ public class TrelloUtils {
 	public static String getAccessToken(String Oauth_token,
 			String oauth_verifier) {
 		OAuthService service = new ServiceBuilder().provider(TrelloApi.class)
-				.apiKey(key).apiSecret(secret).build();
+				.debug().apiKey(key).apiSecret(secret).build();
 		Token request_token = service.getRequestToken();
 		Token access_token = service.getAccessToken(request_token,
 				new Verifier(oauth_verifier));
 		return access_token.getToken();
 	}
 
-	/**创建一个board的webhook,该board上的事件变化都会推送到callback地址上。
-	 * @param callback	接收通知服务地址
-	 * @param desc		描述信息
-	 * @param model		board id。
+	/**
+	 * 创建一个board的webhook,该board上的事件变化都会推送到callback地址上。
+	 * 
+	 * @param callback
+	 *            接收通知服务地址
+	 * @param desc
+	 *            描述信息
+	 * @param model
+	 *            board id。
 	 * @return
 	 */
 	public static String createWebHook(String callback, String desc,
@@ -153,15 +182,14 @@ public class TrelloUtils {
 		}
 		CloseableHttpClient hpclient = NetClientUtils.createHttpClient(true);
 		try {
-
 			HttpPost hppost = new HttpPost(req_url);
 			StringEntity entity = new StringEntity(req_data,
 					ContentType.APPLICATION_JSON);
 			hppost.setEntity(entity);
 			CloseableHttpResponse response = hpclient.execute(hppost);
-			String resp_body = EntityUtils.toString(response.getEntity());
-			logger.info("resp_body : " + resp_body);
 			if (response.getStatusLine().getStatusCode() == 200) {
+				String resp_body = EntityUtils.toString(response.getEntity());
+				logger.info("resp_body : " + resp_body);
 				return resp_body;
 			}
 
@@ -176,14 +204,99 @@ public class TrelloUtils {
 				e.printStackTrace();
 			}
 		}
-		return "";
+		return null;
 	}
 
-	/**获取授权用户的信息（包含所有的board）。
-	 * @param username	用户名称
+	/**
+	 * @param webhook_id
+	 * @param model_id
 	 * @return
 	 */
-	public static String members(String username) {
+	public static String updateWebookWithModelId(String webhook_id,
+			String model_id) {
+		String req_url = String.format(
+				"https://trello.com/1/webhooks/%s/idModel", webhook_id);
+		CloseableHttpClient hpclient = NetClientUtils.createHttpClient(true);
+		HttpPut hpput = new HttpPut(req_url);
+		HttpEntity entity = EntityBuilder
+				.create()
+				.setParameters(new BasicNameValuePair("value", model_id),
+						new BasicNameValuePair("key", key),
+						new BasicNameValuePair("token", my_access_token))
+				.build();
+		hpput.setEntity(entity);
+		try {
+			CloseableHttpResponse response = hpclient.execute(hpput);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				String resp_body = EntityUtils.toString(response.getEntity());
+				logger.info("resp_body : " + resp_body);
+				return resp_body;
+			} else if (response.getStatusLine().getStatusCode() == 404) {
+				logger.info(String
+						.format("webhook update failed : webhook id[%s] is not exist: ",
+								webhook_id));
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 删除一个board的webhook
+	 * 
+	 * @param webhook_id
+	 *            成功创建webhook时返回的id
+	 * @return
+	 */
+	public static String deleteWebhook(String webhook_id) {
+		// https://trello.com/1/webhooks/[WEBHOOK_ID]?key=[APPLICATION_KEY]&token=[USER_TOKEN]
+		String req_url = String.format(
+				"https://trello.com/1/webhooks/%s?key=%s&token=%s", webhook_id,
+				key, my_access_token);
+		HttpDelete hpdelete = new HttpDelete(req_url);
+		CloseableHttpClient hpclient = NetClientUtils.createHttpClient(true);
+		try {
+			CloseableHttpResponse response = hpclient.execute(hpdelete);
+			if (response.getStatusLine().getStatusCode() == 200) {
+				String resp_body = EntityUtils.toString(response.getEntity());
+				logger.info("resp_body : " + resp_body);
+				return resp_body;
+			} else if (response.getStatusLine().getStatusCode() == 404) {
+				logger.info(String.format(
+						"webhook delete error : webhook id[%s] is not exist: ",
+						webhook_id));
+			}
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取授权用户的信息
+	 * 
+	 * @return
+	 */
+	public static String getMembers() {
+		return getMembers("me");
+	}
+
+	/**
+	 * 获取授权用户的信息（包含所有的board）。
+	 * 
+	 * @param username
+	 *            用户名称 default=me
+	 * @return
+	 */
+	public static String getMembers(String username) {
+		if (username == null || StringUtils.isEmpty(username)) {
+			username = "me";
+		}
 		String url = "https://trello.com/1/members";
 		String req_url = String.format("%s/%s?boards=all&key=%s&token=%s", url,
 				username, key, my_access_token);
@@ -193,11 +306,18 @@ public class TrelloUtils {
 		return resp_body;
 	}
 
-	/**	获取授权用户的左右board
-	 * @param member_info	用户信息（members方法的返回值）
+	/**
+	 * 获取授权用户的所有board
+	 * 
+	 * @param member_info
+	 *            用户信息（members方法的返回值）
 	 * @return
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static List<Map> getBoards(String member_info) {
+		if (member_info == null || StringUtils.isEmpty(member_info)) {
+			return null;
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 			Map obj = mapper.readValue(member_info, Map.class);

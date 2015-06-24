@@ -591,7 +591,7 @@ public class HookResource {
 	@POST
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String trelloBoardCallBack(@Context HttpServletRequest req,Map<String,Object> json_obj){
+	public String trelloBoardCallBackPost(@Context HttpServletRequest req,Map<String,Object> json_obj){
 		String content_type = req.getContentType();
 		try {
 			logger.info("push data : "+ new ObjectMapper().writeValueAsString(json_obj));
@@ -613,7 +613,7 @@ public class HookResource {
 	@HEAD
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String trelloBoardCallBack_head(@Context HttpServletRequest req,@Context HttpServletResponse resp){
+	public String trelloBoardCallBackHead(@Context HttpServletRequest req,@Context HttpServletResponse resp){
 		return "is ok";
 	}
 
