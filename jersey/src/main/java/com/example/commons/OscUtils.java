@@ -52,6 +52,7 @@ public class OscUtils {
 	/**获取osc认证地址
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String getOauth2AuthUrl(){
 		String url="/action/oauth2/authorize";
 		String response_type="code";
@@ -64,6 +65,7 @@ public class OscUtils {
 	 * @param code
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String fetchOauth2Token(String code){
 		String url="/action/openapi/token";
 		String param=String.format("dataType=%s&code=%s&grant_type=%s&client_id=%s&client_secret=%s&redirect_uri=%s","json",code,"authorization_code",client_id,client_secret,URLEncoder.encode(redirect_uri));
@@ -128,6 +130,7 @@ public class OscUtils {
 	 * @param msg	消息内容
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public static String pub_tweet(String msg){
 //		access_token	true	string	oauth2_token获取的access_token	
 //		msg	true		string	动弹内容	
@@ -335,7 +338,7 @@ public class OscUtils {
 //		pub_posts(2,100,"java招聘推荐","",null);
 		File f =new File("d:/20150612113904.png");
 		
-		byte[] b = new byte[Integer.valueOf(""+f.length())] ;
+//		byte[] b = new byte[Integer.valueOf(""+f.length())] ;
 		
 		InputStream in = new FileInputStream(f);
 		

@@ -263,9 +263,11 @@ public class NetClientUtils {
 			}else{
 				return null;
 			}
-			logger.info(response.toString());
+			
 			if(response.getStatusLine().getStatusCode()<300){
 				return EntityUtils.toString(response.getEntity());
+			}else{
+				logger.info(response.toString());
 			}
 		} catch (UnsupportedCharsetException e) {
 			e.printStackTrace();
