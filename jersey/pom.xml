@@ -188,6 +188,16 @@
 			<version>1.20.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client-servlet</artifactId>
+			<version>1.20.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.http-client</groupId>
+			<artifactId>google-http-client-jackson2</artifactId>
+			<version>1.20.0</version>
+		</dependency>
+		<dependency>
 		<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
 			<artifactId>oauth-client</artifactId>
 			<version>1.19</version>
