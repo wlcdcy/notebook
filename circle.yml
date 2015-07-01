@@ -1,0 +1,5 @@
+## Custom notifications
+notify:
+  webhooks:
+    # A list of hashes representing hooks. Only the url field is supported.
+    - url: http://36.46.24.14:808/jersey/webhook/circle
