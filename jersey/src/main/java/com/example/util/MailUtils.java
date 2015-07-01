@@ -133,10 +133,10 @@ public class MailUtils {
 	
 	
 	public void sendMailWithDKIM(){
-		DKIMSigner dkimSigner = new DKIMSigner(<signingDomain>, <selector>, <privateKey>);
-		Message msg = new SMTPDKIMMessage(session, dkimSigner);
+		DKIMSigner dkimSigner = null ;//new DKIMSigner(<signingDomain>, <selector>, <privateKey>);
+		//Message msg = new SMTPDKIMMessage(session, dkimSigner);
 		// fill the message here
-		transport.sendMessage(msg, msg.getAllRecipients());
+		//transport.sendMessage(msg, msg.getAllRecipients());
 	}
 
 	// 代发邮件

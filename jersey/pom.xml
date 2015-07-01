@@ -10,6 +10,7 @@
 	
 	<properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <local.lib.path>${project.basedir}/src/main/webapp/WEB-INF/lib</local.lib.path>
     </properties>
     
 	<dependencies>
@@ -156,6 +157,15 @@
 			<artifactId>rome</artifactId>
 			<version>1.0</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>commons-feedparser</groupId>
+			<artifactId>commons-feedparser</artifactId>
+			<version>0.6</version>
+			<classifier>fork</classifier>
+			<systemPath>${local.lib.path}/commons-feedparser-0.6-fork.jar</systemPath>
+			<scope>system</scope>
+		</dependency>
 
 		<!--feed( rss|atom) -->
 		<!-- <dependency> -->
@@ -163,6 +173,14 @@
 		<!-- <artifactId>barchart-feed-client</artifactId> -->
 		<!-- <version>1.3.26</version> -->
 		<!-- </dependency> -->
+		
+		<dependency>
+			<groupId>sunmscapi</groupId>
+			<artifactId>sunmscapi</artifactId>
+			<version>1</version>
+			<systemPath>${local.lib.path}/sunmscapi.jar</systemPath>
+			<scope>system</scope>
+		</dependency>
 
 		<dependency>
 			<groupId>commons-net</groupId>
@@ -175,9 +193,17 @@
 			<artifactId>javax.mail</artifactId>
 			<version>1.5.2</version>
 		</dependency>
+		
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.james.jdkim</groupId> -->
+<!-- 			<artifactId>apache-jdkim</artifactId> -->
+<!-- 			<version>0.2</version> -->
+<!-- 			<classifier>bin</classifier> -->
+<!-- 			<type>zip</type> -->
+<!-- 		</dependency> -->
 		<dependency>
 			<groupId>org.apache.james.jdkim</groupId>
-			<artifactId>apache-jdkim-library</artifactId>
+			<artifactId>apache-jdkim-mailets</artifactId>
 			<version>0.2</version>
 		</dependency>
 		
@@ -230,4 +256,10 @@
 	<build>
 		<finalName>jersey</finalName>
 	</build>
+	<repositories>
+		<repository>
+			<id>James</id>
+			<url>http://repo1.maven.org/maven2/org/apache/james/</url>
+		</repository>
+	</repositories>
 </project>
