@@ -1,3 +1,15 @@
+
+## checkout
+checkout:
+  post:
+    - git submodule sync
+    - git submodule update --init
+    
+dependencies:
+  override:
+    - cd jersey
+    - mvn clean install -Dskip test
+
 ## Custom notifications
 notify:
   webhooks:
