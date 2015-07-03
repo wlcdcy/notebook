@@ -14,4 +14,4 @@
 notify:
   webhooks:
     # A list of hashes representing hooks. Only the url field is supported.
-    - url:http://36.46.42.147/jersey/webhook/circleci/123
+    - url:http://36.46.42.147/jersey/webhook/circleci/123,
