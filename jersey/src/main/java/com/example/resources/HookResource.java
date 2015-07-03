@@ -31,7 +31,6 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
@@ -41,20 +40,11 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.util.MD5;
-import org.jsoup.nodes.Document;
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.builder.api.TrelloApi;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.example.commons.OscUtils;
 import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
-import com.helger.html.hc.html.HCBody;
-import com.helger.html.hc.html.HCHead;
-import com.helger.html.hc.html.HCHtml;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
