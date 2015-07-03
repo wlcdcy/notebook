@@ -66,8 +66,8 @@ public class HookResource {
 	// String appKey="1121941913";
 	String weibo_access_token = "0ebc90cad97041ac57615c0af924f729";
 	String weibo_app_secret = "2b3626dc0a956bc98e5b05afd1dbb608";
-	
-	public static String trello_access_token="";
+
+	public static String trello_access_token = "";
 
 	// 监控宝全局变量声明
 
@@ -107,13 +107,11 @@ public class HookResource {
 	@POST
 	@Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void github_form(@Context HttpServletRequest req,
-			@FormParam("Payload") String formData) {
+	public void github_form(@Context HttpServletRequest req, @FormParam("Payload") String formData) {
 		String eventName = req.getHeader("X-Github-Event");
 		String signature = req.getHeader("X-Hub-Signature");
 		String deliverId = req.getHeader("X-Github-Delivery");
-		logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]",
-				eventName, signature, deliverId));
+		logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]", eventName, signature, deliverId));
 		logger.debug(formData);
 	}
 
@@ -129,13 +127,12 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String, Object> github_json(@Context HttpServletRequest req,
-			@PathParam("token") String token, Map<String, Object> jsonData) {
+	public Map<String, Object> github_json(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
 		String eventName = req.getHeader("X-Github-Event");
 		String signature = req.getHeader("X-Hub-Signature");
 		String deliverId = req.getHeader("X-Github-Delivery");
-		logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]",
-				eventName, signature, deliverId));
+		logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]", eventName, signature, deliverId));
 		logger.debug(jsonData.toString());
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("status", 0);
@@ -153,8 +150,7 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String, Object> zcode_json(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public Map<String, Object> zcode_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.debug(jsonData.toString());
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("status", 0);
@@ -171,8 +167,7 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void gitlab_json(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void gitlab_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		ObjectMapper omap = new ObjectMapper();
 		try {
 			logger.debug(omap.writeValueAsString(jsonData));
@@ -195,8 +190,7 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String gitosc_json(@Context HttpServletRequest req,
-			@FormParam("hook") String data) {
+	public String gitosc_json(@Context HttpServletRequest req, @FormParam("hook") String data) {
 		logger.debug(data);
 		return "";
 	}
@@ -224,22 +218,17 @@ public class HookResource {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String jkbao_get(@QueryParam("msg_id") String msg_id,
-			@QueryParam("task_id") String task_id,
-			@QueryParam("task_type") String task_type,
-			@QueryParam("fault_time") String fault_time,
-			@QueryParam("task_status") String task_status,
-			@QueryParam("task_summary") String task_summary,
-			@QueryParam("content") String content,
-			@QueryParam("token") String token) {
+	public String jkbao_get(@QueryParam("msg_id") String msg_id, @QueryParam("task_id") String task_id,
+			@QueryParam("task_type") String task_type, @QueryParam("fault_time") String fault_time,
+			@QueryParam("task_status") String task_status, @QueryParam("task_summary") String task_summary,
+			@QueryParam("content") String content, @QueryParam("token") String token) {
 
 		// 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
 		if (jkbao_msgIds.contains(msg_id)) {
 			return "";
 		}
 
-		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s",
-				msg_id, task_id, fault_time, jkbao_token)))) {
+		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msg_id, task_id, fault_time, jkbao_token)))) {
 			try {
 				String msg = URLDecoder.decode(content, "UTF-8");
 				logger.info(msg);
@@ -257,8 +246,7 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public void jkbao_post(
-			@FormDataParam("msg_id") List<FormDataBodyPart> msg_idObjs,
+	public void jkbao_post(@FormDataParam("msg_id") List<FormDataBodyPart> msg_idObjs,
 			@FormDataParam("task_id") List<FormDataBodyPart> task_idObjs,
 			@FormDataParam("task_type") List<FormDataBodyPart> task_typeObjs,
 			@FormDataParam("fault_time") List<FormDataBodyPart> fault_timeObjs,
@@ -285,8 +273,7 @@ public class HookResource {
 			return;
 		}
 
-		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s",
-				msg_id, task_id, fault_time, jkbao_token)))) {
+		if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msg_id, task_id, fault_time, jkbao_token)))) {
 			try {
 				String msg = URLDecoder.decode(content, "UTF-8");
 				logger.info(msg);
@@ -317,11 +304,10 @@ public class HookResource {
 	@Path("jsj")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String jsj(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
-//		String api_key="tj_drkod2HhNtz69i7V40w";
-//		String api_secret="uvnVDVbHlcMmtE6huIxy6Q";
-		
+	public String jsj(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		// String api_key="tj_drkod2HhNtz69i7V40w";
+		// String api_secret="uvnVDVbHlcMmtE6huIxy6Q";
+
 		String content_type = req.getContentType();
 
 		// {form=x8GO5U, entry={serial_number=1, field_1=大熊, field_7=一定能来,
@@ -329,18 +315,17 @@ public class HookResource {
 		// field_6=带两个家属, creator_name=, created_at=2015-06-03T03:28:51Z,
 		// updated_at=2015-06-03T03:28:51Z, info_remote_ip=1.80.205.127}}
 
-		
-		String form =(String) jsonData.get("form");
+		String form = (String) jsonData.get("form");
 		String serial_number = String.valueOf(((Map) jsonData.get("entry")).get("serial_number"));
-		
+
 		logger.info(form);
-		
+
 		if (!jsj_serials.contains(serial_number)) {
 			logger.info((String) ((Map) jsonData.get("entry")).get("DateTime"));
 			// TODO generate link address and broadcast(通知有新数据，通过链接查看详情)
-			String url=String.format("https://www.jinshuju.net/forms/%s/entries?utm_source=%s", form,"hiwork.cc");
+			String url = String.format("https://www.jinshuju.net/forms/%s/entries?utm_source=%s", form, "hiwork.cc");
 			logger.info(url);
-			
+
 			jsj_serials.add(serial_number);
 		}
 		return content_type;
@@ -356,21 +341,19 @@ public class HookResource {
 	@Path("/fir")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String fir(@Context HttpServletRequest req,
-			@FormParam("icon") String icon, @FormParam("msg") String msg,
-			@FormParam("name") String name,
-			@FormParam("changelog") String changelog,
-			@FormParam("platform") String platform,
-			@FormParam("release_type") String release_type,
+	public String fir(@Context HttpServletRequest req, @FormParam("icon") String icon, @FormParam("msg") String msg,
+			@FormParam("name") String name, @FormParam("changelog") String changelog,
+			@FormParam("platform") String platform, @FormParam("release_type") String release_type,
 			@FormParam("build") String build) {
 		String content_type = req.getContentType();
 		// TODO generate msg and broadcast
-		
+
 		return content_type;
 	}
-	
+
 	/**
 	 * 创建webhook配置时检查url使用。此时的content-type is JSON
+	 * 
 	 * @param req
 	 * @return
 	 */
@@ -407,20 +390,14 @@ public class HookResource {
 	@Path("/sendcloud")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String sendCloud(@Context HttpServletRequest req,
-			@FormParam("event") String event,
-			@FormParam("message") String message,
-			@FormParam("mail_list_task_id") long mail_list_task_id,
-			@FormParam("messageId") String messageId,
-			@FormParam("category") String category,
-			@FormParam("recipientArray") List<String> recipientArray,
-			@FormParam("emailIds") List<String> emailIds,
-			@FormParam("labelId") int labelId,
-			@FormParam("recipientSize") int recipientSize,
-			@FormParam("timestamp") long timestamp,
-			@FormParam("token") String token,
+	public String sendCloud(@Context HttpServletRequest req, @FormParam("event") String event,
+			@FormParam("message") String message, @FormParam("mail_list_task_id") long mail_list_task_id,
+			@FormParam("messageId") String messageId, @FormParam("category") String category,
+			@FormParam("recipientArray") List<String> recipientArray, @FormParam("emailIds") List<String> emailIds,
+			@FormParam("labelId") int labelId, @FormParam("recipientSize") int recipientSize,
+			@FormParam("timestamp") long timestamp, @FormParam("token") String token,
 			@FormParam("signature") String signature) {
-		
+
 		String content_type = req.getContentType();
 		logger.info(content_type);
 		// TODO generate msg and broadcast
@@ -432,8 +409,7 @@ public class HookResource {
 	@Path("/bitbucket/post")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void bitbucket_post(@Context HttpServletRequest req,
-			@FormParam("payload") String payload) {
+	public void bitbucket_post(@Context HttpServletRequest req, @FormParam("payload") String payload) {
 		logger.info(payload);
 		// TODO generate msg use jsonData and broadcast
 	}
@@ -442,8 +418,7 @@ public class HookResource {
 	@Path("/bitbucket/pull")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void bitbucket_pull(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void bitbucket_pull(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.info(jsonData.toString());
 		// TODO generate msg use jsonData and broadcast
 	}
@@ -452,18 +427,165 @@ public class HookResource {
 	@Path("/gitcafe")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void gitcafe(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void gitcafe(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.info(jsonData.toString());
 		// TODO generate msg use jsonData and broadcast
+	}
+
+	@POST
+	@Path("/circleci/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String circleci(@Context HttpServletRequest req, @PathParam("token") String token, Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// TODO generate msg use jsonData and broadcast
+
+		 return content_type;
+	}
+
+	@POST
+	@Path("/bugsnag")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String bugsnag(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://bugsnag.com/docs/notifier-api#json-payload
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/jira")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String jira(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help]
+		// https://developer.atlassian.com/jiradev/jira-architecture/webhooks
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/teambition")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String teambition(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://docs.teambition.com/wiki/webhooks#webhooks-readme
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/kf5/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	public String kf5(@Context HttpServletRequest req, @PathParam("token") String token,
+			@FormDataParam("payload") String payload) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/zendesk/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public String zendesk(@Context HttpServletRequest req, @PathParam("token") String token,
+			@FormParam("source") String source, @FormParam("id") String ticket_id,
+			@FormParam("status") String ticket_status, @FormParam("payload") String payload) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/vsonline/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String vsOnline(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://www.visualstudio.com/get-started/webhooks-and-vso-vs
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/buildkite/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String buildkite(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://buildkite.com/docs/webhooks
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/gogs/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String gogs(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help]
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+
+	@POST
+	@Path("/codeship/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String codeship(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://codeship.com/documentation/integrations/webhooks/
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+	
+	@POST
+	@Path("/travis/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String travis(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://codeship.com/documentation/integrations/webhooks/
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
 	}
 
 	@POST
 	@Path("/getsentry")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void getsentry(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void getsentry(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.info(jsonData.toString());
 		// [help] https://github.com/getsentry/sentry-webhooks
 
@@ -474,8 +596,7 @@ public class HookResource {
 	@Path("/relic")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public void newrelic(@Context HttpServletRequest req,
-			@FormParam("alert") String alert,
+	public void newrelic(@Context HttpServletRequest req, @FormParam("alert") String alert,
 			@FormParam("deployment") String deployment) {
 		logger.info(alert);
 		logger.info(deployment);
@@ -493,8 +614,7 @@ public class HookResource {
 	@Path("/worktile")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void worktile(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void worktile(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 
 		// **********以任务评论为例 列举数据模型*************************
 		// 1:action
@@ -526,8 +646,7 @@ public class HookResource {
 	@Path("/tower")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public void tower(@Context HttpServletRequest req,
-			Map<String, Object> jsonData) {
+	public void tower(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.info(jsonData.toString());
 		// **********以讨论的评论为例 列举数据模型*************************
 		// 1:action
@@ -550,22 +669,25 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 
 	}
-	
-	
-	/**重定向到认证授权地址
+
+	/**
+	 * 重定向到认证授权地址
+	 * 
 	 * @param resp
 	 */
 	@GET
 	@Path("/trello/auth")
-	public void trelloOauth(@Context HttpServletResponse resp){
+	public void trelloOauth(@Context HttpServletResponse resp) {
 		try {
 			resp.sendRedirect(TrelloUtils.getOauthUrl());
 		} catch (IOException e) {
 			e.printStackTrace();
-		}	
+		}
 	}
-	
-	/**授权回调服务。接收trello授权的认证token，以及验证信息。
+
+	/**
+	 * 授权回调服务。接收trello授权的认证token，以及验证信息。
+	 * 
 	 * @param req
 	 * @param oauth_token
 	 * @param oauth_verifier
@@ -574,16 +696,19 @@ public class HookResource {
 	@GET
 	@Path("/trello/auth/callback")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String trelloOauthCallBack(@Context HttpServletRequest req ,@QueryParam("oauth_token") String oauth_token,@QueryParam("oauth_verifier") String oauth_verifier){
-		logger.info("oauth_token : "+oauth_token);
-		logger.info("oauth_verifier: "+oauth_verifier);
-		String access_token = TrelloUtils.getAccessToken(oauth_token,oauth_verifier);
+	public String trelloOauthCallBack(@Context HttpServletRequest req, @QueryParam("oauth_token") String oauth_token,
+			@QueryParam("oauth_verifier") String oauth_verifier) {
+		logger.info("oauth_token : " + oauth_token);
+		logger.info("oauth_verifier: " + oauth_verifier);
+		String access_token = TrelloUtils.getAccessToken(oauth_token, oauth_verifier);
 		trello_access_token = access_token;
-		logger.info("access_token: "+access_token);
+		logger.info("access_token: " + access_token);
 		return "is ok!";
 	}
-	
-	/**board事件通知接收服务
+
+	/**
+	 * board事件通知接收服务
+	 * 
 	 * @param req
 	 * @param json_obj
 	 * @return
@@ -591,10 +716,10 @@ public class HookResource {
 	@POST
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String trelloBoardCallBackPost(@Context HttpServletRequest req,Map<String,Object> json_obj){
+	public String trelloBoardCallBackPost(@Context HttpServletRequest req, Map<String, Object> json_obj) {
 		String content_type = req.getContentType();
 		try {
-			logger.info("push data : "+ new ObjectMapper().writeValueAsString(json_obj));
+			logger.info("push data : " + new ObjectMapper().writeValueAsString(json_obj));
 		} catch (JsonGenerationException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -604,8 +729,10 @@ public class HookResource {
 		}
 		return content_type;
 	}
-	
-	/**创建board事件通知接收服务时的验证服务。
+
+	/**
+	 * 创建board事件通知接收服务时的验证服务。
+	 * 
 	 * @param req
 	 * @param resp
 	 * @return
@@ -613,7 +740,7 @@ public class HookResource {
 	@HEAD
 	@Path("/trello/board/callback")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String trelloBoardCallBackHead(@Context HttpServletRequest req,@Context HttpServletResponse resp){
+	public String trelloBoardCallBackHead(@Context HttpServletRequest req, @Context HttpServletResponse resp) {
 		return "is ok";
 	}
 
@@ -629,18 +756,15 @@ public class HookResource {
 	@Path("/weibo")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String weibo_json(@Context HttpServletRequest req, String text)
-			throws IOException {
+	public String weibo_json(@Context HttpServletRequest req, String text) throws IOException {
 		String timestamp = req.getParameter("timestamp");
 		String signature = req.getParameter("signature");
 		String nonce = req.getParameter("nonce");
 		String echostr = req.getParameter("echostr");
-		logger.debug(String.format(
-				"[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]",
-				signature, timestamp, nonce, echostr));
-		System.out.println(String.format(
-				"[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]",
-				signature, timestamp, nonce, echostr));
+		logger.debug(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp, nonce,
+				echostr));
+		System.out.println(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp,
+				nonce, echostr));
 		if (validateSHA(signature, nonce, timestamp)) {
 			if (org.apache.commons.lang.StringUtils.isNotBlank(echostr)) {
 				return echostr;
@@ -695,9 +819,8 @@ public class HookResource {
 		String signature = req.getParameter("signature");
 		String nonce = req.getParameter("nonce");
 		String echostr = req.getParameter("echostr");
-		logger.debug(String.format(
-				"[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]",
-				signature, timestamp, nonce, echostr));
+		logger.debug(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp, nonce,
+				echostr));
 
 		if (validateSHA(signature, nonce, timestamp)) {
 			if (org.apache.commons.lang.StringUtils.isNotBlank(echostr)) {
@@ -762,8 +885,7 @@ public class HookResource {
 		try {
 			MessageDigest md = MessageDigest.getInstance("SHA-1");
 			md.update(data.getBytes());
-			return StringUtils.equals(signture,
-					Hex.encodeHexString(md.digest()));
+			return StringUtils.equals(signture, Hex.encodeHexString(md.digest()));
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
@@ -787,8 +909,7 @@ public class HookResource {
 		// return false;
 		// }
 		// return true;
-		return validateSHA(getSignContent(nonce, timestamp, weibo_app_secret),
-				signature);
+		return validateSHA(getSignContent(nonce, timestamp, weibo_app_secret), signature);
 
 	}
 
@@ -867,8 +988,7 @@ public class HookResource {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
-	private String generateReplyMsg(String data, String type, String senderId,
-			String receiverId) {
+	private String generateReplyMsg(String data, String type, String senderId, String receiverId) {
 		JSONObject jo = new JSONObject();
 		jo.put("result", true);
 		jo.put("sender_id", senderId);
@@ -906,8 +1026,7 @@ public class HookResource {
 			temp.put("display_name", "两个故事");
 			temp.put("summary", "今天讲两个故事，分享给你。谁是公司？谁又是中国人？​");
 			temp.put("image", "http://storage.mcp.weibo.cn/0JlIv.jpg");
-			temp.put("url",
-					"http://e.weibo.com/mediaprofile/article/detail?uid=1722052204&aid=983319");
+			temp.put("url", "http://e.weibo.com/mediaprofile/article/detail?uid=1722052204&aid=983319");
 			ja.add(temp);
 		}
 		jo.put("articles", ja);
