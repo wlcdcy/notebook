@@ -436,12 +436,31 @@ public class HookResource {
 	@Path("/circleci/{token}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String circleci(@Context HttpServletRequest req, @PathParam("token") String token, Map<String, Object> jsonData) {
+	public String circleci(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
+
+		// [help] :https://circleci.com/docs/configuration
+
 		// TODO generate msg use jsonData and broadcast
 
-		 return content_type;
+		return content_type;
+	}
+
+	@POST
+	@Path("/magnum/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public String magnum(@Context HttpServletRequest req, @PathParam("token") String token ,@FormParam("payload") String payload) {
+		String content_type = req.getContentType();
+		logger.info(payload);
+
+		// [help] :https://circleci.com/docs/configuration
+
+		// TODO generate msg use jsonData and broadcast
+
+		return content_type;
 	}
 
 	@POST
@@ -566,7 +585,7 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 		return content_type == null ? "hello" : content_type;
 	}
-	
+
 	@POST
 	@Path("/travis/{token}")
 	@Produces(MediaType.APPLICATION_JSON)
