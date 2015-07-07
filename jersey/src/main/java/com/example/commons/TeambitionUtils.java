@@ -94,6 +94,10 @@ public class TeambitionUtils<T> {
 		return oauth_host + url + "?" + param;
 	}
 
+	/**获取访问token
+	 * @param code
+	 * @return
+	 */
 	public static String fetchAccessToken(String code) {
 		String url = "/oauth2/access_token";
 		String param = String.format("code=%s&grant_type=%s&client_id=%s&client_secret=%s", code, "code", client_key,
@@ -104,6 +108,10 @@ public class TeambitionUtils<T> {
 		return res_data;
 	}
 
+	/**检测访问token的合法性
+	 * @param _access_token
+	 * @return
+	 */
 	public static boolean checkAccessToken(String _access_token) {
 		String url = "/api/applications/%s/tokens/check";
 		String req_url = String.format("%s"+url,api_host, client_key);
@@ -115,8 +123,9 @@ public class TeambitionUtils<T> {
 		}
 	}
 	
-	
-	
+	/**获取用户所有的工程信息
+	 * @return
+	 */
 	public static List<Map<String,Object>> listProjects(){
 		String url="/api/projects/";
 		String req_url = String.format("%s%s?access_token=%s", api_host,url,access_token);
@@ -139,6 +148,9 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
+	/**获取工程的webhook事件通知类型
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static List<String> listWebhookEvent4Projects(){
 		String url="/api/projects/webhooks/";
@@ -155,6 +167,9 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
+	/**获取组织机构的webhook事件通知类型
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	public static List<String> listWebhookEvent4Organizations(){
 		String url="/api/organizations/webhooks/";
@@ -169,9 +184,15 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
-	public static String createWebhook4Project(String id,String callbackURL,List<String> events){
+	/**为指定工厂创建一个webhook
+	 * @param p_id
+	 * @param callbackURL
+	 * @param events
+	 * @return
+	 */
+	public static String createWebhook4Project(String p_id,String callbackURL,List<String> events){
 		String url="/api/projects/%s/hooks";
-		String req_url = String.format("%s"+url+"?access_token=%s", api_host,id,access_token);
+		String req_url = String.format("%s"+url+"?access_token=%s", api_host,p_id,access_token);
 		
 		Map<String,Object> params  = new HashMap<String,Object>();
 		params.put("access_token", access_token);
@@ -185,9 +206,15 @@ public class TeambitionUtils<T> {
 		return res_data;
 	}
 	
-	public static String createWebhook4Organization(String id ,String callbackURL,List<String> events){
+	/**为指定的组织创建一个webhook
+	 * @param p_id
+	 * @param callbackURL
+	 * @param events
+	 * @return
+	 */
+	public static String createWebhook4Organization(String p_id ,String callbackURL,List<String> events){
 		String url="/api/organizations/%s/hooks/";
-		String req_url = String.format("%s"+url+"?access_token=%s", api_host,id,access_token);
+		String req_url = String.format("%s"+url+"?access_token=%s", api_host,p_id,access_token);
 		Map<String,Object> params  = new HashMap<String,Object>();
 		params.put("access_token", access_token);
 		params.put("callbackURL", callbackURL);
@@ -201,6 +228,13 @@ public class TeambitionUtils<T> {
 	}
 	
 	
+	/**更新某个工程的某个webhook信息
+	 * @param p_id
+	 * @param hook_id
+	 * @param callbackURL
+	 * @param events
+	 * @return
+	 */
 	public static String updateWebhook4Project(String p_id,String hook_id,String callbackURL,List<String> events){
 		String url="/api/projects/%s/hooks/%s";
 		String req_url = String.format("%s"+url+"?access_token=%s", api_host,p_id,hook_id,access_token);
@@ -217,9 +251,15 @@ public class TeambitionUtils<T> {
 		return res_data;
 	}
 	
-	public static String updateWebhook4Organization(String id ,String callbackURL,List<String> events){
+	/**更新某个组织的某个webhook信息
+	 * @param p_id
+	 * @param callbackURL
+	 * @param events
+	 * @return
+	 */
+	public static String updateWebhook4Organization(String p_id ,String callbackURL,List<String> events){
 		String url="/api/organizations/%s/hooks/";
-		String req_url = String.format("%s"+url+"?access_token=%s", api_host,id,access_token);
+		String req_url = String.format("%s"+url+"?access_token=%s", api_host,p_id,access_token);
 		Map<String,Object> params  = new HashMap<String,Object>();
 		params.put("access_token", access_token);
 		params.put("callbackURL", callbackURL);
@@ -233,6 +273,10 @@ public class TeambitionUtils<T> {
 	}
 	
 	
+	/**获取某个工程的已创建webhook信息
+	 * @param p_id
+	 * @return
+	 */
 	public static String listWebhook4Projects(String p_id) {
 		String url="/api/projects/%s/hooks/";
 		String req_url = String.format("%s"+url+"?access_token=%s", api_host,p_id,access_token);
@@ -242,6 +286,10 @@ public class TeambitionUtils<T> {
 		return res_data;
 	}
 	
+	/**获取某个组织的已创建的webhook列表
+	 * @param _id
+	 * @return
+	 */
 	public static String listWebhook4Organizations(String _id) {
 		String url="/api/organizations/%s/hooks/";
 		String res_data = get_request(String.format("%s"+url+"%s?access_token=%s", api_host,_id,access_token));
@@ -252,6 +300,11 @@ public class TeambitionUtils<T> {
 	
 	
 //	**********************private method ***************************
+	/**验证访问token
+	 * @param req_url
+	 * @param _access_token
+	 * @return
+	 */
 	private static String check_access_token_request(String req_url,String _access_token) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
@@ -274,14 +327,15 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
+	/**发送一个get请求
+	 * @param req_url
+	 * @return
+	 */
 	private static String get_request(String req_url) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
 			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
-//			httpget.setHeader(HttpHeaders.CONTENT_ENCODING, Consts.UTF_8.name());
-//			httpget.addHeader(HttpHeaders.USER_AGENT,
-//					"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 			CloseableHttpResponse response = httpclient.execute(httpget);
 			logger.info(response.toString());
 			if (response.getStatusLine().getStatusCode() < 300) {
@@ -298,6 +352,11 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 
+	/**发送一个form格式数据的post请求
+	 * @param req_url
+	 * @param params
+	 * @return
+	 */
 	private static String post_request(String req_url, String params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
@@ -326,6 +385,11 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
+	/**发送一个json格式数据的post请求
+	 * @param req_url
+	 * @param params
+	 * @return
+	 */
 	private static String post_request(String req_url, Map<String,Object> params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
@@ -352,6 +416,11 @@ public class TeambitionUtils<T> {
 		return null;
 	}
 	
+	/**发送一个json格式数据的put请求
+	 * @param req_url
+	 * @param params
+	 * @return
+	 */
 	private static String put_request(String req_url, Map<String,Object> params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;

@@ -27,6 +27,10 @@ public class TeambitionResource {
 	private static Logger logger = LoggerFactory.getLogger(TeambitionResource.class);
 	
 	
+	/**
+	 * @param resp
+	 * @throws IOException
+	 */
 	@Path("/index")
 	@GET
 	public void index(@Context HttpServletResponse resp) throws IOException{
@@ -34,6 +38,10 @@ public class TeambitionResource {
 		resp.getOutputStream().write(html.getBytes());
 	}
 	
+	/**重定向到认证授权地址
+	 * @param req
+	 * @param resp
+	 */
 	@Path("/auth")
 	@GET
 	public void oauth2Auth(@Context HttpServletRequest req,@Context HttpServletResponse resp){
@@ -44,6 +52,11 @@ public class TeambitionResource {
 		}
 	}
 	
+	/**认证授权成功回调地址
+	 * @param code
+	 * @param state
+	 * @return
+	 */
 	@Path("/auth/callback")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -74,6 +87,11 @@ public class TeambitionResource {
 		return "";
 	}
 	
+	/**工程事件变化通知地址
+	 * @param req
+	 * @param jsonData
+	 * @return
+	 */
 	@Path("/project")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -85,6 +103,11 @@ public class TeambitionResource {
 		return content_type;
 	}
 	
+	/**组织机构事件变化通知地址
+	 * @param req
+	 * @param jsonData
+	 * @return
+	 */
 	@Path("/organization")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
