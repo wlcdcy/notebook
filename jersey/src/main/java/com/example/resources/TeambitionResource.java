@@ -33,9 +33,10 @@ public class TeambitionResource {
 	 */
 	@Path("/index")
 	@GET
-	public void index(@Context HttpServletResponse resp) throws IOException{
+	public String index(@Context HttpServletResponse resp) throws IOException{
 		String html="welcome to hiwork.";
-		resp.getOutputStream().write(html.getBytes());
+//		resp.getOutputStream().write(html.getBytes());
+		return html;
 	}
 	
 	/**重定向到认证授权地址

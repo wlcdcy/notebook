@@ -12,6 +12,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<local.lib.path>${project.basedir}/src/main/webapp/WEB-INF/lib</local.lib.path>
 		<jdk.version>1.7</jdk.version>
+		<jersey.version>1.18</jersey.version>
 	</properties>
 
 	<dependencies>
@@ -21,6 +22,13 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.36</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -31,33 +39,39 @@
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-core</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-servlet</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-json</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey.contribs</groupId>
 			<artifactId>jersey-multipart</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-client</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-server</artifactId>
-			<version>1.18</version>
+			<version>${jersey.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sun.jersey.jersey-test-framework</groupId>
+			<artifactId>jersey-test-framework-grizzly2</artifactId>
+			<version>${jersey.version}</version>
+		</dependency>
+		
 
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
