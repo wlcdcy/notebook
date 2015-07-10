@@ -589,6 +589,21 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 		return content_type == null ? "hello" : content_type;
 	}
+	
+	@POST
+	@Path("/runscope/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String runscope(@Context HttpServletRequest req, @PathParam("token") String token,
+			Map<String, Object> jsonData) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// [help] https://www.runscope.com/docs/api-testing/notifications#webhook
+
+		// TODO generate msg use jsonData and broadcast
+		return content_type == null ? "hello" : content_type;
+	}
+	
 
 	@POST
 	@Path("/getsentry")
