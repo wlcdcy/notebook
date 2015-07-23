@@ -13,4 +13,5 @@
 notify:
   webhooks:
     # A list of hashes representing hooks. Only the url field is supported.
-    - url: http://36.45.174.74:9090/plugins/hiworkis/api/webhook/adaa02db-fd3f-49e0-8db8-f155d143d96a
+    #- url: http://36.45.174.74:9090/plugins/hiworkis/api/webhook/adaa02db-fd3f-49e0-8db8-f155d143d96a
+    - url: https://hook.lesschat.com/circleci/1766c5951ddf477dbb0c09174fcc725c
