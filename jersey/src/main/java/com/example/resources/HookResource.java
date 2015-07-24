@@ -140,7 +140,7 @@ public class HookResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String, Object> zcode_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+	public Map<String, Object> code_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		logger.debug(jsonData.toString());
 		Map<String, Object> result = new HashMap<String, Object>();
 		result.put("status", 0);
@@ -414,6 +414,19 @@ public class HookResource {
 	}
 
 	@POST
+	@Path("/swathub/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes({MediaType.APPLICATION_JSON,MediaType.APPLICATION_FORM_URLENCODED})
+	public String swathub(@Context HttpServletRequest req, @PathParam("token") String token
+	// , Map<String, Object> jsonData
+	) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		// TODO generate msg use jsonData and broadcast
+		return "is ok";
+	}
+
+	@POST
 	@Path("/gitcafe")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -441,8 +454,9 @@ public class HookResource {
 	@POST
 	@Path("/magnum/{token}")
 	@Produces(MediaType.APPLICATION_JSON)
-	 @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-	public String magnum(@Context HttpServletRequest req, @PathParam("token") String token ,@FormParam("payload") String payload) {
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public String magnum(@Context HttpServletRequest req, @PathParam("token") String token,
+			@FormParam("payload") String payload) {
 		String content_type = req.getContentType();
 		logger.info(payload);
 
@@ -589,7 +603,7 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 		return content_type == null ? "hello" : content_type;
 	}
-	
+
 	@POST
 	@Path("/runscope/{token}")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -598,12 +612,12 @@ public class HookResource {
 			Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
-		// [help] https://www.runscope.com/docs/api-testing/notifications#webhook
+		// [help]
+		// https://www.runscope.com/docs/api-testing/notifications#webhook
 
 		// TODO generate msg use jsonData and broadcast
 		return content_type == null ? "hello" : content_type;
 	}
-	
 
 	@POST
 	@Path("/getsentry")
