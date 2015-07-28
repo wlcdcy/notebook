@@ -487,6 +487,13 @@ public class HookResource {
 	public String jira(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
+		try {
+			String json = new ObjectMapper().writeValueAsString(jsonData);
+			logger.info(json);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		// [help]
 		// https://developer.atlassian.com/jiradev/jira-architecture/webhooks
 
