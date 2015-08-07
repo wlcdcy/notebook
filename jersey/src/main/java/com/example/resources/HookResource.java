@@ -18,6 +18,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
+import com.google.api.client.http.HttpMethods;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
@@ -547,7 +549,7 @@ public class HookResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String qingyun_post(@Context HttpServletRequest req, @PathParam("token") String token) {
 		String content_type = req.getContentType();
-		logger.info(content_type);
+		logger.info(content_type + HttpMethod.POST);
 
 		// TODO generate msg use jsonData and broadcast
 		return "5a6026";
@@ -556,7 +558,7 @@ public class HookResource {
 	@Path("/qingyun/{token}")
 	public Response qingyun_get(@Context HttpServletRequest req, @PathParam("token") String token) {
 		String content_type = req.getContentType();
-		logger.info(content_type);
+		logger.info(content_type + HttpMethod.GET);
 		return Response.ok("5a6026").build();
 	}
 
