@@ -25,6 +25,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -539,6 +540,24 @@ public class HookResource {
 
 		// TODO generate msg use jsonData and broadcast
 		return content_type == null ? "hello" : content_type;
+	}
+	
+	@POST
+	@Path("/qingyun/{token}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String qingyun_post(@Context HttpServletRequest req, @PathParam("token") String token) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+
+		// TODO generate msg use jsonData and broadcast
+		return "5a6026";
+	}
+	@GET
+	@Path("/qingyun/{token}")
+	public Response qingyun_get(@Context HttpServletRequest req, @PathParam("token") String token) {
+		String content_type = req.getContentType();
+		logger.info(content_type);
+		return Response.ok("5a6026").build();
 	}
 
 	@POST
