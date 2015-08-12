@@ -544,18 +544,14 @@ public class HookResource {
 	public Map<String,Object> outgoing_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		Map<String ,Object> return_data= new HashMap<String ,Object>();
 		logger.debug("channel_name : " +(String)jsonData.get("channel_name"));
-		String text = (String)jsonData.get("text");
+		String text = (String)jsonData.get("content");
 		String trigger_word = (String)jsonData.get("trigger_word");
-		if(StringUtils.contains(text, trigger_word)){
-			return_data.put("text", text);
-			List attachments = new ArrayList();
-			Map m = new HashMap();
-			m.put("title", "outgoing");
-			m.put("text", text);
-			m.put("color", "#666666");
-			attachments.add(m);
-			return_data.put("attachments", attachments);
+		if(text.length()>trigger_word.length() && StringUtils.contains(text, trigger_word)){
+			return_data.put("text", (String)jsonData.get("content"));
+			return_data.put("title", "outgoing test");
+			return_data.put("url", "http://baidu.com");
 		}
+		
 		return return_data;
 	}
 
