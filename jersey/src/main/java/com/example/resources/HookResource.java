@@ -1,7 +1,12 @@
 package com.example.resources;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
@@ -11,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,7 +65,11 @@ public class HookResource {
 	// String appKey="1121941913";
 	String weibo_access_token = "0ebc90cad97041ac57615c0af924f729";
 	String weibo_app_secret = "2b3626dc0a956bc98e5b05afd1dbb608";
-
+	static String [] persons ={"佘明强","张宏","彭祥波","刘刚","刘剑","李豆","刘国艳","符润祯","梁培杰","李工","张青","李总","老王","沈京华","陈静","焦明明"};
+	static String [] person_urls ={"http://www.kaixin001.com/home/58140650.html","张宏","http://cn.linkedin.com/pub/%E7%A5%A5%E6%B3%A2-%E5%BD%AD/9a/709/217","刘刚","刘剑","李豆","刘国艳","符润祯","梁培杰","李工","张青","李总","老王","沈京华","陈静","焦明明"};
+	static String [] actors ={"土豪","坏人","懒人","商人","工人","牛人","超人","乞丐","好人","神人"};
+	static String [] works ={"脸很大","腰很粗","脸挺小","腰蛮细","嘴很甜","脖子粗","眼睛小","胳膊长","腿挺短","手挺快"};
+	static Random random =new Random();
 	public static String trello_access_token = "";
 
 	// 监控宝全局变量声明
@@ -88,6 +98,51 @@ public class HookResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getIt() {
 		return "Hello, Let go! use ResourceConfig Scanning  Hooks";
+	}
+	
+	
+	@Path("/test")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON )
+	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	public String test_form(@Context HttpServletRequest req,
+			@FormParam("post_content") String post_content,
+			@FormParam("post_content_filtered") String post_content_filtered,
+			@FormParam("post_title") String post_title,
+			@FormParam("post_url") String post_url,
+			
+			@FormParam("comment_post") String comment_post,
+			@FormParam("comment_author") String comment_author,
+			@FormParam("comment_content") String comment_content,
+			@FormParam("comment_author_url") String comment_author_url
+			) {
+//		post_content, post_content_filtered, post_title, post_url
+//		彭祥波(10887272)  11:40:33
+//		comment_post ： comment_author，comment_content和comment_author_url
+
+		String content_type = req.getContentType();;
+		logger.debug(content_type);
+		return content_type;
+	}
+
+	/**
+	 * github webhook回调服务：request data use json format
+	 * 
+	 * @param req
+	 * @param token
+	 * @param jsonData
+	 * @return
+	 */
+	@Path("/test")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public String test_json(@Context HttpServletRequest req,
+			@PathParam("token") String token, Map<String, Object> jsonData) {
+		String content_type = req.getContentType();;
+		logger.debug(content_type);
+		logger.debug(jsonData.toString());
+		return content_type;
 	}
 
 	/**
@@ -519,13 +574,11 @@ public class HookResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String outgoing_form(@Context HttpServletRequest req,
 			@FormParam("token") String token,
-			@FormParam("team_id") String team_id,
-			@FormParam("team_domain") String team_domain,
-			@FormParam("channel_id") String channel_id,
-			@FormParam("channel_name") String channel_name,
+			@FormParam("team") String team,
+			@FormParam("domain") String domain,
+			@FormParam("channel") String channel,
 			@FormParam("timestamp") long timestamp,
-			@FormParam("user_id") String user_id,
-			@FormParam("user_name") String user_name,
+			@FormParam("user") String user_name,
 			@FormParam("text") String text,
 			@FormParam("trigger_word") String trigger_word,	
 			@FormParam("Payload") String formData) {
@@ -536,22 +589,99 @@ public class HookResource {
 		}
 		return null;
 	}
-	@SuppressWarnings("unchecked")
 	@Path("/outgoing")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Map<String,Object> outgoing_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
 		Map<String ,Object> return_data= new HashMap<String ,Object>();
-		logger.debug("channel_name : " +(String)jsonData.get("channel_name"));
+		logger.debug("channel : " +(String)jsonData.get("channel"));
 		String text = (String)jsonData.get("content");
 		String trigger_word = (String)jsonData.get("trigger_word");
-		if(text.length()>trigger_word.length() && StringUtils.contains(text, trigger_word)){
-			return_data.put("text", (String)jsonData.get("content"));
-			return_data.put("title", "outgoing test");
-			return_data.put("url", "http://baidu.com");
+		
+		if(text.trim().length()>trigger_word.length() && StringUtils.contains(text.trim(), trigger_word)){
+			String returntext = text;
+			int i=0;
+			for(String person:persons){
+				i++;
+				if(text.contains(person)){
+					returntext= String.format("%s是%s，他%s", person,actors[random.nextInt(actors.length)],works[random.nextInt(works.length)]);
+					break;
+				}
+				
+			}
+			return_data.put("title", "outgoing["+text+"]");
+			return_data.put("text", returntext);
+			if(i==3){
+				return_data.put("url", person_urls[i-1]);
+			}else{
+				return_data.put("url", "#");
+			}
 		}
 		
+		return return_data;
+	}
+	
+	@Path("/turing")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Map<String,Object> outgoing_turing(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		Map<String ,Object> return_data= new HashMap<String ,Object>();
+		logger.debug("channel : " +(String)jsonData.get("channel"));
+		String text = (String)jsonData.get("content");
+		String trigger_word = (String)jsonData.get("trigger_word");
+		
+		if(text.trim().length()>trigger_word.length()){
+			String content = StringUtils.split(text)[1];
+			
+			StringBuffer sb = null;
+			BufferedReader reader = null;
+			HttpURLConnection connection = null;
+			try {
+				String APIKEY = "c232f980ef2b261b6934506d67e8f0a8"; 
+				String INFO = URLEncoder.encode(content, "utf-8"); 
+				String getURL = "http://www.tuling123.com/openapi/api?key=" + APIKEY + "&info=" + INFO; 
+				URL getUrl = new URL(getURL); 
+				connection = (HttpURLConnection) getUrl.openConnection(); 
+				connection.connect(); 
+
+				// 取得输入流，并使用Reader读取 
+				reader = new BufferedReader(new InputStreamReader( connection.getInputStream(), "utf-8")); 
+				sb = new StringBuffer(); 
+				String line = ""; 
+				while ((line = reader.readLine()) != null) { 
+				    sb.append(line); 
+				} 
+				
+				System.out.println(sb);
+				
+				return_data.put("title", "tuling["+text+"]");
+				return_data.put("text", sb.toString());
+				return_data.put("url", "#");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally{
+				try {
+					if(reader!=null)
+						reader.close(); 
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				// 断开连接 
+				try {
+					if(connection!=null)
+						connection.disconnect();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		    
+		}
 		return return_data;
 	}
 
@@ -1222,5 +1352,5 @@ public class HookResource {
 		jo.put("latitude", "232.343434");
 		return jo.toString();
 	}
-
+	
 }
