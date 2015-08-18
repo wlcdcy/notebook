@@ -656,7 +656,7 @@ public class HookResource {
 				
 				System.out.println(sb);
 				
-				return_data.put("title", "tuling["+text+"]");
+				return_data.put("title", "turing["+text+"]");
 				return_data.put("text", sb.toString());
 				return_data.put("url", "#");
 			} catch (UnsupportedEncodingException e) {
