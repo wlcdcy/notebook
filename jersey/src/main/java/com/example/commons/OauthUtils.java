@@ -24,7 +24,7 @@ import com.google.api.client.util.store.DataStore;
  *
  *	use google-oauth-client api
  */
-public class OAuthUtils {
+public class OauthUtils {
 	
 	
 	public static HttpResponse executeGet(HttpTransport transport,JsonFactory json_factory,String access_token,GenericUrl url) throws IOException{

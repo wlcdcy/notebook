@@ -137,6 +137,7 @@ public class EvernoteNote implements NoteManage {
 		
 		String urlFormat="%?soauth_consumer_key=%s&oauth_signature=%s&oauth_signature_method=%s&oauth_timestamp=%s&oauth_nonce=%s&oauth_callback=%s";
 		
+		
 		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, developerToken);
 		ClientFactory factory = new ClientFactory(evernoteAuth);
 		UserStoreClient userStore = factory.createUserStoreClient();

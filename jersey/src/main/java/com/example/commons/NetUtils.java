@@ -59,8 +59,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetClientUtils {
-	public static Logger logger = LoggerFactory.getLogger(NetClientUtils.class);
+public class NetUtils {
+	public static Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
 	public static void main1(String[] args) throws SocketException, IOException {
 
@@ -128,7 +128,7 @@ public class NetClientUtils {
 	 *            true支持https
 	 * @return
 	 */
-	public static CloseableHttpClient createHttpClient(boolean ssl) {
+	public static CloseableHttpClient getHttpClient(boolean ssl) {
 		if (!ssl) {
 			return HttpClients.createDefault();
 		}
@@ -172,7 +172,7 @@ public class NetClientUtils {
 		return httpclinet;
 	}
 
-	public static CloseableHttpClient createHttpClient() {
+	public static CloseableHttpClient getHttpClient() {
 		SSLContext ctx = getSslContext();// SSLContexts.createSystemDefault();
 
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
@@ -193,7 +193,7 @@ public class NetClientUtils {
 	 *            default【 "d:/hiwork.keystore"】;
 	 * @return
 	 */
-	public static CloseableHttpClient createHttpClient(String keystore) {
+	public static CloseableHttpClient getHttpClient(String keystore) {
 		// 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式;
 		// 1、需要从浏览器导出证书 xxx.cer；
 		// 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
@@ -253,7 +253,7 @@ public class NetClientUtils {
 		try {
 			boolean ssl =StringUtils.startsWith(url, "https")? true:false;
 			
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null ;
 			
 			if(StringUtils.equals(HttpGet.METHOD_NAME, method)){
@@ -283,7 +283,7 @@ public class NetClientUtils {
 		try {
 			boolean ssl =StringUtils.startsWith(url, "https")? true:false;
 			
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null ;
 			
 			if(StringUtils.equals(HttpGet.METHOD_NAME, method)){
@@ -366,7 +366,7 @@ public class NetClientUtils {
 
 		String webHooks = "https://api.hiwork.cc/api/sendmsg";
 		String token = "204913c1-9669-4f71-8afa-35445bb721e1";
-		CloseableHttpClient client = createHttpClient("d:/hiwork.ks");
+		CloseableHttpClient client = getHttpClient("d:/hiwork.ks");
 		HttpPost post = new HttpPost(webHooks);
 		try {
 			JSONObject json = new JSONObject();

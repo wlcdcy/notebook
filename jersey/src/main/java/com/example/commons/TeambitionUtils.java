@@ -308,7 +308,7 @@ public class TeambitionUtils<T> {
 	private static String check_access_token_request(String req_url,String _access_token) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
 			httpget.addHeader(HttpHeaders.AUTHORIZATION,_access_token);
 			CloseableHttpResponse response = httpclient.execute(httpget);
@@ -334,7 +334,7 @@ public class TeambitionUtils<T> {
 	private static String get_request(String req_url) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
 			CloseableHttpResponse response = httpclient.execute(httpget);
 			logger.info(response.toString());
@@ -360,7 +360,7 @@ public class TeambitionUtils<T> {
 	private static String post_request(String req_url, String params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			HttpPost httpPost = new HttpPost(req_url);
 			httpPost.addHeader(HttpHeaders.USER_AGENT,
 					"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
@@ -393,7 +393,7 @@ public class TeambitionUtils<T> {
 	private static String post_request(String req_url, Map<String,Object> params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			
 			HttpPost httpPost = new HttpPost(req_url);
 			ContentType contentType = ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), Consts.UTF_8);
@@ -424,7 +424,7 @@ public class TeambitionUtils<T> {
 	private static String put_request(String req_url, Map<String,Object> params) {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-			CloseableHttpClient httpclient = NetClientUtils.createHttpClient(ssl);
+			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
 			
 			HttpPut httpPut = new HttpPut(req_url);
 			ContentType contentType = ContentType.create(ContentType.APPLICATION_JSON.getMimeType(), Consts.UTF_8);
