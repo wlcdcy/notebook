@@ -4,116 +4,243 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evernote.auth.EvernoteAuth;
 import com.evernote.auth.EvernoteService;
 import com.evernote.clients.ClientFactory;
 import com.evernote.clients.NoteStoreClient;
 import com.evernote.clients.UserStoreClient;
+import com.evernote.edam.error.EDAMNotFoundException;
 import com.evernote.edam.error.EDAMSystemException;
 import com.evernote.edam.error.EDAMUserException;
+import com.evernote.edam.notestore.NoteFilter;
+import com.evernote.edam.notestore.NoteList;
+import com.evernote.edam.type.Note;
+import com.evernote.edam.type.NoteSortOrder;
 import com.evernote.edam.type.Notebook;
+import com.evernote.edam.type.User;
 import com.evernote.thrift.TException;
 import com.evernote.thrift.transport.TTransportException;
-import com.example.note.entity.Note;
-import com.example.note.entity.NoteBook;
-import com.example.note.entity.User;
+//import com.example.note.entity.Note;
+//import com.example.note.entity.NoteBook;
+//import com.example.note.entity.User;
 
-public class EvernoteNote implements NoteManage {
-	
+public class EvernoteNote implements NoteManage<Notebook, Note> {
+
 	public static final String developerToken = "S=s1:U=90d4b:E=154a4118f1f:C=14d4c605ff0:P=1cd:A=en-devtoken:V=2:H=95a2689386e276ce0e5384cd6e98b8a4";
 	public static final String noteStoreUrl = "https://sandbox.evernote.com/shard/s1/notestore";
-	
+
 	public static final String evernoteHost = "sandbox.evernote.com";
-	public static final String consumer_key="hiwork";
-	public static final String consumer_secret="5382250a6f5eb0c8";
+	public static final String consumer_key = "hiwork";
+	public static final String consumer_secret = "5382250a6f5eb0c8";
+	String access_token;
+
+	private ClientFactory factory;
+	private NoteStoreClient noteStore;
+	private UserStoreClient userStore;
+
+	public EvernoteNote(String access_token) {
+		super();
+		this.access_token = access_token;
+		factory = getClientFactory(access_token);
+		noteStore = createNoteStoreClient(access_token);
+		userStore = createUserStoreClient(access_token);
+	}
 
 	public User getUser() {
-		// TODO Auto-generated method stub
+		try {
+			return userStore.getUser();
+		} catch (EDAMUserException | EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
-	public List<NoteBook> getUserNoteBooks() {
-		// TODO Auto-generated method stub
+	public List<Notebook> getNoteBooks() {
+		NoteStoreClient noteStore = createNoteStoreClient(access_token);
+		List<Notebook> notebooks = null;
+		try {
+			notebooks = noteStore.listNotebooks();
+		} catch (EDAMUserException | EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
+		return notebooks;
+	}
+
+	public List<Note> getNotes(String notebook_id, int offset,
+			int maxNotes) {
+		NoteFilter filter = new NoteFilter();
+		filter.setNotebookGuid(notebook_id);
+		filter.setOrder(NoteSortOrder.CREATED.getValue());
+		filter.setAscending(true);
+
+		NoteList notes = null;
+		try {
+			notes = noteStore.findNotes(filter, offset, maxNotes);
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
+		if (notes != null)
+			return notes.getNotes();
 		return null;
 	}
 
-	public List<Note> getNotesInNoteBook(NoteBook notebook) {
-		// TODO Auto-generated method stub
+	public Notebook createNoteBook(String name) {
+		Notebook ourNotebook = new Notebook();
+		ourNotebook.setName(name);
+		try {
+			return noteStore.createNotebook(ourNotebook);
+		} catch (EDAMUserException | EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
-	public NoteBook createNoteBook(String noteBook_name) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean deleteNoteBook(NoteBook notebook, Date deleteTime) {
-		// TODO Auto-generated method stub
+	public boolean deleteNoteBook(String  guid) {
+		try {
+			noteStore.expungeNotebook(guid);
+			return true;
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
-	public String createNote(NoteBook notebook, Note note) {
-		// TODO Auto-generated method stub
+	public String createNote(String guid, String note_title,
+			String note_body) {
+		
+		Notebook parentNotebook = null;
+		try {
+			parentNotebook = noteStore.getNotebook(guid);
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e1) {
+			e1.printStackTrace();
+		}
+		
+//		String nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+//		nBody += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
+//		nBody += "<en-note>" + note_body + "</en-note>";
+
+		// Create note object
+		Note ourNote = new Note();
+		ourNote.setTitle(note_title);
+		ourNote.setContent(processNoteBody(note_body));
+
+		// parentNotebook is optional; if omitted, default notebook is used
+		if (parentNotebook != null && parentNotebook.isSetGuid()) {
+			ourNote.setNotebookGuid(parentNotebook.getGuid());
+		}
+
+		// Attempt to create note in Evernote account
+		Note note = null;
+		try {
+			note = noteStore.createNote(ourNote);
+			return note.getGuid();
+
+		} catch (EDAMUserException edue) {
+			// Something was wrong with the note data
+			// See EDAMErrorCode enumeration for error code explanation
+			// http://dev.evernote.com/documentation/reference/Errors.html#Enum_EDAMErrorCode
+			System.out.println("EDAMUserException: " + edue);
+		} catch (EDAMNotFoundException ednfe) {
+			// Parent Notebook GUID doesn't correspond to an actual notebook
+			System.out
+					.println("EDAMNotFoundException: Invalid parent notebook GUID");
+		} catch (Exception e) {
+			// Other unexpected exceptions
+			e.printStackTrace();
+		}
+
 		return null;
 	}
 
-	public String createNote(String notebook_path, String note_title,
-			String note_content, String note_author, String note_source,
-			long note_createTime) {
-		// TODO Auto-generated method stub
+	public Note getNote(String note_id) {
+		try {
+			return noteStore.getNote(note_id, false, false, false, false);
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
-	public String createNote(String note_content) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Note viewNote(Note note) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public Note viewNote(String note_path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean modifyNote(Note note) {
-		// TODO Auto-generated method stub
+	public boolean modifyNote(String note_id, String note_title,String note_content) {
+		Note note = null;
+		try {
+			note = noteStore.getNote(note_id, false, false, false, false);
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
+		if(note==null)
+			return false;
+		
+		note.setTitle(note_title);
+		note.setContent(processNoteBody(note_content));
+		try {
+			noteStore.updateNote(note);
+			return true;
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
-	public boolean modifyNote(String note_path, String note_title,
-			String note_content, String note_author, String note_source,
-			long note_modifyTime) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean moveNote(String noteBook_id,String note_id) {
+		String newNote_id=copyNote(noteBook_id,note_id);
+		if(StringUtils.isEmpty(newNote_id)){
+			return false;
+		}
+		return deleteNote(note_id);
 	}
+	
+	public String copyNote(String noteBook_id,String note_id) {
 
-	public String moveNote(Note note, NoteBook notebook) {
-		// TODO Auto-generated method stub
+		try {
+			Note  note= noteStore.copyNote(note_id, noteBook_id);
+			return note.getGuid();
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
 		return null;
 	}
 
-	public String moveNote(String note_path, String noteBook_path) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public boolean deleteNote(Note note) {
-		// TODO Auto-generated method stub
+	public boolean deleteNote(String guid) {
+		try {
+			noteStore.deleteNote(guid);
+			return true;
+		} catch (EDAMUserException | EDAMSystemException
+				| EDAMNotFoundException | TException e) {
+			e.printStackTrace();
+		}
 		return false;
 	}
 
-	public boolean deleteNote(String note_path, long modityTime) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String sharePublish(String note_path) {
-		// TODO Auto-generated method stub
+	public String sharePublish(String note_id) {
+		try {
+			return noteStore.shareNote(note_id);
+		} catch (EDAMUserException | EDAMNotFoundException
+				| EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
 		return null;
+	}
+	
+	public boolean unSharePublish(String note_id) {
+		try {
+			noteStore.stopSharingNote(note_id);
+			return true;
+		} catch (EDAMUserException | EDAMNotFoundException
+				| EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 
 	public String uploadAttachment(String name, long size, String type,
@@ -127,44 +254,126 @@ public class EvernoteNote implements NoteManage {
 		return null;
 	}
 	
+	private static ClientFactory getClientFactory(String access_token) {
+		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+				access_token);
+		return  new ClientFactory(evernoteAuth);
+	}
 	
-//	TODO evernote method
 	
-	public String getTempAuthToken() throws TTransportException{
-		
-//		String url="https://sandbox.evernote.com/oauth?oauth_consumer_key=en_oauth_test&oauth_signature=1ca0956605acc4f2%26&oauth_signature_method=PLAINTEXT&oauth_timestamp=1288364369&oauth_nonce=d3d9446802a44259&oauth_callback=https%3A%2F%2Ffoo.com%2Fsettings%2Findex.php%3Faction%3DoauthCallback";
-		
-		
-		String urlFormat="%?soauth_consumer_key=%s&oauth_signature=%s&oauth_signature_method=%s&oauth_timestamp=%s&oauth_nonce=%s&oauth_callback=%s";
-		
-		
-		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, developerToken);
+	private static NoteStoreClient createNoteStoreClient(String access_token) {
+		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+				access_token);
+		ClientFactory factory = new ClientFactory(evernoteAuth);
+		NoteStoreClient noteStore = null;
+		try {
+			noteStore = factory.createNoteStoreClient();
+		} catch (EDAMUserException | EDAMSystemException | TException e) {
+			e.printStackTrace();
+		}
+		return noteStore;
+	}
+
+	private static UserStoreClient createUserStoreClient(String access_token) {
+		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+				access_token);
+		ClientFactory factory = new ClientFactory(evernoteAuth);
+		UserStoreClient userStore = null;
+		try {
+			userStore = factory.createUserStoreClient();
+		} catch (TTransportException e) {
+			e.printStackTrace();
+		}
+		return userStore;
+	}
+	
+	private String processNoteBody(String content){
+		String nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+		nBody += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
+		nBody += "<en-note>" + content + "</en-note>";
+		return nBody;
+	}
+
+	// TODO evernote method
+
+	public String getTempAuthToken() throws TTransportException {
+
+		// String
+		// url="https://sandbox.evernote.com/oauth?oauth_consumer_key=en_oauth_test&oauth_signature=1ca0956605acc4f2%26&oauth_signature_method=PLAINTEXT&oauth_timestamp=1288364369&oauth_nonce=d3d9446802a44259&oauth_callback=https%3A%2F%2Ffoo.com%2Fsettings%2Findex.php%3Faction%3DoauthCallback";
+
+		String urlFormat = "%?soauth_consumer_key=%s&oauth_signature=%s&oauth_signature_method=%s&oauth_timestamp=%s&oauth_nonce=%s&oauth_callback=%s";
+
+		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+				developerToken);
 		ClientFactory factory = new ClientFactory(evernoteAuth);
 		UserStoreClient userStore = factory.createUserStoreClient();
-		
+
 		return developerToken;
-		
-		
-		
+
 	}
-	
-//	TODO use demo
-	public static void useDeveloperToken_demo() throws EDAMUserException, EDAMSystemException, TException{
-		 
-		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX, developerToken);
-		ClientFactory factory = new ClientFactory(evernoteAuth);
-		NoteStoreClient noteStore = factory.createNoteStoreClient();
-		 
+
+	// TODO use demo
+	public static void useDeveloperToken_demo(String access_token)
+			throws EDAMUserException, EDAMSystemException, TException {
+		UserStoreClient userStore = createUserStoreClient(access_token);
+		User user = userStore.getUser();
+		System.out.println("Evernote user id: " + user.getId());
+		NoteStoreClient noteStore = createNoteStoreClient(access_token);
+
+//		Notebook ourNotebook = new Notebook();
+//		ourNotebook.setName("我的hiwork笔记");
+//		try {
+//			Notebook nb = noteStore.createNotebook(ourNotebook);
+//			System.out.println("Notebook ServiceCreated: "
+//					+ nb.getServiceCreated());
+//		} catch (EDAMUserException | EDAMSystemException | TException e) {
+//			e.printStackTrace();
+//		}
+
 		List<Notebook> notebooks = noteStore.listNotebooks();
-		 
+
 		for (Notebook notebook : notebooks) {
-		  System.out.println("Notebook: " + notebook.getName());
+			System.out.println("Notebook: " + notebook.getName());
+			NoteFilter filter = new NoteFilter();
+			filter.setNotebookGuid(notebook.getGuid());
+			filter.setOrder(NoteSortOrder.CREATED.getValue());
+			filter.setAscending(true);
+
+			NoteList notes = null;
+			int offset = 0;
+			int maxNotes = 1;
+			do {
+				try {
+					notes = noteStore.findNotes(filter, offset, maxNotes);
+				} catch (EDAMUserException | EDAMSystemException
+						| EDAMNotFoundException | TException e) {
+					e.printStackTrace();
+				}
+
+				if (notes == null)
+					break;
+				else {
+					offset += notes.getNotes().size();
+				}
+				for (Note note : notes.getNotes()) {
+					System.out.println("Note title: " + note.getTitle());
+					System.out.println("Note guid: " + note.getGuid());
+					try {
+						String shardId = noteStore.shareNote(note.getGuid());
+						System.out.println("Note shard id: " + shardId);
+						System.out.println("Note shard url : " + String.format("https://%s/shard/%s/nl/%s/%s/", evernoteHost,shardId, user.getId(),note.getGuid()));
+					} catch (EDAMNotFoundException e) {
+						e.printStackTrace();
+					}
+				}
+			} while (notes.getNotes().size() == maxNotes);
 		}
 	}
-	
-	public static void main(String[] args){
+
+	public static void main(String[] args) {
+		String access_token = "S=s1:U=914eb:E=156b6b7061b:C=14f5f05d958:P=185:A=hiwork:V=2:H=5b8fdfb2ccf47a7bb59218851a11c21e";
 		try {
-			EvernoteNote.useDeveloperToken_demo();
+			EvernoteNote.useDeveloperToken_demo(access_token);
 		} catch (EDAMUserException e) {
 			e.printStackTrace();
 		} catch (EDAMSystemException e) {
