@@ -89,7 +89,7 @@ public interface NoteManage<T,S> {
 	
 	/**分享笔记
 	 * @param note_id
-	 * @return	分享笔记的链接
+	 * @return	分享笔记的链接地址
 	 */
 	public String sharePublish(String note_id);
 	

@@ -1,7 +1,6 @@
 package com.example.note;
 
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -22,9 +21,6 @@ import com.evernote.edam.type.Notebook;
 import com.evernote.edam.type.User;
 import com.evernote.thrift.TException;
 import com.evernote.thrift.transport.TTransportException;
-//import com.example.note.entity.Note;
-//import com.example.note.entity.NoteBook;
-//import com.example.note.entity.User;
 
 public class EvernoteNote implements NoteManage<Notebook, Note> {
 
@@ -34,16 +30,14 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 	public static final String evernoteHost = "sandbox.evernote.com";
 	public static final String consumer_key = "hiwork";
 	public static final String consumer_secret = "5382250a6f5eb0c8";
-	String access_token;
+	private String access_token;
 
-	private ClientFactory factory;
 	private NoteStoreClient noteStore;
 	private UserStoreClient userStore;
 
 	public EvernoteNote(String access_token) {
 		super();
 		this.access_token = access_token;
-		factory = getClientFactory(access_token);
 		noteStore = createNoteStoreClient(access_token);
 		userStore = createUserStoreClient(access_token);
 	}
@@ -223,7 +217,9 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 
 	public String sharePublish(String note_id) {
 		try {
-			return noteStore.shareNote(note_id);
+			String shardkey= noteStore.shareNote(note_id);
+			User user = getUser();
+			return String.format("https://%s/shard/%s/sh/%s/%s/", evernoteHost,user.getShardId(),note_id,shardkey);
 		} catch (EDAMUserException | EDAMNotFoundException
 				| EDAMSystemException | TException e) {
 			e.printStackTrace();
@@ -254,11 +250,11 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return null;
 	}
 	
-	private static ClientFactory getClientFactory(String access_token) {
-		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
-				access_token);
-		return  new ClientFactory(evernoteAuth);
-	}
+//	private static ClientFactory getClientFactory(String access_token) {
+//		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+//				access_token);
+//		return  new ClientFactory(evernoteAuth);
+//	}
 	
 	
 	private static NoteStoreClient createNoteStoreClient(String access_token) {
@@ -294,24 +290,6 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return nBody;
 	}
 
-	// TODO evernote method
-
-	public String getTempAuthToken() throws TTransportException {
-
-		// String
-		// url="https://sandbox.evernote.com/oauth?oauth_consumer_key=en_oauth_test&oauth_signature=1ca0956605acc4f2%26&oauth_signature_method=PLAINTEXT&oauth_timestamp=1288364369&oauth_nonce=d3d9446802a44259&oauth_callback=https%3A%2F%2Ffoo.com%2Fsettings%2Findex.php%3Faction%3DoauthCallback";
-
-		String urlFormat = "%?soauth_consumer_key=%s&oauth_signature=%s&oauth_signature_method=%s&oauth_timestamp=%s&oauth_nonce=%s&oauth_callback=%s";
-
-		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
-				developerToken);
-		ClientFactory factory = new ClientFactory(evernoteAuth);
-		UserStoreClient userStore = factory.createUserStoreClient();
-
-		return developerToken;
-
-	}
-
 	// TODO use demo
 	public static void useDeveloperToken_demo(String access_token)
 			throws EDAMUserException, EDAMSystemException, TException {
@@ -320,16 +298,6 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		System.out.println("Evernote user id: " + user.getId());
 		System.out.println("Evernote user shardId: " + user.getShardId());
 		NoteStoreClient noteStore = createNoteStoreClient(access_token);
-
-//		Notebook ourNotebook = new Notebook();
-//		ourNotebook.setName("我的hiwork笔记");
-//		try {
-//			Notebook nb = noteStore.createNotebook(ourNotebook);
-//			System.out.println("Notebook ServiceCreated: "
-//					+ nb.getServiceCreated());
-//		} catch (EDAMUserException | EDAMSystemException | TException e) {
-//			e.printStackTrace();
-//		}
 
 		List<Notebook> notebooks = noteStore.listNotebooks();
 
