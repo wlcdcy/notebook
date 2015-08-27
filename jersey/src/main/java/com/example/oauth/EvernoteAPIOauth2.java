@@ -97,7 +97,7 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 		
 		logger.info(resp_body);
 		Map<String,String> resp_data = parseAccessTokenResponse(resp_body);
-		logger.info("acction token : " + URLDecoder.decode(resp_data.get("oauth_token")));
+		logger.info("access token : " + URLDecoder.decode(resp_data.get("oauth_token")));
 		logger.info("oauth_token_secret : " + resp_data.get("oauth_token_secret"));
 		logger.info("edam_shard : " + resp_data.get("edam_shard"));
 		logger.info("edam_userId : " + resp_data.get("edam_userId"));
