@@ -318,6 +318,7 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		UserStoreClient userStore = createUserStoreClient(access_token);
 		User user = userStore.getUser();
 		System.out.println("Evernote user id: " + user.getId());
+		System.out.println("Evernote user shardId: " + user.getShardId());
 		NoteStoreClient noteStore = createNoteStoreClient(access_token);
 
 //		Notebook ourNotebook = new Notebook();
@@ -359,9 +360,12 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 					System.out.println("Note title: " + note.getTitle());
 					System.out.println("Note guid: " + note.getGuid());
 					try {
-						String shardId = noteStore.shareNote(note.getGuid());
-						System.out.println("Note shard id: " + shardId);
-						System.out.println("Note shard url : " + String.format("https://%s/shard/%s/nl/%s/%s/", evernoteHost,shardId, user.getId(),note.getGuid()));
+						String shardkey = noteStore.shareNote(note.getGuid());
+						System.out.println("Note shardKey: " + shardkey);
+						System.out.println("Note links : " + String.format("https://%s/shard/%s/nl/%s/%s/", evernoteHost,user.getShardId(), user.getId(),note.getGuid()));
+						System.out.println("Note public links : " + String.format("https://%s/shard/%s/sh/%s/%s/", evernoteHost,user.getShardId(),note.getGuid(),shardkey));
+					
+						noteStore.stopSharingNote(note.getGuid());
 					} catch (EDAMNotFoundException e) {
 						e.printStackTrace();
 					}
