@@ -71,6 +71,7 @@ public class HookResource {
 	static String [] works ={"脸很大","腰很粗","脸挺小","腰蛮细","嘴很甜","脖子粗","眼睛小","胳膊长","腿挺短","手挺快"};
 	static Random random =new Random();
 	public static String trello_access_token = "";
+	ObjectMapper mapper = new ObjectMapper();
 
 	// 监控宝全局变量声明
 
@@ -141,7 +142,14 @@ public class HookResource {
 			@PathParam("token") String token, Map<String, Object> jsonData) {
 		String content_type = req.getContentType();;
 		logger.debug(content_type);
-		logger.debug(jsonData.toString());
+		
+		String jsonStr = null;
+		try {
+			jsonStr = mapper.writeValueAsString(jsonData);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		logger.debug(jsonStr);
 		return content_type;
 	}
 
