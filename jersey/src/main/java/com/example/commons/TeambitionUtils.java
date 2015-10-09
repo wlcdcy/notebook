@@ -57,8 +57,8 @@ public class TeambitionUtils<T> {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			//createWebhook4Project(_id, hook_project, project_events);
-			updateWebhook4Project(_id,_hook_id, hook_project, project_events);
+			createWebhook4Project(_id, hook_project, project_events);
+//			updateWebhook4Project(_id,_hook_id, hook_project, project_events);
 			
 			listWebhook4Projects(_id);
 		}
@@ -75,11 +75,11 @@ public class TeambitionUtils<T> {
 
 	private static String req_state = "teambision";
 	public static String auth_code = "yynJpTP0DB9kni5wnN6P5-";
-	public static String access_token = "xFNntgtIi4SPt1VeqSdxTD6MOWA=mK5_dJD130223d6334a2adee18b35aeb769823caf41bed623735052dc0274f7352347506b76ebedf45ceefddaf99b6ef33a33472a23ea71152e57c6d0a6e0e06b18670597e1eaf786983f8c0899e879536732d2935b82c541fb155e2aee64536774b76b01ebfec434159e9126d5f3fa1fbac165f";
+	public static String access_token ="CQ-0Hyd0aJTys7xYeXX86EKQHsE=VH8Z1Ud21630f50f852de71389ba30f5ff2a22e5dfb4d834156f1b837c3ba5b021d631cfcdb679a880c0a09d4e481019befdf2e1a86091e5648c80b4dbc870850421058d59c187feaf5fd3ef70a269ca1226ea88bd652501cc14f742c347a92c55d2e961313deb08bc1a1b5c1cbf8222a05fb372";//"VH8Z1Ud21630f50f852de71389ba30f5ff2a22e5dfb4d834156f1b837c3ba5b021d631cfcdb679a880c0a09d4e481019befdf2e1a86091e5648c80b4dbc870850421058d59c187feaf5fd3ef70a269ca1226ea88bd652501cc14f742c347a92c55d2e961313deb08bc1a1b5c1cbf8222a05fb372";// "xFNntgtIi4SPt1VeqSdxTD6MOWA=mK5_dJD130223d6334a2adee18b35aeb769823caf41bed623735052dc0274f7352347506b76ebedf45ceefddaf99b6ef33a33472a23ea71152e57c6d0a6e0e06b18670597e1eaf786983f8c0899e879536732d2935b82c541fb155e2aee64536774b76b01ebfec434159e9126d5f3fa1fbac165f";
 	
-	public static String redirect_uri="http://1.84.185.84/jersey/webhook/teambition/auth/callback";
-	public static String hook_project="http://113.132.93.123/jersey/webhook/teambition/project";
-	public static String hook_organization="http://113.132.93.123/jersey/webhook/teambition/organization";
+	public static String redirect_uri="http://36.46.254.51/jersey/webhook/teambition/auth/callback";
+	public static String hook_project="http://36.46.254.51/jersey/webhook/teambition/project";
+	public static String hook_organization="http://36.46.254.51/jersey/webhook/teambition/organization";
 
 	/**
 	 * 获取Teambition认证地址
