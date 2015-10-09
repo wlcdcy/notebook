@@ -140,7 +140,7 @@ public class HookResource {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public String test_json(@Context HttpServletRequest req,
 			@PathParam("token") String token, Map<String, Object> jsonData) {
-		String content_type = req.getContentType();;
+		String content_type = req.getContentType();
 		logger.debug(content_type);
 		
 		String jsonStr = null;
@@ -516,6 +516,13 @@ public class HookResource {
 	) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
+		String jsonStr = null;
+		try {
+			jsonStr = mapper.writeValueAsString(jsonData);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		logger.info(jsonStr);
 		// TODO generate msg use jsonData and broadcast
 		return "is ok";
 	}
@@ -529,6 +536,7 @@ public class HookResource {
 	) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
+		logger.info(payload);
 		// TODO generate msg use jsonData and broadcast
 		return "is ok";
 	}
