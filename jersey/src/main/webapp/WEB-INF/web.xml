@@ -5,7 +5,7 @@
 <web-app>
 	<display-name>Archetype Created Web Application</display-name>
 	<listener>
-       <listener-class>com.example.listener.SchedulerListener</listener-class>
+		<listener-class>com.example.listener.SchedulerListener</listener-class>
 	</listener>
 	<servlet>
 		<servlet-name>Jersey</servlet-name>
@@ -36,20 +36,61 @@
 		<servlet-name>Jersey</servlet-name>
 		<url-pattern>/*</url-pattern>
 	</servlet-mapping>
-	
-	
-<!-- 	<servlet> -->
-<!-- 		<servlet-name>QuartzInitializer</servlet-name> -->
-<!-- 		<servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class> -->
-<!-- 		<load-on-startup>1</load-on-startup> -->
-<!-- 	</servlet> -->
 
-	<!-- <security-constraint> <web-resource-collection> <web-resource-name></web-resource-name> 
-		<url-pattern>/admin/*</url-pattern> </web-resource-collection> <auth-constraint> 
-		<role-name>admin</role-name> </auth-constraint> </security-constraint> <security-constraint> 
-		<web-resource-collection> <web-resource-name></web-resource-name> <url-pattern>/hello/*</url-pattern> 
-		</web-resource-collection> <auth-constraint> <role-name>user</role-name> 
-		</auth-constraint> </security-constraint> -->
+
+	<!-- <servlet> -->
+	<!-- <servlet-name>QuartzInitializer</servlet-name> -->
+	<!-- <servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class> -->
+	<!-- <load-on-startup>1</load-on-startup> -->
+	<!-- </servlet> -->
+
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name></web-resource-name>
+			<url-pattern>/admin/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
+	
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name></web-resource-name>
+			<url-pattern>/hello/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>tomcat</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name></web-resource-name>
+			<url-pattern>/webhook/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>webhook</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name></web-resource-name>
+			<url-pattern>/oauth/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>oauth</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name></web-resource-name>
+			<url-pattern>/auth/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>tomcat</role-name>
+		</auth-constraint>
+	</security-constraint>
+	
 	<login-config>
 		<auth-method>BASIC</auth-method>
 		<realm-name>my-default-realm</realm-name>
