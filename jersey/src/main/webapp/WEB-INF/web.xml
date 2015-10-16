@@ -12,6 +12,13 @@
 		<servlet-class>
 			com.sun.jersey.spi.container.servlet.ServletContainer
 		</servlet-class>
+		
+		<!-- application resource config -->
+		<init-param>
+			<param-name>javax.ws.rs.Application</param-name>
+			<param-value>com.example.apps.MyApplication</param-value>
+		</init-param>
+		
 		<!-- package resource config -->
 		<init-param>
 			<param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
@@ -21,11 +28,7 @@
 			<param-name>com.sun.jersey.config.property.packages</param-name>
 			<param-value>com.example.resources</param-value>
 		</init-param>
-		<!-- application resource config -->
-		<init-param>
-			<param-name>javax.ws.rs.Application</param-name>
-			<param-value>com.example.apps.CustomApplication</param-value>
-		</init-param>
+		
 		<init-param>
 			<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
 			<param-value>true</param-value>
