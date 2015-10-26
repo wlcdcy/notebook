@@ -3,10 +3,11 @@ package com.example.resources;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -30,6 +32,7 @@ import com.example.commons.OscUtils;
 @Path("/webhook/osc")
 public class OscResource {
 	private static Logger logger = LoggerFactory.getLogger(OscResource.class);
+	ObjectMapper mapper = new ObjectMapper();
 
 	@Path("/index")
 	@GET
@@ -117,6 +120,83 @@ public class OscResource {
 
 		return OscUtils.search(catalog, words);
 
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@Path("/find")
+	@POST
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Map<String,Object> outgoing_find(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+		Map<String ,Object> return_data= new HashMap<String ,Object>();
+		logger.debug("channel : " +(String)jsonData.get("channel"));
+		String text = (String)jsonData.get("content");
+		String trigger_word = (String)jsonData.get("trigger_word");
+		
+		if(text.trim().length()>trigger_word.length()){
+			String catalog = StringUtils.split(text)[1];
+			String words = StringUtils.split(text)[2];
+			//String[] cw = content.split(" ",2);
+			
+			Map<String, String> data = new HashMap<String, String>();
+			data.put("access_token", OscUtils.access_token);
+			data.put("catalog", catalog);
+			data.put("q", words);
+			data.put("dataType", "json");
+			String req_data = "";
+			String resq_data = "";
+			try {
+				req_data = new ObjectMapper().writeValueAsString(data);
+
+			} catch (JsonGenerationException e) {
+				e.printStackTrace();
+				resq_data = e.getMessage();
+			} catch (JsonMappingException e) {
+				e.printStackTrace();
+				resq_data += "," + e.getMessage();
+			} catch (IOException e) {
+				e.printStackTrace();
+				resq_data += "," + e.getMessage();
+			}
+
+			if (StringUtils.isEmpty(req_data)) {
+				logger.error("req_data is empty : return");	
+			}else{
+				logger.info(String.format("req_data is : %s", req_data));
+				String resq_content = OscUtils.search(catalog, words);
+				List<Map> contents = null;
+				try {
+					contents = (List<Map>)((Map) mapper.readValue(resq_content,Map.class)).get("searchlist");
+				} catch (JsonParseException e) {
+					e.printStackTrace();
+				} catch (JsonMappingException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				if(contents!=null){
+					resq_data="";
+					for(Map m:contents){
+						String author = (String)m.get("author");
+						String title = (String)m.get("title");
+						String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
+						if(((String)m.get("type")).equals("project")){
+							title = (String)m.get("name");
+						}
+						String url = (String)m.get("url");
+						resq_data +=String.format("</br> %s <a target=\"_blank\" href=\"%s\">%s </a>  %s", pubdate,url,title,StringUtils.isEmpty(author)? "":author);
+					}
+				}else{
+					resq_data = resq_content;
+				}
+			}
+
+			return_data.put("title", "turing["+text+"]");
+			return_data.put("text", resq_data);
+			//return_data.put("url", "#");
+		    
+		}
+		return return_data;
 	}
 
 }

@@ -53,7 +53,6 @@ import org.slf4j.LoggerFactory;
 
 import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
-import com.google.api.client.http.HttpMethods;
 import com.sun.jersey.multipart.FormDataBodyPart;
 import com.sun.jersey.multipart.FormDataParam;
 
