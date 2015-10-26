@@ -34,6 +34,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.client.http.UrlEncodedContent;
+
 public class OscUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(OscUtils.class);
@@ -82,6 +84,11 @@ public class OscUtils {
 	 */
 	public static String search(String catalog,String words){
 		String url="/action/openapi/search_list";
+		try {
+			words = URLEncoder.encode(words,"utf-8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 		String param=String.format("dataType=%s&access_token=%s&catalog=%s&q=%s","json",access_token,catalog,words);
 		logger.info(String.format("req_data is : %s", param));
 		String res_data=post_request(url,param);

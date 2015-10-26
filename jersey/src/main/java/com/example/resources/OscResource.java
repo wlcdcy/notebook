@@ -134,9 +134,12 @@ public class OscResource {
 		String trigger_word = (String)jsonData.get("trigger_word");
 		
 		if(text.trim().length()>trigger_word.length()){
-			String catalog = StringUtils.split(text)[1];
-			String words = StringUtils.split(text)[2];
-			//String[] cw = content.split(" ",2);
+			String content = StringUtils.split(text, " ", 2)[1];
+			String catalog = StringUtils.split(content," ",2)[0];
+			String words = StringUtils.split(content," ",2)[1];
+			
+//			String catalog = StringUtils.split(text)[1];
+//			String words = StringUtils.split(text)[2];
 			
 			Map<String, String> data = new HashMap<String, String>();
 			data.put("access_token", OscUtils.access_token);
@@ -175,23 +178,28 @@ public class OscResource {
 					e.printStackTrace();
 				}
 				if(contents!=null){
-					resq_data="";
-					for(Map m:contents){
-						String author = (String)m.get("author");
-						String title = (String)m.get("title");
-						String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
-						if(((String)m.get("type")).equals("project")){
-							title = (String)m.get("name");
+					
+					if(contents.size()==0){
+						resq_data=String.format("没有找到【%s】相关的信息", words);
+					}else{
+						resq_data="";
+						for(Map m:contents){
+							String author = (String)m.get("author");
+							String title = (String)m.get("title");
+							String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
+							if(((String)m.get("type")).equals("project")){
+								title = (String)m.get("name");
+							}
+							String url = (String)m.get("url");
+							resq_data +=String.format("</br> %s <a target=\"_blank\" href=\"%s\">%s </a>  %s", pubdate,url,title,StringUtils.isEmpty(author)? "":author);
 						}
-						String url = (String)m.get("url");
-						resq_data +=String.format("</br> %s <a target=\"_blank\" href=\"%s\">%s </a>  %s", pubdate,url,title,StringUtils.isEmpty(author)? "":author);
 					}
 				}else{
 					resq_data = resq_content;
 				}
 			}
 
-			return_data.put("title", "turing["+text+"]");
+			return_data.put("title", "osc["+text+"]");
 			return_data.put("text", resq_data);
 			//return_data.put("url", "#");
 		    
