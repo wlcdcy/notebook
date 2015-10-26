@@ -33,11 +33,12 @@ import com.example.commons.OscUtils;
 public class OscResource {
 	private static Logger logger = LoggerFactory.getLogger(OscResource.class);
 	ObjectMapper mapper = new ObjectMapper();
+	OscUtils oscUtil = new OscUtils();
 
 	@Path("/index")
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public static Response index(@Context HttpServletResponse resp)
+	public Response index(@Context HttpServletResponse resp)
 			throws IOException {
 		String html = "welcome to <a href='http://hiwork.cc'>hiwork</a>.";
 		return Response.ok(html).build();
@@ -45,7 +46,7 @@ public class OscResource {
 
 	@Path("/redirect")
 	@GET
-	public static Response redirect(@QueryParam("source") String source)
+	public Response redirect(@QueryParam("source") String source)
 			throws IOException {
 		String default_url = "http://oschina.net";
 		URI location = null;
@@ -68,9 +69,9 @@ public class OscResource {
 
 	@Path("/auth")
 	@GET
-	public static void oauth2Auth(@Context HttpServletResponse resp) {
+	public void oauth2Auth(@Context HttpServletResponse resp) {
 		try {
-			resp.sendRedirect(OscUtils.getOauth2AuthUrl());
+			resp.sendRedirect(oscUtil.getOauth2AuthUrl());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -79,14 +80,14 @@ public class OscResource {
 	@Path("/authback")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public static String auth_back(@QueryParam("code") String code,
+	public String auth_back(@QueryParam("code") String code,
 			@QueryParam("state") String state) {
 		OscUtils.auth_code = code;
 		logger.info(String.format("auth code is : %s", code));
 		logger.info(String.format("res state is : %s", state));
 
 		// fetch access token
-		OscUtils.fetchOauth2Token(code);
+		oscUtil.fetchOauth2Token(code);
 		return "";
 	}
 
@@ -94,7 +95,7 @@ public class OscResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public static String search(String catalog, String words) {
+	public String search(String catalog, String words) {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("access_token", OscUtils.access_token);
 		data.put("catalog", catalog);
@@ -118,7 +119,7 @@ public class OscResource {
 		}
 		logger.info(String.format("req_data is : %s", req_data));
 
-		return OscUtils.search(catalog, words);
+		return oscUtil.search(catalog, words);
 
 	}
 	
@@ -166,7 +167,7 @@ public class OscResource {
 				logger.error("req_data is empty : return");	
 			}else{
 				logger.info(String.format("req_data is : %s", req_data));
-				String resq_content = OscUtils.search(catalog, words);
+				String resq_content = oscUtil.search(catalog, words);
 				List<Map> contents = null;
 				try {
 					contents = (List<Map>)((Map) mapper.readValue(resq_content,Map.class)).get("searchlist");
@@ -180,7 +181,7 @@ public class OscResource {
 				if(contents!=null){
 					
 					if(contents.size()==0){
-						resq_data=String.format("没有找到【%s】相关的信息", words);
+						resq_data=String.format("没有找到与【%s】相关的信息", words);
 					}else{
 						resq_data="";
 						for(Map m:contents){

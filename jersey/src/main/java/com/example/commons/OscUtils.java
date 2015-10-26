@@ -34,8 +34,6 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.http.UrlEncodedContent;
-
 public class OscUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(OscUtils.class);
@@ -55,7 +53,7 @@ public class OscUtils {
 	 * @return
 	 */
 	@SuppressWarnings("deprecation")
-	public static String getOauth2AuthUrl(){
+	public String getOauth2AuthUrl(){
 		String url="/action/oauth2/authorize";
 		String response_type="code";
 		
@@ -68,7 +66,7 @@ public class OscUtils {
 	 * @return
 	 */
 	@SuppressWarnings("deprecation")
-	public static String fetchOauth2Token(String code){
+	public String fetchOauth2Token(String code){
 		String url="/action/openapi/token";
 		String param=String.format("dataType=%s&code=%s&grant_type=%s&client_id=%s&client_secret=%s&redirect_uri=%s","json",code,"authorization_code",client_id,client_secret,URLEncoder.encode(redirect_uri));
 		logger.info(String.format("req_data is : %s", param));
@@ -82,7 +80,7 @@ public class OscUtils {
 	 * @param words
 	 * @return
 	 */
-	public static String search(String catalog,String words){
+	public String search(String catalog,String words){
 		String url="/action/openapi/search_list";
 		try {
 			words = URLEncoder.encode(words,"utf-8");
@@ -105,7 +103,7 @@ public class OscUtils {
 	 * @param askuser
 	 * @return
 	 */
-	public static String pub_posts(Integer isNoticeMe,Integer catalog ,String title,String content,Long askuser){
+	public String pub_posts(Integer isNoticeMe,Integer catalog ,String title,String content,Long askuser){
 		String url="/action/openapi/post_pub";
 //		access_token	true	string	oauth2_token获取的access_token	
 //		isNoticeMe		false	int	有回答是否邮件通知 2是邮件通知	0
@@ -138,7 +136,7 @@ public class OscUtils {
 	 * @return
 	 */
 	@SuppressWarnings("deprecation")
-	public static String pub_tweet(String msg){
+	public String pub_tweet(String msg){
 //		access_token	true	string	oauth2_token获取的access_token	
 //		msg	true		string	动弹内容	
 //		img	false		image	图片流
@@ -158,7 +156,7 @@ public class OscUtils {
 	 * @param img	img(object type)可以是File、InputStram、byte[]类型
 	 * @return
 	 */
-	public static String pub_tweet(String msg, Object img){
+	public String pub_tweet(String msg, Object img){
 		if(img==null){
 			return pub_tweet(msg);
 		}
@@ -175,14 +173,14 @@ public class OscUtils {
 	
 	
 	
-	private static String buildReqeustUrl(String relative_url,String all_params){
+	private String buildReqeustUrl(String relative_url,String all_params){
 		return String.format("%s%s?%s", base_url,relative_url,all_params);
 	}
-	private static String buildReqeustUrlWithOutParam(String relative_url){
+	private String buildReqeustUrlWithOutParam(String relative_url){
 		return String.format("%s%s", base_url,relative_url);
 	}
 	
-	public static String post_request(String req_url,String req_data){
+	public String post_request(String req_url,String req_data){
 		try {
 			req_url = buildReqeustUrl(req_url,req_data);
 			
@@ -206,7 +204,7 @@ public class OscUtils {
 		return null;
 	}
 	
-	private static String get_request(String req_url){
+	private String get_request(String req_url){
 		try {
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
 			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
@@ -228,7 +226,7 @@ public class OscUtils {
 		return null;
 	}
 	
-	private static String request(String method,String url,String params){
+	private String request(String method,String url,String params){
 		try {
 			String req_url = buildReqeustUrlWithOutParam(url);
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
@@ -257,7 +255,7 @@ public class OscUtils {
 		return null;
 	}
 	
-	private static String request(String method,String url,Map<String,Object> params){
+	private String request(String method,String url,Map<String,Object> params){
 		try {
 			String req_url = buildReqeustUrlWithOutParam(url);
 			boolean ssl =StringUtils.startsWith(req_url, "https")? true:false;
@@ -286,13 +284,13 @@ public class OscUtils {
 		return null;
 	}
 	
-	private static HttpGet getHttpGet(String req_url){
+	private HttpGet getHttpGet(String req_url){
 		HttpGet httpRequest = new HttpGet(req_url);
 		httpRequest.addHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 		return httpRequest;
 	}
 	
-	private static HttpPost getHttpPost(String req_url,String params){
+	private HttpPost getHttpPost(String req_url,String params){
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 		httpPost.addHeader(HttpHeaders.CONTENT_ENCODING,"utf-8");
@@ -302,7 +300,7 @@ public class OscUtils {
 		return httpPost;
 	}
 	
-	private static HttpPost getHttpPost(String req_url,Map<String,Object> params){
+	private HttpPost getHttpPost(String req_url,Map<String,Object> params){
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT, "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
 		MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
@@ -341,6 +339,7 @@ public class OscUtils {
 	
 	
 	public static void main(String [] args) throws FileNotFoundException{
+		OscUtils oscUtil = new OscUtils();
 //		search("news","java");
 //		pub_posts(2,100,"java招聘推荐","",null);
 		File f =new File("d:/20150612113904.png");
@@ -356,7 +355,7 @@ public class OscUtils {
 			
 //			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
 //			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
-			pub_tweet("@开源中国  @乔布斯  @小编辑  【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
+			oscUtil.pub_tweet("@开源中国  @乔布斯  @小编辑  【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
 			
 		} finally{
 			try {
