@@ -41,12 +41,12 @@ public class OscUtils {
 	private static String client_secret="ZgU8C2mUKeK6WHS0G4xIvDpclKt6JG2l";
 	private static String base_url="https://www.oschina.net";
 	
-	static String redirect_uri="http://113.135.242.43:808/jersey/webhook/osc/authback";
+	static String redirect_uri="http://xianzhouhe.eicp.net/jersey/webhook/osc/authback";
 	
 	public static String auth_code="LDHcgP";
 	public static String req_state="xyz";
-	public static String access_token="08f4d71c-ff3f-4d5e-84b1-3f47c6e3ef71";
-	public static String refresh_token="d0ec43d3-1c8a-4288-a6e1-d901d701acc0"; 
+	public static String access_token="a6229824-3d23-4413-b7aa-685bf606442b";
+	public static String refresh_token="53ab6c49-9866-47d4-a66d-6b4b9d9ec627"; 
 	
 	
 	/**获取osc认证地址
