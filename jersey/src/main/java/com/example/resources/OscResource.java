@@ -172,7 +172,7 @@ public class OscResource {
 								String body = (String)m.get("body");
 								String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
 								String portrait = (String)m.get("portrait");
-								resq_data +=String.format("</br><img src=\"%s\"/> <b>%s</b> : %s - %s",portrait,StringUtils.isEmpty(author)? "":author,body,pubdate);
+								resq_data +=String.format("</br><img src=\"%s\" class=\"img-circle weibo-avar\"/> <b>%s</b> : %s - %s",portrait,StringUtils.isEmpty(author)? "":author,body,pubdate);
 							}
 						}
 					}else{

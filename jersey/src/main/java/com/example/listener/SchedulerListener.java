@@ -22,7 +22,7 @@ public class SchedulerListener extends HttpServlet implements ServletContextList
 	 */
 	private static final long serialVersionUID = 1L;
 	private static String expr ="0 0/5 8-20 * * ? *";// "0 1/5 15 * * ? *";//"1/5 * * * * ? *";
-	private static String osc_expr ="0 0/60 8-16 * * ? *";
+	private static String osc_expr ="0 0 10 * * ? *";
 	
 	private Scheduler s =null;
 	
