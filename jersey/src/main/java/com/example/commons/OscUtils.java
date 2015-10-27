@@ -131,6 +131,21 @@ public class OscUtils {
 		return res_data;
 	}
 	
+	/**获取动弹信息
+	 * @param userid	【0标示热门动弹，-1标示最新动弹，其它值标示自己的动弹】
+	 * @return
+	 */
+	public String list_tweet(long userid){
+		String url = "/action/openapi/tweet_list";
+		StringBuffer sb = new StringBuffer();
+		sb.append("access_token="+access_token).append("&user="+userid);
+		String params = sb.toString();
+		logger.info(String.format("req_data is : %s", params));
+		
+		String res_data = post_request(url, params);
+		logger.info(String.format("res_data is : %s", res_data));
+		return res_data;
+	}
 	/**	发布一条纯文本的动弹
 	 * @param msg	消息内容
 	 * @return
@@ -355,8 +370,8 @@ public class OscUtils {
 			
 //			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
 //			pub_tweet("@开源中国  @乔布斯  @小编辑 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img	false	image	图片流	】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
-			oscUtil.pub_tweet("@开源中国  @乔布斯  @小编辑  【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
-			
+			//oscUtil.pub_tweet("@开源中国  @乔布斯  @小编辑  【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
+			oscUtil.list_tweet(-1);
 		} finally{
 			try {
 				in.close();

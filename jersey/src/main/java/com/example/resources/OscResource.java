@@ -138,72 +138,111 @@ public class OscResource {
 			String content = StringUtils.split(text, " ", 2)[1];
 			String catalog = StringUtils.split(content," ",2)[0];
 			String words = StringUtils.split(content," ",2)[1];
-			
-//			String catalog = StringUtils.split(text)[1];
-//			String words = StringUtils.split(text)[2];
-			
-			Map<String, String> data = new HashMap<String, String>();
-			data.put("access_token", OscUtils.access_token);
-			data.put("catalog", catalog);
-			data.put("q", words);
-			data.put("dataType", "json");
-			String req_data = "";
 			String resq_data = "";
-			try {
-				req_data = new ObjectMapper().writeValueAsString(data);
-
-			} catch (JsonGenerationException e) {
-				e.printStackTrace();
-				resq_data = e.getMessage();
-			} catch (JsonMappingException e) {
-				e.printStackTrace();
-				resq_data += "," + e.getMessage();
-			} catch (IOException e) {
-				e.printStackTrace();
-				resq_data += "," + e.getMessage();
-			}
-
-			if (StringUtils.isEmpty(req_data)) {
-				logger.error("req_data is empty : return");	
+			if(catalog.equals("tweet")){
+				Long useid=null;
+				if("最新".equals(words)){
+					useid=0L;
+				}else if("热门".equals(words)){
+					useid=-1L;
+				}
+				if(useid==null){
+					resq_data="你只能查看【热门|最新】动弹，禁止查看作者自己的动弹";
+				}else{
+					String resq_content = oscUtil.list_tweet(useid);
+					List<Map> contents = null;
+					try {
+						contents = (List<Map>)((Map) mapper.readValue(resq_content,Map.class)).get("tweetlist");
+					} catch (JsonParseException e) {
+						e.printStackTrace();
+					} catch (JsonMappingException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					if(contents!=null){
+						
+						if(contents.size()==0){
+							resq_data=String.format("没有找到与【%s】相关的信息 in [%s] ", words,catalog);
+						}else{
+							resq_data="";
+							for(Map m:contents){
+								String author = (String)m.get("author");
+								String body = (String)m.get("body");
+								String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
+								String portrait = (String)m.get("portrait");
+								resq_data +=String.format("</br><img src=\"%s\"/> <b>%s</b> : %s - %s",portrait,StringUtils.isEmpty(author)? "":author,body,pubdate);
+							}
+						}
+					}else{
+						resq_data = resq_content;
+					}
+				}
 			}else{
-				logger.info(String.format("req_data is : %s", req_data));
-				String resq_content = oscUtil.search(catalog, words);
-				List<Map> contents = null;
+			
+				Map<String, String> data = new HashMap<String, String>();
+				data.put("access_token", OscUtils.access_token);
+				data.put("catalog", catalog);
+				data.put("q", words);
+				data.put("dataType", "json");
+				String req_data = "";
+
 				try {
-					contents = (List<Map>)((Map) mapper.readValue(resq_content,Map.class)).get("searchlist");
-				} catch (JsonParseException e) {
+					req_data = new ObjectMapper().writeValueAsString(data);
+	
+				} catch (JsonGenerationException e) {
 					e.printStackTrace();
+					resq_data = e.getMessage();
 				} catch (JsonMappingException e) {
 					e.printStackTrace();
+					resq_data += "," + e.getMessage();
 				} catch (IOException e) {
 					e.printStackTrace();
+					resq_data += "," + e.getMessage();
 				}
-				if(contents!=null){
-					
-					if(contents.size()==0){
-						resq_data=String.format("没有找到与【%s】相关的信息", words);
-					}else{
-						resq_data="";
-						for(Map m:contents){
-							String author = (String)m.get("author");
-							String title = (String)m.get("title");
-							String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
-							if(((String)m.get("type")).equals("project")){
-								title = (String)m.get("name");
-							}
-							String url = (String)m.get("url");
-							resq_data +=String.format("</br> %s <a target=\"_blank\" href=\"%s\">%s </a>  %s", pubdate,url,title,StringUtils.isEmpty(author)? "":author);
-						}
-					}
+	
+				if (StringUtils.isEmpty(req_data)) {
+					logger.error("req_data is empty : return");	
 				}else{
-					resq_data = resq_content;
+					logger.info(String.format("req_data is : %s", req_data));
+					String resq_content = oscUtil.search(catalog, words);
+					List<Map> contents = null;
+					try {
+						contents = (List<Map>)((Map) mapper.readValue(resq_content,Map.class)).get("searchlist");
+					} catch (JsonParseException e) {
+						e.printStackTrace();
+					} catch (JsonMappingException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					if(contents!=null){
+						
+						if(contents.size()==0){
+							resq_data=String.format("没有找到与【%s】相关的信息 in [%s] ", words,catalog);
+						}else{
+							resq_data="";
+							for(Map m:contents){
+								String author = (String)m.get("author");
+								String title = (String)m.get("title");
+								String pubdate = StringUtils.isEmpty((String)m.get("pubDate")) ? "":(String)m.get("pubDate");
+								if(((String)m.get("type")).equals("project")){
+									title = (String)m.get("name");
+								}
+								String url = (String)m.get("url");
+								resq_data +=String.format("</br> <b>%s : </b> <a target=\"_blank\" href=\"%s\">%s </a> - %s", StringUtils.isEmpty(author)? "":author,url,title,pubdate);
+							}
+						}
+					}else{
+						resq_data = resq_content;
+					}
 				}
 			}
 
 			return_data.put("title", "osc["+text+"]");
 			return_data.put("text", resq_data);
 			//return_data.put("url", "#");
-		    
 		}
 		return return_data;
 	}
