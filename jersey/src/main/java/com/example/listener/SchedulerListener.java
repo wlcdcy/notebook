@@ -22,6 +22,7 @@ public class SchedulerListener extends HttpServlet implements ServletContextList
 	 */
 	private static final long serialVersionUID = 1L;
 	private static String expr ="0 0/5 8-20 * * ? *";// "0 1/5 15 * * ? *";//"1/5 * * * * ? *";
+	private static String osc_expr ="0 0/60 8-16 * * ? *";
 	
 	private Scheduler s =null;
 	
@@ -46,6 +47,10 @@ public class SchedulerListener extends HttpServlet implements ServletContextList
 		JobDetail jobDetail = newJob(WeiJob.class).withIdentity("weibo", "robots").build();
 	    Trigger trigger = newTrigger().withIdentity("weibo", "robots").withSchedule(cronSchedule(expr).withMisfireHandlingInstructionFireAndProceed()).forJob("weibo", "robots").build();
 	    scheduler.scheduleJob(jobDetail, trigger);
+	    
+	    JobDetail osc_job_detail = newJob(OSCJob.class).withIdentity("osc", "robots").usingJobData("token", "bb140b22-c8f6-497e-b89c-3defff3293be").usingJobData("url", "https://api.hiwork.cc/api/sendmsg").build();
+	    Trigger osc_trigger = newTrigger().withIdentity("osc", "robots").withSchedule(cronSchedule(osc_expr).withMisfireHandlingInstructionFireAndProceed()).forJob("osc", "robots").build();
+	    scheduler.scheduleJob(osc_job_detail, osc_trigger);
 	    scheduler.start();
 	    return scheduler;
 	}
