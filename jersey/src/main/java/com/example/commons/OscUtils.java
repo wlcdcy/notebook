@@ -45,8 +45,8 @@ public class OscUtils {
 	
 	public static String auth_code="LDHcgP";
 	public static String req_state="xyz";
-	public static String access_token="a6229824-3d23-4413-b7aa-685bf606442b";
-	public static String refresh_token="53ab6c49-9866-47d4-a66d-6b4b9d9ec627"; 
+	public static String access_token="a98ed576-00bd-48d8-aa76-b1853e8d9f9e";
+	public static String refresh_token="f1e122a3-09bf-43e1-a302-4c782ccea846"; 
 	
 	
 	/**获取osc认证地址
@@ -182,6 +182,22 @@ public class OscUtils {
 		params.put("img", img);	
 		logger.info(String.format("req_data is : %s", params));
 		String res_data = request(HttpPost.METHOD_NAME, url, params);
+		logger.info(String.format("res_data is : %s", res_data));
+		return res_data;
+	}
+	
+	/**获取软件列表	recommend-推荐|time-最新|view-热门|cn-国产
+	 * @param type
+	 * @return
+	 */
+	public String project_list(String type){
+		String url = "/action/openapi/project_list";
+		StringBuffer sb = new StringBuffer();
+		sb.append("access_token="+access_token).append("&type="+type);
+		String params = sb.toString();
+		logger.info(String.format("req_data is : %s", params));
+		
+		String res_data = post_request(url, params);
 		logger.info(String.format("res_data is : %s", res_data));
 		return res_data;
 	}
