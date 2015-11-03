@@ -35,7 +35,6 @@ public class OscResource {
 	ObjectMapper mapper = new ObjectMapper();
 	OscUtils oscUtil = new OscUtils();
 
-	@Path("/index")
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response index(@Context HttpServletResponse resp)

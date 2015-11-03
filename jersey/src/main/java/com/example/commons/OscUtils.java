@@ -45,8 +45,8 @@ public class OscUtils {
 	
 	public static String auth_code="LDHcgP";
 	public static String req_state="xyz";
-	public static String access_token="a98ed576-00bd-48d8-aa76-b1853e8d9f9e";
-	public static String refresh_token="f1e122a3-09bf-43e1-a302-4c782ccea846"; 
+	public static String access_token="074ca0cb-8e78-4493-ab93-704dd67fc461";
+	public static String refresh_token="d6b67606-00e3-4d94-84a8-931de8110b35"; 
 	
 	
 	/**获取osc认证地址
