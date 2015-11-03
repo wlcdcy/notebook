@@ -1,17 +1,18 @@
-<!DOCTYPE web-app PUBLIC
- "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
- "http://java.sun.com/dtd/web-app_2_3.dtd" >
-
-<web-app>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                      http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+  version="3.1"
+  metadata-complete="true">
 	<display-name>Archetype Created Web Application</display-name>
 	<listener>
 		<listener-class>com.example.listener.SchedulerListener</listener-class>
 	</listener>
-	<servlet>
-		<servlet-name>Jersey</servlet-name>
-		<servlet-class>
+	<filter>
+		<filter-name>Jersey</filter-name>
+		<filter-class>
 			com.sun.jersey.spi.container.servlet.ServletContainer
-		</servlet-class>
+		</filter-class>
 		
 		<!-- application resource config -->
 		<init-param>
@@ -30,15 +31,20 @@
 		</init-param>
 		
 		<init-param>
+			<param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
+			<param-value>.*.[html|jsp]</param-value>
+		</init-param>
+		
+		<init-param>
 			<param-name>com.sun.jersey.api.json.POJOMappingFeature</param-name>
 			<param-value>true</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>Jersey</servlet-name>
+<!-- 		<load-on-startup>1</load-on-startup> -->
+	</filter>
+	<filter-mapping>
+		<filter-name>Jersey</filter-name>
 		<url-pattern>/*</url-pattern>
-	</servlet-mapping>
+	</filter-mapping>
 
 
 	<!-- <servlet> -->
