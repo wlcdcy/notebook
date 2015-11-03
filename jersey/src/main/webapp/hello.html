@@ -98,8 +98,8 @@
 //             while (console.childNodes.length > 25) {
 //                 console.removeChild(console.firstChild);
 //             }
-            console.scrollTop = console.scrollHeight;
-            content.scrollTop=100;
+//             console.scrollTop = console.scrollHeight;
+            content.scrollTop = 100+content.scrollHeight;
         });
 
         Chat.initialize();
@@ -136,17 +136,8 @@
       <div class="col-lg-3"></div>
       <div class="col-lg-6">
 	    <div id="console-container">
-	        <div id="console" style="height: 150px"/>
-	    </div>
-	  </div>
-	</div>
-	
-	<div class="row">
-      <div class="col-lg-3"></div>
-      <div class="col-lg-6">
-	    <div id="console-container">
 	        <PRE style="height: 150px" onload="document.body.scrollTop=100" id="content">
-	        	
+	        	<div id="console"/>
 	        </PRE>
 	    </div>
 	  </div>
