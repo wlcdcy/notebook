@@ -1,16 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-    <title>Hello:Chat</title>
+<title></title>
+<!-- jquery CDN -->
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <!-- Bootstrap CDN -->
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
-    
-    <style type="text/css"><![CDATA[
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
+	integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
+	crossorigin="anonymous">
+	<!-- Optional theme -->
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
+	integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX"
+	crossorigin="anonymous">
+	<!-- Latest compiled and minified JavaScript -->
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"
+	integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ=="
+	crossorigin="anonymous"></script>
+
+<style type="text/css">
+	<![CDATA[
         input#chat {
             width: 410px
         }
@@ -34,7 +46,8 @@
             margin: 0;
         }
     ]]></style>
-    <script type="application/javascript">
+<script type="application/javascript">
+	
         "use strict";
 
         var Chat = {};
@@ -57,6 +70,9 @@
                     if (event.keyCode == 13) {
                         Chat.sendMessage();
                     }
+                };
+                document.getElementById('bt_send').onclick = function(event) {
+                    Chat.sendMessage();
                 };
             };
 
@@ -113,35 +129,41 @@
             }
         }, false);
 
-    </script>
+    
+</script>
 </head>
 <body>
-<div class="noscript"><h2 style="color: #ff0000">Seems your browser doesn't support Javascript! Websockets rely on Javascript being enabled. Please enable
-    Javascript and reload this page!</h2></div>
-<div>
+	<div class="noscript">
+		<h2 style="color: #ff0000">Seems your browser doesn't support
+			Javascript! Websockets rely on Javascript being enabled. Please
+			enable Javascript and reload this page!</h2>
+	</div>
+	<div>
 
-    <div class="row">
-      <div class="col-lg-3"></div>
-      <div class="col-lg-6">
-        <div class="input-group">
-		  <input type="text" class="form-control" placeholder="type and press enter to chat" id="chat">
-		  <span class="input-group-btn">
-        	<button class="btn btn-default" type="button">Send!</button>
-      	  </span>
+		<div class="row">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div class="input-group">
+					<input type="text" class="form-control"
+						placeholder="type and press enter to chat" id="chat"><span
+						class="input-group-btn">
+						<button class="btn btn-default" type="button" id="bt_send">Send!</button>
+					</span>
+				</div>
+			</div>
 		</div>
-	  </div>
-	</div>
-	
-	<div class="row">
-      <div class="col-lg-3"></div>
-      <div class="col-lg-6">
-	    <div id="console-container">
-	        <PRE style="height: 350px" onload="document.body.scrollTop=100" id="content">
-	        	<div id="console"/>
+
+		<div class="row">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div id="console-container">
+					<PRE style="height: 350px" onload="document.body.scrollTop=100"
+						id="content">
+	        	<div id="console" />
 	        </PRE>
-	    </div>
-	  </div>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>
 </body>
 </html>
