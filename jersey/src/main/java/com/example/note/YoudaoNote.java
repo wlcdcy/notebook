@@ -3,6 +3,7 @@ package com.example.note;
 import java.io.InputStream;
 import java.util.List;
 
+@SuppressWarnings("rawtypes")
 public class YoudaoNote implements NoteManage {
 
 	@Override

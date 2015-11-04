@@ -315,6 +315,7 @@ public class HookResource {
 		return "";
 	}
 
+	@SuppressWarnings("unused")
 	@Path("/jkbao")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
@@ -375,6 +376,7 @@ public class HookResource {
 		return null;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@POST
 	@Path("jsj")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -1079,6 +1081,7 @@ public class HookResource {
 	 * @return
 	 * @throws IOException
 	 */
+	@SuppressWarnings("unused")
 	@POST
 	@Path("/weibo")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -1273,6 +1276,7 @@ public class HookResource {
 	 * @param strSrc
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private static String sha1(String strSrc) {
 		MessageDigest md = null;
 		String strDes = null;
@@ -1321,6 +1325,7 @@ public class HookResource {
 	 * @throws JsonMappingException
 	 * @throws JsonGenerationException
 	 */
+	@SuppressWarnings("unused")
 	private String generateReplyMsg(String data, String type, String senderId,
 			String receiverId) {
 		JSONObject jo = new JSONObject();
@@ -1341,6 +1346,7 @@ public class HookResource {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private static String textMsg() {
 		JSONObject jo = new JSONObject();
 		jo.put("text", "中文消息");
@@ -1352,6 +1358,7 @@ public class HookResource {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private static String articleMsg() {
 		JSONObject jo = new JSONObject();
 		JSONArray ja = new JSONArray();
@@ -1373,6 +1380,7 @@ public class HookResource {
 	 * 
 	 * @return
 	 */
+	@SuppressWarnings("unused")
 	private static String positionMsg() {
 		JSONObject jo = new JSONObject();
 		jo.put("longitude", "344.3344");

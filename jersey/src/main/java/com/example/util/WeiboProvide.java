@@ -42,6 +42,7 @@ public class WeiboProvide {
 		// friendsTimeLine("2.00HOqPrC_2YvNB281434b0feURlrzC",0);
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked", "deprecation", "unused" })
 	public static long friendsTimeLine(String access_token, long since_id) {
 		String url = "https://api.weibo.com/2/statuses/friends_timeline.json";
 		// long since_id=0; //false

@@ -35,7 +35,7 @@ public class TeambitionUtils<T> {
 	private static Logger logger = LoggerFactory
 			.getLogger(TeambitionUtils.class);
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unused" })
 	public static void main(String[] args) {
 		List<String> project_events = listWebhookEvent4Projects();
 

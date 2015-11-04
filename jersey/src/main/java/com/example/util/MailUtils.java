@@ -133,6 +133,7 @@ public class MailUtils {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public void sendMailWithDKIM() {
 		DKIMSigner dkimSigner = null;// new DKIMSigner(<signingDomain>,
 										// <selector>, <privateKey>);

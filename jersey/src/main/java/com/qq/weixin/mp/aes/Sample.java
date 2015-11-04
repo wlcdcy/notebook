@@ -10,7 +10,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 
 public class Sample {
 

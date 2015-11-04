@@ -15,6 +15,7 @@ import javax.ws.rs.core.UriInfo;
 @Path("example")
 public class HelloService {
 
+	@SuppressWarnings("unused")
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getIt(@Context UriInfo ui, @Context HttpHeaders hh) {

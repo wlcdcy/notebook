@@ -10,7 +10,6 @@ import com.google.api.client.auth.oauth2.AuthorizationCodeResponseUrl;
 import com.google.api.client.auth.oauth2.AuthorizationCodeTokenRequest;
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.TokenRequest;
 import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpRequestFactory;
@@ -37,6 +36,7 @@ public class OauthUtils {
 		return req_factory.buildGetRequest(url).execute();
 	}
 
+	@SuppressWarnings({ "null", "unused" })
 	public void useAuthorizationCodeFlow() {
 		AuthorizationCodeFlow dd = null;
 		try {
@@ -54,6 +54,7 @@ public class OauthUtils {
 		}
 	}
 
+	@SuppressWarnings({ "null", "unused", "rawtypes" })
 	public void unuseAuthorizationCodeFlow() {
 		DataStore ds = null;
 		try {
@@ -80,6 +81,7 @@ public class OauthUtils {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 		GenericUrl req_url = new GenericUrl(Consts.UTF_8.name());
 

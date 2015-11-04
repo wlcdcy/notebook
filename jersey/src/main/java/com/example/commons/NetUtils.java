@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
 public class NetUtils {
 	public static Logger logger = LoggerFactory.getLogger(NetUtils.class);
 
+	@SuppressWarnings("resource")
 	public static void main1(String[] args) throws SocketException, IOException {
 
 		if (args.length != 2 && args.length != 3 && args.length != 5) {
