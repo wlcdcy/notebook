@@ -1,11 +1,9 @@
 package com.example.resources;
 
+import org.junit.*;
+
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-
-import junit.framework.Assert;
-
-
 
 public class TeambitionResourcesTest extends JerseyTest {
 	

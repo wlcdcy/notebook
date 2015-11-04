@@ -20,11 +20,11 @@ import org.jivesoftware.smackx.pubsub.PayloadItem;
 import org.jivesoftware.smackx.pubsub.PubSubManager;
 import org.jivesoftware.smackx.pubsub.PublishModel;
 import org.jivesoftware.smackx.pubsub.SimplePayload;
-import org.jivesoftware.smackx.xdata.Form;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 public class PubSubPublish {
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void publish(){
 		try {
 			XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration
@@ -78,10 +78,7 @@ public class PubSubPublish {
 
 	public static void main(String[] args) {
 
-		
-		
 			System.out.println(StringUtils.escapeForXML("你好，的进货价接口").toString());
-			Form form = null;
 	}
 
 }
