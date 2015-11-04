@@ -5,7 +5,7 @@ public class NoteBook {
 	 * 路径
 	 */
 	private String path;
-	
+
 	/**
 	 * 名称
 	 */
@@ -26,6 +26,5 @@ public class NoteBook {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	
+
 }

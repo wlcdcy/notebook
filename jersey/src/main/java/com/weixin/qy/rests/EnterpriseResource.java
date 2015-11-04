@@ -27,11 +27,12 @@ public class EnterpriseResource {
 
 	Logger logger = LoggerFactory.getLogger(EnterpriseResource.class);
 
-	private String sToken="YLc4SlkHpNQLoWFOfiUgYIeiQr";
+	private String sToken = "YLc4SlkHpNQLoWFOfiUgYIeiQr";
 	private String sEncodingAESKey = "5A5iDCGKwTDn6aujq7t14XqsKsRIdCXPwsml4f2tmAZ";
-	private String sCorpID="wx3c21617732d86306";
-	
+	private String sCorpID = "wx3c21617732d86306";
+
 	WXBizMsgCrypt wxcpt;
+
 	@GET
 	@Path("hello")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -48,28 +49,28 @@ public class EnterpriseResource {
 			@QueryParam("timestamp") String timestamp,
 			@QueryParam("nonce") String nonce,
 			@QueryParam("echostr") String echostr) {
-		
+
 		try {
 			wxcpt = new WXBizMsgCrypt(sToken, sEncodingAESKey, sCorpID);
 		} catch (AesException e) {
 			e.printStackTrace();
 		}
-		
+
 		String sEchoStr = null;
 		try {
-			sEchoStr = wxcpt.VerifyURL(msg_signature, timestamp,
-					nonce, echostr);
+			sEchoStr = wxcpt
+					.VerifyURL(msg_signature, timestamp, nonce, echostr);
 			logger.info("verifyurl echostr: " + sEchoStr);
 			// 验证URL成功，将sEchoStr返回
 			// HttpUtils.SetResponse(sEchoStr);
 		} catch (Exception e) {
-			//验证URL失败，错误原因请查看异常
+			// 验证URL失败，错误原因请查看异常
 			e.printStackTrace();
 		}
-		
+
 		return sEchoStr;
 	}
-	
+
 	@Path("address")
 	@POST
 	@Produces(MediaType.APPLICATION_XML)
@@ -77,20 +78,20 @@ public class EnterpriseResource {
 			@QueryParam("msg_signature") String msgSignature,
 			@QueryParam("timestamp") String timeStamp,
 			@QueryParam("nonce") String nonce,
-			
+
 			String postData) {
-		
+
 		try {
 			wxcpt = new WXBizMsgCrypt(sToken, sEncodingAESKey, sCorpID);
 		} catch (AesException e) {
 			e.printStackTrace();
 		}
-		
+
 		String sMsg = null;
 		try {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
-			
+
 			// TODO: 解析出明文xml标签的内容进行处理
 			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -99,18 +100,18 @@ public class EnterpriseResource {
 			Document document = db.parse(is);
 
 			Element root = document.getDocumentElement();
-			NodeList  nodes = root.getChildNodes();
-			for(int i=0;i<nodes.getLength();i++){
-				Node node =nodes.item(i);
+			NodeList nodes = root.getChildNodes();
+			for (int i = 0; i < nodes.getLength(); i++) {
+				Node node = nodes.item(i);
 				String name = node.getNodeName();
 				NodeList nodelist1 = root.getElementsByTagName(name);
 				String Content = nodelist1.item(0).getTextContent();
-				logger.info(String.format("%s : %s", name,Content));
+				logger.info(String.format("%s : %s", name, Content));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return "";
 	}
 }

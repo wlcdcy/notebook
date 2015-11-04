@@ -31,46 +31,50 @@ public class OSCJob implements Job {
 	static long since_id = 0;
 	private OscUtils oscUtil = new OscUtils();
 	private ObjectMapper mapper = new ObjectMapper();
-	private String token="";
-	private String url="";
-	private Map<String,String> resq_data = new HashMap<String,String>();
+	private String token = "";
+	private String url = "";
+	private Map<String, String> resq_data = new HashMap<String, String>();
 	Logger logger = LoggerFactory.getLogger(OSCJob.class);
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void execute(JobExecutionContext context)
 			throws JobExecutionException {
 		System.out.println("触发[" + OSCJob.class.getName() + "]定时任务....");
-		JobDataMap job_data= context.getJobDetail().getJobDataMap();
+		JobDataMap job_data = context.getJobDetail().getJobDataMap();
 		token = job_data.getString("token");
 		url = job_data.getString("url");
-//		recommend-推荐|time-最新|view-热门|cn-国产
+		// recommend-推荐|time-最新|view-热门|cn-国产
 		String resp_content = oscUtil.project_list("time");
-		List<Map> projects=null;
+		List<Map> projects = null;
 		String data = null;
 		try {
-			projects = (List<Map>) ((Map)mapper.readValue(resp_content, Map.class)).get("projectlist");
+			projects = (List<Map>) ((Map) mapper.readValue(resp_content,
+					Map.class)).get("projectlist");
 		} catch (IOException e) {
 			e.printStackTrace();
 			data = e.getMessage();
 		}
-		
-		if(projects!=null && projects.size()>0){
-			data="";
-			for(Map project:projects){
-				data+=String.format("<li> <a target=\"_blank\" href=\"%s\"><b>%s</b></a> <br>%s</li>", project.get("url"), project.get("name"), project.get("description"));
+
+		if (projects != null && projects.size() > 0) {
+			data = "";
+			for (Map project : projects) {
+				data += String
+						.format("<li> <a target=\"_blank\" href=\"%s\"><b>%s</b></a> <br>%s</li>",
+								project.get("url"), project.get("name"),
+								project.get("description"));
 			}
 		}
-		
+
 		resq_data.clear();
 		resq_data.put("token", token);
 		resq_data.put("data", data);
-		
+
 		try {
-			boolean ssl =StringUtils.startsWith(url, "https")? true:false;
-			
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+
 			CloseableHttpClient client = NetUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null ;
-			
+			CloseableHttpResponse response = null;
+
 			HttpPost httppost = new HttpPost(url);
 
 			RequestConfig requestConfig = RequestConfig.custom()
@@ -79,11 +83,12 @@ public class OSCJob implements Job {
 
 			ContentType contentType = ContentType.create(
 					ContentType.APPLICATION_JSON.getMimeType(), Consts.UTF_8);
-			
-			StringEntity entity = new StringEntity(mapper.writeValueAsString(resq_data), contentType);
+
+			StringEntity entity = new StringEntity(
+					mapper.writeValueAsString(resq_data), contentType);
 			httppost.setEntity(entity);
 			response = client.execute(httppost);
-			
+
 			logger.info(EntityUtils.toString(response.getEntity(), "UTF-8"));
 
 		} catch (UnsupportedCharsetException e) {
@@ -94,6 +99,5 @@ public class OSCJob implements Job {
 			e.printStackTrace();
 		}
 	}
-	
 
 }

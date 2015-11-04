@@ -15,11 +15,11 @@ import javax.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @ServerEndpoint(value = "/websocket/chat")
 public class ChatWebSocket {
 
-	private static final Logger log = LoggerFactory.getLogger(ChatWebSocket.class);
+	private static final Logger log = LoggerFactory
+			.getLogger(ChatWebSocket.class);
 	private static final String GUEST_PREFIX = "Guest";
 	private static final AtomicInteger connectionIds = new AtomicInteger(0);
 	private static final Set<ChatWebSocket> connections = new CopyOnWriteArraySet<>();
@@ -34,6 +34,8 @@ public class ChatWebSocket {
 	@OnOpen
 	public void start(Session session) {
 		this.session = session;
+		log.info("sessionId: " + session.getId());
+		// log.debug("UserPrincipal: "+session.getUserPrincipal().getName());
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");
 		broadcast(message);
@@ -51,7 +53,7 @@ public class ChatWebSocket {
 	public void incoming(String message) {
 		// Never trust the client
 		String filteredMessage = String.format("%s: %s", nickname,
-//				HTMLFilter.filter(message.toString())
+		// HTMLFilter.filter(message.toString())
 				message);
 		broadcast(filteredMessage);
 	}

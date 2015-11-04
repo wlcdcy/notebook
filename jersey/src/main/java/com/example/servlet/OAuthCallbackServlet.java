@@ -32,8 +32,9 @@ public class OAuthCallbackServlet extends
 				BearerToken.authorizationHeaderAccessMethod(),
 				new NetHttpTransport(), new JacksonFactory(), new GenericUrl(
 						"/token"), new BasicAuthentication("", ""), clientId,
-				"https://server.example.com/authorize")
-				.setCredentialDataStore(StoredCredential.getDefaultDataStore(new FileDataStoreFactory(new File("")))).build();
+				"https://server.example.com/authorize").setCredentialDataStore(
+				StoredCredential.getDefaultDataStore(new FileDataStoreFactory(
+						new File("")))).build();
 	}
 
 	@Override

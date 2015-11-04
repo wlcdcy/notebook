@@ -62,8 +62,7 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return notebooks;
 	}
 
-	public List<Note> getNotes(String notebook_id, int offset,
-			int maxNotes) {
+	public List<Note> getNotes(String notebook_id, int offset, int maxNotes) {
 		NoteFilter filter = new NoteFilter();
 		filter.setNotebookGuid(notebook_id);
 		filter.setOrder(NoteSortOrder.CREATED.getValue());
@@ -92,7 +91,7 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return null;
 	}
 
-	public boolean deleteNoteBook(String  guid) {
+	public boolean deleteNoteBook(String guid) {
 		try {
 			noteStore.expungeNotebook(guid);
 			return true;
@@ -103,9 +102,8 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return false;
 	}
 
-	public String createNote(String guid, String note_title,
-			String note_body) {
-		
+	public String createNote(String guid, String note_title, String note_body) {
+
 		Notebook parentNotebook = null;
 		try {
 			parentNotebook = noteStore.getNotebook(guid);
@@ -113,10 +111,11 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 				| EDAMNotFoundException | TException e1) {
 			e1.printStackTrace();
 		}
-		
-//		String nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
-//		nBody += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
-//		nBody += "<en-note>" + note_body + "</en-note>";
+
+		// String nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+		// nBody +=
+		// "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
+		// nBody += "<en-note>" + note_body + "</en-note>";
 
 		// Create note object
 		Note ourNote = new Note();
@@ -161,7 +160,8 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return null;
 	}
 
-	public boolean modifyNote(String note_id, String note_title,String note_content) {
+	public boolean modifyNote(String note_id, String note_title,
+			String note_content) {
 		Note note = null;
 		try {
 			note = noteStore.getNote(note_id, false, false, false, false);
@@ -169,9 +169,9 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 				| EDAMNotFoundException | TException e) {
 			e.printStackTrace();
 		}
-		if(note==null)
+		if (note == null)
 			return false;
-		
+
 		note.setTitle(note_title);
 		note.setContent(processNoteBody(note_content));
 		try {
@@ -184,18 +184,18 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		return false;
 	}
 
-	public boolean moveNote(String noteBook_id,String note_id) {
-		String newNote_id=copyNote(noteBook_id,note_id);
-		if(StringUtils.isEmpty(newNote_id)){
+	public boolean moveNote(String noteBook_id, String note_id) {
+		String newNote_id = copyNote(noteBook_id, note_id);
+		if (StringUtils.isEmpty(newNote_id)) {
 			return false;
 		}
 		return deleteNote(note_id);
 	}
-	
-	public String copyNote(String noteBook_id,String note_id) {
+
+	public String copyNote(String noteBook_id, String note_id) {
 
 		try {
-			Note  note= noteStore.copyNote(note_id, noteBook_id);
+			Note note = noteStore.copyNote(note_id, noteBook_id);
 			return note.getGuid();
 		} catch (EDAMUserException | EDAMSystemException
 				| EDAMNotFoundException | TException e) {
@@ -217,16 +217,17 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 
 	public String sharePublish(String note_id) {
 		try {
-			String shardkey= noteStore.shareNote(note_id);
+			String shardkey = noteStore.shareNote(note_id);
 			User user = getUser();
-			return String.format("https://%s/shard/%s/sh/%s/%s/", evernoteHost,user.getShardId(),note_id,shardkey);
+			return String.format("https://%s/shard/%s/sh/%s/%s/", evernoteHost,
+					user.getShardId(), note_id, shardkey);
 		} catch (EDAMUserException | EDAMNotFoundException
 				| EDAMSystemException | TException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	public boolean unSharePublish(String note_id) {
 		try {
 			noteStore.stopSharingNote(note_id);
@@ -235,7 +236,7 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 				| EDAMSystemException | TException e) {
 			e.printStackTrace();
 		}
-		
+
 		return false;
 	}
 
@@ -249,14 +250,13 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-//	private static ClientFactory getClientFactory(String access_token) {
-//		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
-//				access_token);
-//		return  new ClientFactory(evernoteAuth);
-//	}
-	
-	
+
+	// private static ClientFactory getClientFactory(String access_token) {
+	// EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
+	// access_token);
+	// return new ClientFactory(evernoteAuth);
+	// }
+
 	private static NoteStoreClient createNoteStoreClient(String access_token) {
 		EvernoteAuth evernoteAuth = new EvernoteAuth(EvernoteService.SANDBOX,
 				access_token);
@@ -282,8 +282,8 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 		}
 		return userStore;
 	}
-	
-	private String processNoteBody(String content){
+
+	private String processNoteBody(String content) {
 		String nBody = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 		nBody += "<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">";
 		nBody += "<en-note>" + content + "</en-note>";
@@ -330,9 +330,17 @@ public class EvernoteNote implements NoteManage<Notebook, Note> {
 					try {
 						String shardkey = noteStore.shareNote(note.getGuid());
 						System.out.println("Note shardKey: " + shardkey);
-						System.out.println("Note links : " + String.format("https://%s/shard/%s/nl/%s/%s/", evernoteHost,user.getShardId(), user.getId(),note.getGuid()));
-						System.out.println("Note public links : " + String.format("https://%s/shard/%s/sh/%s/%s/", evernoteHost,user.getShardId(),note.getGuid(),shardkey));
-					
+						System.out.println("Note links : "
+								+ String.format(
+										"https://%s/shard/%s/nl/%s/%s/",
+										evernoteHost, user.getShardId(),
+										user.getId(), note.getGuid()));
+						System.out.println("Note public links : "
+								+ String.format(
+										"https://%s/shard/%s/sh/%s/%s/",
+										evernoteHost, user.getShardId(),
+										note.getGuid(), shardkey));
+
 						noteStore.stopSharingNote(note.getGuid());
 					} catch (EDAMNotFoundException e) {
 						e.printStackTrace();

@@ -64,7 +64,9 @@ public class MailUtils {
 
 	}
 
-	/** 代发邮件
+	/**
+	 * 代发邮件
+	 * 
 	 * @param subject
 	 *            邮件主题
 	 * @param content
@@ -130,13 +132,13 @@ public class MailUtils {
 			e.printStackTrace();
 		}
 	}
-	
-	
-	public void sendMailWithDKIM(){
-		DKIMSigner dkimSigner = null ;//new DKIMSigner(<signingDomain>, <selector>, <privateKey>);
-		//Message msg = new SMTPDKIMMessage(session, dkimSigner);
+
+	public void sendMailWithDKIM() {
+		DKIMSigner dkimSigner = null;// new DKIMSigner(<signingDomain>,
+										// <selector>, <privateKey>);
+		// Message msg = new SMTPDKIMMessage(session, dkimSigner);
 		// fill the message here
-		//transport.sendMessage(msg, msg.getAllRecipients());
+		// transport.sendMessage(msg, msg.getAllRecipients());
 	}
 
 	// 代发邮件

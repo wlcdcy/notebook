@@ -40,34 +40,37 @@ public class TrelloUtils<T> {
 	public static void main(String[] args) {
 		// get();
 		// getAuthUrl();
-		
+
 		getNotifications();
-		List<Map<String,Object>> webhooks = getWebhooks();
-		boolean create = webhooks.size()>0 ? false:true;
-		if(create){
+		List<Map<String, Object>> webhooks = getWebhooks();
+		boolean create = webhooks.size() > 0 ? false : true;
+		if (create) {
 			String body = getMembers(); // getMembers("overturn");
-			List<Map<String,Object>> boards = getBoards(body);
-			for (Map<String,Object> board : boards) {
+			List<Map<String, Object>> boards = getBoards(body);
+			for (Map<String, Object> board : boards) {
 				String name = (String) board.get("name");
 				boolean closed = (Boolean) board.get("closed");
 				String idOrganization = (String) board.get("idOrganization");
 				String pinned = (String) board.get("pinned");
 				String id = (String) board.get("id");
-				logger.info(String.format("name:%s # id:%s # closed:%b # idOrganization:%s # pinned:%s", name, id,closed,idOrganization,pinned));
-	
+				logger.info(String
+						.format("name:%s # id:%s # closed:%b # idOrganization:%s # pinned:%s",
+								name, id, closed, idOrganization, pinned));
+
 				if (StringUtils.equals(name, "hiwork")) {
 					String resp_webhook = createWebhook(
 							"http://113.143.148.112:808/jersey/webhook/trello/board/callback",
 							"board webhook", id);
-					my_webhook_id = (String) convertToObject(resp_webhook, Map.class).get("id");
+					my_webhook_id = (String) convertToObject(resp_webhook,
+							Map.class).get("id");
 					break;
 				}
 			}
 			webhooks = getWebhooks();
 		}
-		
-		Iterator<Map<String,Object>> it = webhooks.iterator();
-		while(it.hasNext()){
+
+		Iterator<Map<String, Object>> it = webhooks.iterator();
+		while (it.hasNext()) {
 			logger.info((String) it.next().get("id"));
 		}
 		updateWebhookWithModelId(my_webhook_id, "5582849aea1bb63179d15e57");
@@ -87,8 +90,7 @@ public class TrelloUtils<T> {
 		String url = "https://api.trello.com/1/board/4d5ea62fd76aa1136000000c";
 		String req_url = String.format("%s?key=%s&cards=open&lists=open", url,
 				key);
-		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url,
-				"");
+		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
 		logger.info(resp_body);
 		return resp_body;
 
@@ -302,8 +304,7 @@ public class TrelloUtils<T> {
 		String url = "https://trello.com/1/members";
 		String req_url = String.format("%s/%s?boards=all&key=%s&token=%s", url,
 				username, key, my_access_token);
-		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url,
-				"");
+		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
 		logger.info(resp_body);
 		return resp_body;
 	}
@@ -315,17 +316,17 @@ public class TrelloUtils<T> {
 	 *            用户信息（members方法的返回值）
 	 * @return
 	 */
-	public static List<Map<String,Object>> getBoards(String member_info) {
+	public static List<Map<String, Object>> getBoards(String member_info) {
 		if (member_info == null || StringUtils.isEmpty(member_info)) {
 			return null;
 		}
-		return convertToListMap(member_info,String.class,Object.class);
+		return convertToListMap(member_info, String.class, Object.class);
 	}
-	
-	public static <T> T convertToObject(String data,Class<T> clazz){
+
+	public static <T> T convertToObject(String data, Class<T> clazz) {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			return mapper.readValue(data,clazz);
+			return mapper.readValue(data, clazz);
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -335,11 +336,14 @@ public class TrelloUtils<T> {
 		}
 		return null;
 	}
-	
-	public static List<Map<String, Object>> convertToListMap(String data,Class<String> class1,Class<Object> class2){
+
+	public static List<Map<String, Object>> convertToListMap(String data,
+			Class<String> class1, Class<Object> class2) {
 		ObjectMapper mapper = new ObjectMapper();
-		JavaType jt = mapper.getTypeFactory().constructMapType(Map.class,class1, class2);
-		CollectionType ct=mapper.getTypeFactory().constructCollectionType(List.class, jt);
+		JavaType jt = mapper.getTypeFactory().constructMapType(Map.class,
+				class1, class2);
+		CollectionType ct = mapper.getTypeFactory().constructCollectionType(
+				List.class, jt);
 		try {
 			return mapper.readValue(data, ct);
 		} catch (JsonParseException e) {
@@ -351,12 +355,13 @@ public class TrelloUtils<T> {
 		}
 		return null;
 	}
-	
-	public static <T> List<T> convertToList(String data,Class<T> clazz){
+
+	public static <T> List<T> convertToList(String data, Class<T> clazz) {
 		ObjectMapper mapper = new ObjectMapper();
-		JavaType jt = mapper.getTypeFactory().constructParametricType(List.class, clazz);
+		JavaType jt = mapper.getTypeFactory().constructParametricType(
+				List.class, clazz);
 		try {
-			return mapper.readValue(data,jt);
+			return mapper.readValue(data, jt);
 		} catch (JsonParseException e) {
 			e.printStackTrace();
 		} catch (JsonMappingException e) {
@@ -366,10 +371,11 @@ public class TrelloUtils<T> {
 		}
 		return null;
 	}
-	
-	public static String getNotifications(){
-		String req_url = String.format("https://trello.com/1/notifications/all/read");
-		
+
+	public static String getNotifications() {
+		String req_url = String
+				.format("https://trello.com/1/notifications/all/read");
+
 		CloseableHttpClient hpclient = NetUtils.getHttpClient(true);
 		HttpPost httppost = new HttpPost(req_url);
 		HttpEntity entity = EntityBuilder
@@ -379,15 +385,15 @@ public class TrelloUtils<T> {
 				.build();
 		httppost.setEntity(entity);
 		try {
-			CloseableHttpResponse response =  hpclient.execute(httppost);
+			CloseableHttpResponse response = hpclient.execute(httppost);
 			if (response.getStatusLine().getStatusCode() == 200) {
 				String resp_body = EntityUtils.toString(response.getEntity());
 				logger.info("resp_body : " + resp_body);
 				return resp_body;
 			} else if (response.getStatusLine().getStatusCode() == 404) {
-//				logger.info(String.format(
-//						"webhook delete error : webhook id[%s] is not exist: ",
-//						webhook_id));
+				// logger.info(String.format(
+				// "webhook delete error : webhook id[%s] is not exist: ",
+				// webhook_id));
 			}
 		} catch (ClientProtocolException e) {
 			e.printStackTrace();
@@ -396,10 +402,12 @@ public class TrelloUtils<T> {
 		}
 		return null;
 	}
-	
-	public static List<Map<String,Object>> getWebhooks(){
-		String req_url = String.format("https://trello.com/1/tokens/%s/webhooks?key=%s",my_access_token,key);
+
+	public static List<Map<String, Object>> getWebhooks() {
+		String req_url = String.format(
+				"https://trello.com/1/tokens/%s/webhooks?key=%s",
+				my_access_token, key);
 		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
-		return convertToListMap(resp_body,String.class,Object.class);
+		return convertToListMap(resp_body, String.class, Object.class);
 	}
 }

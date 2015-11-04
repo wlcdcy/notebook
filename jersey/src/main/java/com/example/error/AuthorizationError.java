@@ -27,6 +27,5 @@ public class AuthorizationError extends Exception {
 	public AuthorizationError(Throwable cause) {
 		super(cause);
 	}
-	
 
 }

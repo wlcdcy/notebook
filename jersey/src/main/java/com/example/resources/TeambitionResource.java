@@ -24,36 +24,42 @@ import com.example.commons.TeambitionUtils;
 
 @Path("/webhook/teambition")
 public class TeambitionResource {
-	private static Logger logger = LoggerFactory.getLogger(TeambitionResource.class);
-	
-	
+	private static Logger logger = LoggerFactory
+			.getLogger(TeambitionResource.class);
+
 	/**
 	 * @param resp
 	 * @throws IOException
 	 */
 	@Path("/index")
 	@GET
-	public String index(@Context HttpServletResponse resp) throws IOException{
-		String html="welcome to hiwork.";
-//		resp.getOutputStream().write(html.getBytes());
+	public String index(@Context HttpServletResponse resp) throws IOException {
+		String html = "welcome to hiwork.";
+		// resp.getOutputStream().write(html.getBytes());
 		return html;
 	}
-	
-	/**重定向到认证授权地址
+
+	/**
+	 * 重定向到认证授权地址
+	 * 
 	 * @param req
 	 * @param resp
 	 */
 	@Path("/auth")
 	@GET
-	public void oauth2Auth(@Context HttpServletRequest req,@Context HttpServletResponse resp){
+	public void oauth2Auth(@Context HttpServletRequest req,
+			@Context HttpServletResponse resp) {
 		try {
-			resp.sendRedirect(TeambitionUtils.getOAuthUrl(TeambitionUtils.redirect_uri));
+			resp.sendRedirect(TeambitionUtils
+					.getOAuthUrl(TeambitionUtils.redirect_uri));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	/**认证授权成功回调地址
+
+	/**
+	 * 认证授权成功回调地址
+	 * 
 	 * @param code
 	 * @param state
 	 * @return
@@ -61,18 +67,20 @@ public class TeambitionResource {
 	@Path("/auth/callback")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String auth_back(@QueryParam("code") String code,@QueryParam("state") String state){
+	public String auth_back(@QueryParam("code") String code,
+			@QueryParam("state") String state) {
 		TeambitionUtils.auth_code = code;
 		logger.info(String.format("auth code is : %s", code));
 		logger.info(String.format("res state is : %s", state));
-		
-		//fetch access_token request
+
+		// fetch access_token request
 		String resp_data = TeambitionUtils.fetchAccessToken(code);
-		
+
 		try {
-			String access_token = (String) new ObjectMapper().readValue(resp_data, Map.class).get("access_token");
-			//check access_token
-			if(TeambitionUtils.checkAccessToken(access_token)){
+			String access_token = (String) new ObjectMapper().readValue(
+					resp_data, Map.class).get("access_token");
+			// check access_token
+			if (TeambitionUtils.checkAccessToken(access_token)) {
 				TeambitionUtils.access_token = access_token;
 				return access_token;
 			}
@@ -83,12 +91,13 @@ public class TeambitionResource {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
+
 		return "";
 	}
-	
-	/**工程事件变化通知地址
+
+	/**
+	 * 工程事件变化通知地址
+	 * 
 	 * @param req
 	 * @param jsonData
 	 * @return
@@ -97,14 +106,17 @@ public class TeambitionResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String project(@Context HttpServletRequest req ,Map<String, Object> jsonData){
+	public String project(@Context HttpServletRequest req,
+			Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
-		
+
 		return content_type;
 	}
-	
-	/**组织机构事件变化通知地址
+
+	/**
+	 * 组织机构事件变化通知地址
+	 * 
 	 * @param req
 	 * @param jsonData
 	 * @return
@@ -113,11 +125,12 @@ public class TeambitionResource {
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public String organization(@Context HttpServletRequest req ,Map<String, Object> jsonData){
+	public String organization(@Context HttpServletRequest req,
+			Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
 
 		return content_type;
 	}
-	
+
 }

@@ -19,14 +19,15 @@ public class AuthResource {
 	public String getUserPrincipal() {
 		return securityContext.getUserPrincipal().getName();
 	}
-	
-	public String d(@Context SecurityContext sc){
+
+	public String d(@Context SecurityContext sc) {
 		return "";
 	}
+
 	@Path("/sayhello")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String sayHello(@Context SecurityContext sc){
+	public String sayHello(@Context SecurityContext sc) {
 		return "hello";
 	}
 }

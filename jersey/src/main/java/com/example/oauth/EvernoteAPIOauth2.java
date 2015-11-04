@@ -27,10 +27,10 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 	private static String oauth_host = "https://sandbox.evernote.com";
 	public static final String consumer_key = "hiwork";
 	public static final String consumer_secret = "5382250a6f5eb0c8";
-	
-	
-//	acction token : S=s1:U=914eb:E=156b6b7061b:C=14f5f05d958:P=185:A=hiwork:V=2:H=5b8fdfb2ccf47a7bb59218851a11c21e
-	
+
+	// acction token :
+	// S=s1:U=914eb:E=156b6b7061b:C=14f5f05d958:P=185:A=hiwork:V=2:H=5b8fdfb2ccf47a7bb59218851a11c21e
+
 	public static Logger logger = LoggerFactory
 			.getLogger(EvernoteAPIOauth2.class);
 	Random random = new Random();
@@ -70,19 +70,20 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 						Long.toString(System.currentTimeMillis() / 1000), "1.0");
 		String req_url = oauth_host + url + "?" + param;
 		String resp_data = httpGetRequest(req_url);
-		if(StringUtils.isEmpty(resp_data))
+		if (StringUtils.isEmpty(resp_data))
 			return "400 error";
-		
+
 		logger.info(resp_data);
 		return "200 ok";
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Override
-	public String getAccessToken(String oauth_token,String oauth_verifier) {
+	public String getAccessToken(String oauth_token, String oauth_verifier) {
 		String url = "/oauth"; // sandbox.evernote.com/oauth
-//		String oauth_token ="hiwork.14F5ED88F55.687474703A2F2F33362E34362E3235342E3230302F6A65727365792F6F617574682F6F7665726E6F74652F63616C6C6261636B.85A3B9DE6F06DE4BDC2AD7E324DC9467";
-//		String oauth_verifier ="24FC21175F2FA0B30579C0D9936E7B28";
+		// String oauth_token
+		// ="hiwork.14F5ED88F55.687474703A2F2F33362E34362E3235342E3230302F6A65727365792F6F617574682F6F7665726E6F74652F63616C6C6261636B.85A3B9DE6F06DE4BDC2AD7E324DC9467";
+		// String oauth_verifier ="24FC21175F2FA0B30579C0D9936E7B28";
 
 		String param = String
 				.format("oauth_consumer_key=%s&oauth_token=%s&oauth_verifier=%s&oauth_nonce=%s&oauth_signature=%s&oauth_signature_method=%s&oauth_timestamp%s&oauth_version=%s",
@@ -92,18 +93,22 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 						Long.toString(System.currentTimeMillis() / 1000), "1.0");
 		String req_url = oauth_host + url + "?" + param;
 		String resp_body = httpGetRequest(req_url);
-		if(StringUtils.isEmpty(resp_body))
+		if (StringUtils.isEmpty(resp_body))
 			return "400 error";
-		
+
 		logger.info(resp_body);
-		Map<String,String> resp_data = parseAccessTokenResponse(resp_body);
-		logger.info("access token : " + URLDecoder.decode(resp_data.get("oauth_token")));
-		logger.info("oauth_token_secret : " + resp_data.get("oauth_token_secret"));
+		Map<String, String> resp_data = parseAccessTokenResponse(resp_body);
+		logger.info("access token : "
+				+ URLDecoder.decode(resp_data.get("oauth_token")));
+		logger.info("oauth_token_secret : "
+				+ resp_data.get("oauth_token_secret"));
 		logger.info("edam_shard : " + resp_data.get("edam_shard"));
 		logger.info("edam_userId : " + resp_data.get("edam_userId"));
 		logger.info("edam_expires : " + resp_data.get("edam_expires"));
-		logger.info("edam_noteStoreUrl : " + URLDecoder.decode(resp_data.get("edam_noteStoreUrl")));
-		logger.info("edam_webApiUrlPrefix : " + URLDecoder.decode(resp_data.get("edam_webApiUrlPrefix")));
+		logger.info("edam_noteStoreUrl : "
+				+ URLDecoder.decode(resp_data.get("edam_noteStoreUrl")));
+		logger.info("edam_webApiUrlPrefix : "
+				+ URLDecoder.decode(resp_data.get("edam_webApiUrlPrefix")));
 		return "200 ok";
 	}
 
@@ -169,7 +174,7 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 		}
 		return data;
 	}
-	
+
 	private Map<String, String> parseAccessTokenResponse(String value) {
 		if (StringUtils.isEmpty(value))
 			return null;

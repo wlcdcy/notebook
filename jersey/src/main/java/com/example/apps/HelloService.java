@@ -17,12 +17,12 @@ public class HelloService {
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String getIt(@Context UriInfo ui,@Context HttpHeaders hh) {
+	public String getIt(@Context UriInfo ui, @Context HttpHeaders hh) {
 		MultivaluedMap<String, String> queryParams = ui.getQueryParameters();
 		MultivaluedMap<String, String> pathParams = ui.getPathParameters();
-		
+
 		MultivaluedMap<String, String> headerParams = hh.getRequestHeaders();
-		Map<String,Cookie> cookieParams = hh.getCookies();
+		Map<String, Cookie> cookieParams = hh.getCookies();
 		System.out.println(ui.getBaseUri());
 		return "Hello, Let go! use Application Model Set";
 	}

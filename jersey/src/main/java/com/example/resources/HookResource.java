@@ -64,11 +64,19 @@ public class HookResource {
 	// String appKey="1121941913";
 	String weibo_access_token = "0ebc90cad97041ac57615c0af924f729";
 	String weibo_app_secret = "2b3626dc0a956bc98e5b05afd1dbb608";
-	static String [] persons ={"佘明强","张宏","彭祥波","刘刚","刘剑","李豆","刘国艳","符润祯","梁培杰","李工","张青","李总","老王","沈京华","陈静","焦明明"};
-	static String [] person_urls ={"http://www.kaixin001.com/home/58140650.html","张宏","http://cn.linkedin.com/pub/%E7%A5%A5%E6%B3%A2-%E5%BD%AD/9a/709/217","刘刚","刘剑","李豆","刘国艳","符润祯","梁培杰","李工","张青","李总","老王","沈京华","陈静","焦明明"};
-	static String [] actors ={"土豪","坏人","懒人","商人","工人","牛人","超人","乞丐","好人","神人"};
-	static String [] works ={"脸很大","腰很粗","脸挺小","腰蛮细","嘴很甜","脖子粗","眼睛小","胳膊长","腿挺短","手挺快"};
-	static Random random =new Random();
+	static String[] persons = { "佘明强", "张宏", "彭祥波", "刘刚", "刘剑", "李豆", "刘国艳",
+			"符润祯", "梁培杰", "李工", "张青", "李总", "老王", "沈京华", "陈静", "焦明明" };
+	static String[] person_urls = {
+			"http://www.kaixin001.com/home/58140650.html",
+			"张宏",
+			"http://cn.linkedin.com/pub/%E7%A5%A5%E6%B3%A2-%E5%BD%AD/9a/709/217",
+			"刘刚", "刘剑", "李豆", "刘国艳", "符润祯", "梁培杰", "李工", "张青", "李总", "老王",
+			"沈京华", "陈静", "焦明明" };
+	static String[] actors = { "土豪", "坏人", "懒人", "商人", "工人", "牛人", "超人", "乞丐",
+			"好人", "神人" };
+	static String[] works = { "脸很大", "腰很粗", "脸挺小", "腰蛮细", "嘴很甜", "脖子粗", "眼睛小",
+			"胳膊长", "腿挺短", "手挺快" };
+	static Random random = new Random();
 	public static String trello_access_token = "";
 	ObjectMapper mapper = new ObjectMapper();
 
@@ -99,28 +107,27 @@ public class HookResource {
 	public String getIt() {
 		return "Hello, Let go! use ResourceConfig Scanning  Hooks";
 	}
-	
-	
+
 	@Path("/test")
 	@POST
-	@Produces(MediaType.APPLICATION_JSON )
+	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String test_form(@Context HttpServletRequest req,
 			@FormParam("post_content") String post_content,
 			@FormParam("post_content_filtered") String post_content_filtered,
 			@FormParam("post_title") String post_title,
 			@FormParam("post_url") String post_url,
-			
+
 			@FormParam("comment_post") String comment_post,
 			@FormParam("comment_author") String comment_author,
 			@FormParam("comment_content") String comment_content,
-			@FormParam("comment_author_url") String comment_author_url
-			) {
-//		post_content, post_content_filtered, post_title, post_url
-//		彭祥波(10887272)  11:40:33
-//		comment_post ： comment_author，comment_content和comment_author_url
+			@FormParam("comment_author_url") String comment_author_url) {
+		// post_content, post_content_filtered, post_title, post_url
+		// 彭祥波(10887272) 11:40:33
+		// comment_post ： comment_author，comment_content和comment_author_url
 
-		String content_type = req.getContentType();;
+		String content_type = req.getContentType();
+		;
 		logger.debug(content_type);
 		return content_type;
 	}
@@ -141,7 +148,7 @@ public class HookResource {
 			@PathParam("token") String token, Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.debug(content_type);
-		
+
 		String jsonStr = null;
 		try {
 			jsonStr = mapper.writeValueAsString(jsonData);
@@ -511,8 +518,7 @@ public class HookResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public String swathub_json(@Context HttpServletRequest req,
-			@PathParam("token") String token, Map<String, Object> jsonData
-	) {
+			@PathParam("token") String token, Map<String, Object> jsonData) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
 		String jsonStr = null;
@@ -525,14 +531,13 @@ public class HookResource {
 		// TODO generate msg use jsonData and broadcast
 		return "is ok";
 	}
-	
+
 	@POST
 	@Path("/swathub/{token}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String swathub_form(@Context HttpServletRequest req,
-			@PathParam("token") String token,String payload
-	) {
+			@PathParam("token") String token, String payload) {
 		String content_type = req.getContentType();
 		logger.info(content_type);
 		logger.info(payload);
@@ -588,90 +593,97 @@ public class HookResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public String outgoing_form(@Context HttpServletRequest req,
-			@FormParam("token") String token,
-			@FormParam("team") String team,
+			@FormParam("token") String token, @FormParam("team") String team,
 			@FormParam("domain") String domain,
 			@FormParam("channel") String channel,
 			@FormParam("timestamp") long timestamp,
 			@FormParam("user") String user_name,
 			@FormParam("text") String text,
-			@FormParam("trigger_word") String trigger_word,	
+			@FormParam("trigger_word") String trigger_word,
 			@FormParam("Payload") String formData) {
 
 		logger.debug(formData);
-		if(StringUtils.contains(text, trigger_word)){
+		if (StringUtils.contains(text, trigger_word)) {
 			return text;
 		}
 		return null;
 	}
+
 	@Path("/outgoing")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String,Object> outgoing_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-		Map<String ,Object> return_data= new HashMap<String ,Object>();
-		logger.debug("channel : " +(String)jsonData.get("channel"));
-		String text = (String)jsonData.get("content");
-		String trigger_word = (String)jsonData.get("trigger_word");
-		
-		if(text.trim().length()>trigger_word.length() && StringUtils.contains(text.trim(), trigger_word)){
+	public Map<String, Object> outgoing_json(@Context HttpServletRequest req,
+			Map<String, Object> jsonData) {
+		Map<String, Object> return_data = new HashMap<String, Object>();
+		logger.debug("channel : " + (String) jsonData.get("channel"));
+		String text = (String) jsonData.get("content");
+		String trigger_word = (String) jsonData.get("trigger_word");
+
+		if (text.trim().length() > trigger_word.length()
+				&& StringUtils.contains(text.trim(), trigger_word)) {
 			String returntext = text;
-			int i=0;
-			for(String person:persons){
+			int i = 0;
+			for (String person : persons) {
 				i++;
-				if(text.contains(person)){
-					returntext= String.format("%s是%s，他%s", person,actors[random.nextInt(actors.length)],works[random.nextInt(works.length)]);
+				if (text.contains(person)) {
+					returntext = String.format("%s是%s，他%s", person,
+							actors[random.nextInt(actors.length)],
+							works[random.nextInt(works.length)]);
 					break;
 				}
-				
+
 			}
-			return_data.put("title", "outgoing["+text+"]");
+			return_data.put("title", "outgoing[" + text + "]");
 			return_data.put("text", returntext);
-			if(i==3){
-				return_data.put("url", person_urls[i-1]);
-			}else{
+			if (i == 3) {
+				return_data.put("url", person_urls[i - 1]);
+			} else {
 				return_data.put("url", "#");
 			}
 		}
-		
+
 		return return_data;
 	}
-	
+
 	@Path("/turing")
 	@POST
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public Map<String,Object> outgoing_turing(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-		Map<String ,Object> return_data= new HashMap<String ,Object>();
-		logger.debug("channel : " +(String)jsonData.get("channel"));
-		String text = (String)jsonData.get("content");
-		String trigger_word = (String)jsonData.get("trigger_word");
-		
-		if(text.trim().length()>trigger_word.length()){
+	public Map<String, Object> outgoing_turing(@Context HttpServletRequest req,
+			Map<String, Object> jsonData) {
+		Map<String, Object> return_data = new HashMap<String, Object>();
+		logger.debug("channel : " + (String) jsonData.get("channel"));
+		String text = (String) jsonData.get("content");
+		String trigger_word = (String) jsonData.get("trigger_word");
+
+		if (text.trim().length() > trigger_word.length()) {
 			String content = StringUtils.split(text)[1];
-			
+
 			StringBuffer sb = null;
 			BufferedReader reader = null;
 			HttpURLConnection connection = null;
 			try {
-				String APIKEY = "c232f980ef2b261b6934506d67e8f0a8"; 
-				String INFO = URLEncoder.encode(content, "utf-8"); 
-				String getURL = "http://www.tuling123.com/openapi/api?key=" + APIKEY + "&info=" + INFO; 
-				URL getUrl = new URL(getURL); 
-				connection = (HttpURLConnection) getUrl.openConnection(); 
-				connection.connect(); 
+				String APIKEY = "c232f980ef2b261b6934506d67e8f0a8";
+				String INFO = URLEncoder.encode(content, "utf-8");
+				String getURL = "http://www.tuling123.com/openapi/api?key="
+						+ APIKEY + "&info=" + INFO;
+				URL getUrl = new URL(getURL);
+				connection = (HttpURLConnection) getUrl.openConnection();
+				connection.connect();
 
-				// 取得输入流，并使用Reader读取 
-				reader = new BufferedReader(new InputStreamReader( connection.getInputStream(), "utf-8")); 
-				sb = new StringBuffer(); 
-				String line = ""; 
-				while ((line = reader.readLine()) != null) { 
-				    sb.append(line); 
-				} 
-				
+				// 取得输入流，并使用Reader读取
+				reader = new BufferedReader(new InputStreamReader(
+						connection.getInputStream(), "utf-8"));
+				sb = new StringBuffer();
+				String line = "";
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+
 				System.out.println(sb);
-				
-				return_data.put("title", "turing["+text+"]");
+
+				return_data.put("title", "turing[" + text + "]");
 				return_data.put("text", sb.toString());
 				return_data.put("url", "#");
 			} catch (UnsupportedEncodingException e) {
@@ -680,22 +692,22 @@ public class HookResource {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
-			} finally{
+			} finally {
 				try {
-					if(reader!=null)
-						reader.close(); 
+					if (reader != null)
+						reader.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				// 断开连接 
+				// 断开连接
 				try {
-					if(connection!=null)
+					if (connection != null)
 						connection.disconnect();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
-		    
+
 		}
 		return return_data;
 	}
@@ -1367,5 +1379,5 @@ public class HookResource {
 		jo.put("latitude", "232.343434");
 		return jo.toString();
 	}
-	
+
 }

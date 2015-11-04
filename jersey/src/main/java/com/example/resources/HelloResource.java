@@ -17,8 +17,9 @@ public class HelloResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getIt(@Context SecurityContext sc) {
 		String user = sc.getUserPrincipal().getName();
-		if(sc.isUserInRole("tomcat")){
-			return String.format("Hello %s, Let go! use Application Model Set",user);
+		if (sc.isUserInRole("tomcat")) {
+			return String.format("Hello %s, Let go! use Application Model Set",
+					user);
 		}
 		return "Hello, Let go! use ResourceConfig Scanning";
 	}

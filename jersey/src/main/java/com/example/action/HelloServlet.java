@@ -29,11 +29,11 @@ public class HelloServlet extends HttpServlet {
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		super.doGet(req, resp);
-		Map params  = req.getParameterMap();
-		Iterator<String> param_keys =params.keySet().iterator();
-		while(param_keys.hasNext()){
-			log.debug("param(name) :"+param_keys.next());
-			log.debug("param(value) :"+params.get(param_keys.next()));
+		Map params = req.getParameterMap();
+		Iterator<String> param_keys = params.keySet().iterator();
+		while (param_keys.hasNext()) {
+			log.debug("param(name) :" + param_keys.next());
+			log.debug("param(value) :" + params.get(param_keys.next()));
 		}
 	}
 

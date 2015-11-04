@@ -3,12 +3,12 @@ package com.example.note.entity;
 public class Note {
 
 	private String id;
-	
+
 	/**
 	 * 笔记的路径
 	 */
 	private String path;
-	
+
 	/**
 	 * 标题
 	 */
@@ -17,29 +17,29 @@ public class Note {
 	 * 内容
 	 */
 	private String content;
-	
+
 	/**
 	 * 作者
 	 */
 	private String author;
-	
+
 	/**
 	 * 创建时间
 	 */
 	private long createTime;
-	
+
 	/**
 	 * 修改时间
 	 */
 	private long modifyTime;
-	
+
 	/**
 	 * 大小
 	 */
 	private long size;
-	
+
 	/**
-	 *来源 
+	 * 来源
 	 */
 	private String source;
 
@@ -115,6 +115,4 @@ public class Note {
 		this.size = size;
 	}
 
-	
-	
 }

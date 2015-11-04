@@ -28,7 +28,7 @@ public class Oauth2Service {
 
 	private static Logger logger = LoggerFactory.getLogger(Oauth2Service.class);
 	private Oauth2Factory oauth2Factory = Oauth2Factory.getInstance();
-	
+
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	public String get(@Context HttpServletRequest req) {
@@ -47,10 +47,12 @@ public class Oauth2Service {
 			@PathParam("appcode") String appcode) {
 
 		APIOauth2 api = oauth2Factory.getAppOauth2Pravider(appcode);
-		if(api==null){
-			return Response.ok("not support "+appcode , MediaType.TEXT_PLAIN).build();
+		if (api == null) {
+			return Response.ok("not support " + appcode, MediaType.TEXT_PLAIN)
+					.build();
 		}
-		String callback=String.format("http://36.46.254.200/jersey/oauth/%s/callback", appcode);
+		String callback = String.format(
+				"http://36.46.254.200/jersey/oauth/%s/callback", appcode);
 		String oauth_url = api.getOauth2Url(callback);
 		return Response.seeOther(UriBuilder.fromUri(oauth_url).build()).build();
 	}
@@ -67,16 +69,18 @@ public class Oauth2Service {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String auth_back(@PathParam("appcode") String appcode,
 			@QueryParam("oauth_token") String oauth_token,
-			@QueryParam("oauth_verifier") String oauth_verifier,@QueryParam("&sandbox_lnb") boolean sandbox_lnb) {
+			@QueryParam("oauth_verifier") String oauth_verifier,
+			@QueryParam("&sandbox_lnb") boolean sandbox_lnb) {
 
-		logger.info(String.format(
-				"oauth code is : %s	res state is : %s", appcode,oauth_token +" : " + oauth_verifier +" : "+ sandbox_lnb));
+		logger.info(String.format("oauth code is : %s	res state is : %s",
+				appcode, oauth_token + " : " + oauth_verifier + " : "
+						+ sandbox_lnb));
 
 		// TODO 检查state是否来自授权服务的请求
 
 		// get access_token request
 		APIOauth2 api = oauth2Factory.getAppOauth2Pravider(appcode);
-		String access_token = api.getAccessToken(oauth_token,oauth_verifier);
+		String access_token = api.getAccessToken(oauth_token, oauth_verifier);
 		logger.info(String.format("overnote access token : %s", access_token));
 		// TODO 持久化用户的 auth_code&access_cod;
 		// TeambitionApi.auth_code = auth_code;
@@ -84,22 +88,25 @@ public class Oauth2Service {
 
 		return "";
 	}
-	
+
 	@Path("{appcode}/callback/{token}")
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	public String auth_back(@PathParam("appcode") String appcode,@PathParam("token") String token,
+	public String auth_back(@PathParam("appcode") String appcode,
+			@PathParam("token") String token,
 			@QueryParam("oauth_token") String oauth_token,
-			@QueryParam("oauth_verifier") String oauth_verifier,@QueryParam("&sandbox_lnb") boolean sandbox_lnb) {
+			@QueryParam("oauth_verifier") String oauth_verifier,
+			@QueryParam("&sandbox_lnb") boolean sandbox_lnb) {
 
-		logger.info(String.format(
-				"oauth code is : %s	res state is : %s", appcode,oauth_token +" : " + oauth_verifier +" : "+ sandbox_lnb));
+		logger.info(String.format("oauth code is : %s	res state is : %s",
+				appcode, oauth_token + " : " + oauth_verifier + " : "
+						+ sandbox_lnb));
 
 		// TODO 检查state是否来自授权服务的请求
 
 		// get access_token request
 		APIOauth2 api = oauth2Factory.getAppOauth2Pravider(appcode);
-		String access_token = api.getAccessToken(oauth_token,oauth_verifier);
+		String access_token = api.getAccessToken(oauth_token, oauth_verifier);
 		logger.info(String.format("overnote access token : %s", access_token));
 		// TODO 持久化用户的 auth_code&access_cod;
 		// TeambitionApi.auth_code = auth_code;
@@ -107,5 +114,5 @@ public class Oauth2Service {
 
 		return "";
 	}
-	
+
 }

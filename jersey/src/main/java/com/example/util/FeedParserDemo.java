@@ -112,7 +112,7 @@ public class FeedParserDemo {
 			System.out.println("description: " + sf.getDescription());
 			System.out.println("encoding: " + sf.getEncoding());
 			System.out.println("link: " + sf.getLink());
-			
+
 			if (sf.getPublishedDate() != null) {
 				System.out.println("publish date: "
 						+ DateFormatUtils.format(sf.getPublishedDate(),
@@ -132,7 +132,8 @@ public class FeedParserDemo {
 				String link = se.getLink();
 				String destype = se.getDescription().getType();
 				String desvalue = se.getDescription().getValue();
-				String pubdate = DateFormatUtils.format(se.getPublishedDate(),"yyyy-MM-dd hh:mm:ss");
+				String pubdate = DateFormatUtils.format(se.getPublishedDate(),
+						"yyyy-MM-dd hh:mm:ss");
 
 				System.out.println(String.format("%s %s %s [%s] %s", pubdate,
 						title, link, destype, desvalue));
@@ -154,7 +155,7 @@ public class FeedParserDemo {
 	public static void main(String[] args) {
 		String rss = "http://go.microsoft.com/fwlink/?LinkId=128474";// "http://www.oschina.net/project/rss";//
 																		// "http://www.duanwenxue.com/data/rss/1.xml";
-//		useFeedparser(rss);
+																		// useFeedparser(rss);
 		useRome(rss);
 
 	}

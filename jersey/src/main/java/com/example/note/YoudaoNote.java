@@ -3,7 +3,6 @@ package com.example.note;
 import java.io.InputStream;
 import java.util.List;
 
-
 public class YoudaoNote implements NoteManage {
 
 	@Override
@@ -93,5 +92,4 @@ public class YoudaoNote implements NoteManage {
 		return null;
 	}
 
-	
 }
