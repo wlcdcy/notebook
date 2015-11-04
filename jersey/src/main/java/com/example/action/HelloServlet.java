@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet(urlPatterns = { "/login.html" }, asyncSupported = false, loadOnStartup = 1, name = "helloServlet", displayName = "helloServlet", initParams = { @WebInitParam(name = "username", value = "") })
+@WebServlet(urlPatterns = { "/hello.php" }, asyncSupported = false, loadOnStartup = 1, name = "helloServlet", displayName = "helloServlet", initParams = { @WebInitParam(name = "username", value = "") })
 public class HelloServlet extends HttpServlet {
 	Logger log = LoggerFactory.getLogger(HelloServlet.class);
 	/**

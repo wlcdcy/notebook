@@ -70,12 +70,12 @@ body {
 <body>
 
 	<div class="container">
-		<form class="form-signin" action="login.html">
+		<form class="form-signin" action="login.php" method="post">
 			<label for="inputUsername" class="sr-only">User Name</label> <input
-				type="text" id="inputUsername" class="form-control"
+				type="text" id="inputUsername" name="username" class="form-control"
 				placeholder="Username" required="" autofocus=""> <label
 				for="inputPassword" class="sr-only">Password</label> <input
-				type="password" id="inputPassword" class="form-control"
+				type="password" id="inputPassword" name="password" class="form-control"
 				placeholder="Password" required="">
 			<div class="checkbox">
 				<label> <input type="checkbox" value="remember-me">
