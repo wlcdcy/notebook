@@ -43,7 +43,7 @@ public class LoginServlet extends GenericServlet {
 		}
 		if (error != null) {// 出错了，返回登录页面
 			req.setAttribute("error", error);
-			req.getRequestDispatcher("/login.jsp").forward(req, resp);
+			req.getRequestDispatcher("/index.php").forward(req, resp);
 		} else {// 登录成功
 			req.getRequestDispatcher("/hello.html").forward(req, resp);
 		}

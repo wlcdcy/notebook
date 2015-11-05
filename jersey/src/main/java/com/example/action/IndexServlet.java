@@ -19,7 +19,7 @@ public class IndexServlet extends GenericServlet {
 	@Override
 	public void service(ServletRequest req, ServletResponse resp)
 			throws ServletException, IOException {
-		req.getRequestDispatcher("/index.jsp").forward(req, resp);
+		req.getRequestDispatcher("/index.php").forward(req, resp);
 	}
 
 }
