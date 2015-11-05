@@ -35,7 +35,7 @@ public class ChatWebSocket {
 	public void start(Session session) {
 		this.session = session;
 		log.info("sessionId: " + session.getId());
-		// log.debug("UserPrincipal: "+session.getUserPrincipal().getName());
+		log.info("UserPrincipal: "+session.getUserPrincipal().getName());
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");
 		broadcast(message);
