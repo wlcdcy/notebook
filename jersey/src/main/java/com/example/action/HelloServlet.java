@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,21 +27,18 @@ public class HelloServlet extends HttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		super.doGet(req, resp);
 		Map params = req.getParameterMap();
 		Iterator<String> param_keys = params.keySet().iterator();
 		while (param_keys.hasNext()) {
 			log.debug("param(name) :" + param_keys.next());
 			log.debug("param(value) :" + params.get(param_keys.next()));
 		}
-	}
-
-	@Override
-	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		super.doPost(req, resp);
+		
+		Subject subject = SecurityUtils.getSubject();
+		subject.getSession();
+		subject.getPrincipal();
+		
+		req.getRequestDispatcher("/hello.html").forward(req, resp);
 	}
 
 }

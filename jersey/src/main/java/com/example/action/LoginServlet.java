@@ -31,7 +31,8 @@ public class LoginServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		service(req, resp);
+//		req.getRequestDispatcher("/index.php").forward(req, resp);
+		resp.sendRedirect("index.php");
 	}
 
 
@@ -40,13 +41,12 @@ public class LoginServlet extends HttpServlet {
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		service(req, resp);
+		service_(req, resp);
 	}
 
 
 
-	@Override
-	public void service(ServletRequest req, ServletResponse resp)
+	public void service_(ServletRequest req, ServletResponse resp)
 			throws ServletException, IOException {
 		String error = null;
 		String username = req.getParameter("username");
@@ -54,7 +54,7 @@ public class LoginServlet extends HttpServlet {
 		Subject subject = SecurityUtils.getSubject();
 		UsernamePasswordToken token = new UsernamePasswordToken(username,
 				password);
-		token.setRememberMe(true);
+		token.setRememberMe(false);
 		try {
 			subject.login(token);
 		} catch (UnknownAccountException e) {
@@ -67,9 +67,11 @@ public class LoginServlet extends HttpServlet {
 		}
 		if (error != null) {// 出错了，返回登录页面
 			req.setAttribute("error", error);
-			req.getRequestDispatcher("/index.html").forward(req, resp);
+//			req.getRequestDispatcher("/index.html").forward(req, resp);
+			((HttpServletResponse)resp).sendRedirect("index.php");
 		} else {// 登录成功
-			req.getRequestDispatcher("/hello.html").forward(req, resp);
+//			req.getRequestDispatcher("/hello.html").forward(req, resp);
+			((HttpServletResponse)resp).sendRedirect("hello.php");
 		}
 		
 	}
