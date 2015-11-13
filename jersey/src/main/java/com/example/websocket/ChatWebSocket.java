@@ -24,11 +24,13 @@ public class ChatWebSocket {
 	private static final AtomicInteger connectionIds = new AtomicInteger(0);
 	private static final Set<ChatWebSocket> connections = new CopyOnWriteArraySet<>();
 
-	private final String nickname;
+	private String nickname;
+	
 	private Session session;
 
 	public ChatWebSocket() {
-		nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
+//		nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
+		connectionIds.getAndIncrement();
 	}
 
 	@OnOpen
@@ -36,6 +38,7 @@ public class ChatWebSocket {
 		this.session = session;
 		log.info("sessionId: " + session.getId());
 		log.info("UserPrincipal: "+session.getUserPrincipal().getName());
+		nickname = session.getUserPrincipal().getName();
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");
 		broadcast(message);
@@ -44,8 +47,10 @@ public class ChatWebSocket {
 	@OnClose
 	public void end() {
 		connections.remove(this);
+		connectionIds.getAndDecrement();
 		String message = String
 				.format("* %s %s", nickname, "has disconnected.");
+		log.info(message);
 		broadcast(message);
 	}
 
