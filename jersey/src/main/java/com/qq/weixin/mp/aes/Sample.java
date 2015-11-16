@@ -10,7 +10,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-
 public class Sample {
 
 	public static void main(String[] args) throws Exception {
@@ -27,8 +26,8 @@ public class Sample {
 		 * &
 		 * timestamp=1409659589&nonce=263014780&echostr=P9nAzCzyDtyTWESHep1vC5X9xho
 		 * %
-		 * 2FqYX3Zpb4yKa9SKld1DsH3Iyt3tP3zNdtp%2B4RPcs8TgAE7OaBO%2BFZXvnaqQ%3D%3D
-		 * HTTP/1.1 Host: qy.weixin.qq.com
+		 * 2FqYX3Zpb4yKa9SKld1DsH3Iyt3tP3zNdtp%2B4RPcs8TgAE7OaBO%2BFZXvnaqQ%3D%
+		 * 3D HTTP/1.1 Host: qy.weixin.qq.com
 		 * 
 		 * 接收到该请求时，企业应
 		 * 1.解析出Get请求的参数，包括消息体签名(msg_signature)，时间戳(timestamp)，随机数字串(

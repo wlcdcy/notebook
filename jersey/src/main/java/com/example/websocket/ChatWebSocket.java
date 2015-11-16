@@ -25,11 +25,10 @@ public class ChatWebSocket {
 	private static final Set<ChatWebSocket> connections = new CopyOnWriteArraySet<>();
 
 	private String nickname;
-	
 	private Session session;
 
 	public ChatWebSocket() {
-//		nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
+		// nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
 		connectionIds.getAndIncrement();
 	}
 
@@ -37,7 +36,7 @@ public class ChatWebSocket {
 	public void start(Session session) {
 		this.session = session;
 		log.info("sessionId: " + session.getId());
-		log.info("UserPrincipal: "+session.getUserPrincipal().getName());
+		log.info("UserPrincipal: " + session.getUserPrincipal().getName());
 		nickname = session.getUserPrincipal().getName();
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");

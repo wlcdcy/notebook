@@ -31,11 +31,9 @@ public class LoginServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		// TODO Auto-generated method stub
-//		req.getRequestDispatcher("/index.php").forward(req, resp);
+		// req.getRequestDispatcher("/index.php").forward(req, resp);
 		resp.sendRedirect("index.php");
 	}
-
-
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -43,8 +41,6 @@ public class LoginServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		service_(req, resp);
 	}
-
-
 
 	public void service_(ServletRequest req, ServletResponse resp)
 			throws ServletException, IOException {
@@ -67,13 +63,13 @@ public class LoginServlet extends HttpServlet {
 		}
 		if (error != null) {// 出错了，返回登录页面
 			req.setAttribute("error", error);
-//			req.getRequestDispatcher("/index.html").forward(req, resp);
-			((HttpServletResponse)resp).sendRedirect("index.php");
+			// req.getRequestDispatcher("/index.html").forward(req, resp);
+			((HttpServletResponse) resp).sendRedirect("index.php");
 		} else {// 登录成功
-//			req.getRequestDispatcher("/hello.html").forward(req, resp);
-			((HttpServletResponse)resp).sendRedirect("hello.php");
+		// req.getRequestDispatcher("/hello.html").forward(req, resp);
+			((HttpServletResponse) resp).sendRedirect("hello.php");
 		}
-		
+
 	}
 
 }
