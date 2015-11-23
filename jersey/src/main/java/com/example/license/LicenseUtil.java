@@ -1,6 +1,7 @@
 package com.example.license;
 
 import java.io.IOException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,13 +58,13 @@ public class LicenseUtil {
 	}
 
 	public static String generateLicense(String secret, LicenseData data,
-			String seed) throws Exception {
+			PrivateKey pri_key) throws Exception {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("data", DESUtil.encrypt(convertToString(data), secret));
 		map.put("secret", secret);
 		try {
 			String source = convertToString(map);
-			String license = RSAUtil.encrypt(source, seed);
+			String license = RSAUtil2.encrypt(source, pri_key);
 			return license;
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -73,10 +74,10 @@ public class LicenseUtil {
 
 	@SuppressWarnings("unchecked")
 	public static LicenseData parseLicense(String secret, String license,
-			String seed) {
+			PublicKey pub_key) {
 		try {
 			Map<String, String> _obj = convertToObjcet(
-					RSAUtil.decrypt(license, seed), Map.class);
+					RSAUtil2.decrypt(license, pub_key), Map.class);
 			LicenseData data = (LicenseData) convertToObjcet(
 					DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
 					LicenseData.class);
@@ -97,7 +98,7 @@ public class LicenseUtil {
 		try {
 			PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey("");
 			Map<String, String> _obj = convertToObjcet(
-					RSAUtil.decrypt(license, pub_key), Map.class);
+					RSAUtil2.decrypt(license, pub_key), Map.class);
 			LicenseData data = (LicenseData) convertToObjcet(
 					DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
 					LicenseData.class);
