@@ -10,6 +10,10 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hyperic.sigar.Cpu;
+import org.hyperic.sigar.OperatingSystem;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +41,13 @@ public class LicenseListener implements ServletContextListener {
 		if (value == null) {
 			throw new RuntimeException(msg);
 		}
-
-		if (!checkLicense(key, value)) {
+		LicenseData licenseDate = LicenseUtil.parseLicense(key, value);
+		if (licenseDate == null) {
 			throw new RuntimeException(msg);
 		}
-		// 初始化系统。保存 【数据+硬件信息】对称密钥加密后的。
-	}
+		// TODO licenseDate初始化系统。
 
-	private boolean checkLicense(String key, String value) {
-		return false;
+		// 保存 【数据+硬件信息】对称密钥加密后的。
 	}
 
 	public static void main(String[] args) {
@@ -89,6 +91,17 @@ public class LicenseListener implements ServletContextListener {
 			String decryptData = DESUtil.decrypt(encrypt_data, secret_);
 			System.out.println("解密后: " + decryptData);
 
+			Sigar sigar = new Sigar();
+			try {
+				Cpu cpu = sigar.getCpu();
+				log.info(cpu.toString());
+			} catch (SigarException e) {
+				e.printStackTrace();
+			}
+
+			OperatingSystem os = OperatingSystem.getInstance();
+
+			log.info(os.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

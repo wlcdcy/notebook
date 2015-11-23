@@ -2,6 +2,7 @@ package com.example.license;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
@@ -67,6 +68,15 @@ public class RSAUtil {
 		Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
 		// 初始化Cipher对象，设置为解密模式
 		cipher.init(Cipher.DECRYPT_MODE, keyPair.getPublic());
+		// 执行解密操作
+		return new String(cipher.doFinal(Base64.decodeBase64(data)));
+	}
+
+	public static String decrypt(String data, PublicKey pub_key)
+			throws Exception {
+		Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
+		// 初始化Cipher对象，设置为解密模式
+		cipher.init(Cipher.DECRYPT_MODE, pub_key);
 		// 执行解密操作
 		return new String(cipher.doFinal(Base64.decodeBase64(data)));
 	}

@@ -285,6 +285,13 @@
 			<artifactId>oauth-server</artifactId>
 			<version>1.19</version>
 		</dependency>
+		
+		<!-- cpu info -->
+		<dependency>
+			<groupId>fr.inria.powerapi.sensor</groupId>
+			<artifactId>sensor-cpu-sigar</artifactId>
+			<version>1.5</version>
+		</dependency>
 
 		<!-- html -->
 		<dependency>
