@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1">
+<meta charset="UTF-8">
+<title>react.js-demo</title>
+<link href="//cdn.bootcss.com/bootstrap/3.3.4/css/bootstrap.min.css"
+	rel="stylesheet">
+
+<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/react/0.13.2/react.js"></script>
+<script src="//cdn.bootcss.com/react/0.13.3/JSXTransformer.js"></script>
+
+<script type="text/jsx">
+/**
+var LikeButton = React.createClass({
+  getInitialState: function() {
+    return {liked: true};
+  },
+  handleClick: function(event) {
+    this.setState({liked: !this.state.liked});
+  },
+  render: function() {
+    var text = this.state.liked ? 'like' : 'haven\'t liked';
+    return (
+		<div className="row">
+			<div className="col-xs-6">
+      			<p onClick={this.handleClick} >You {text} this. Click to toggle.</p>
+			</div>
+			<div className="col-xs-6">555
+			</div>
+        </div>
+    );
+  }
+});
+
+React.render(
+  <LikeButton />,
+  document.getElementById('example')
+);
+
+**/
+
+
+//---------------
+var imgLink="http://img3.cache.netease.com/photo/0003/2015-11-27/B9DPLASD00AJ0003.jpg";
+var Avatar = React.createClass({
+  render: function() {
+    return (
+      <div className="row">
+        <ProfilePic username={this.props.username} />
+        <ProfileLink username={this.props.username} />
+      </div>
+    );
+  }
+});
+
+var ProfilePic = React.createClass({
+  render: function() {
+    return (
+     <div className="col-xs-6"><img src={this.props.username} /></div>
+    );
+  }
+});
+
+var ProfileLink = React.createClass({
+  render: function() {
+    return (
+	<div className="col-xs-6">
+      <a href={this.props.username}>
+        {this.props.username}
+      </a>
+	</div>
+    );
+  }
+});
+
+React.render(
+  <Avatar username={imgLink} />,
+  document.getElementById('example')
+);
+
+
+
+//--------
+var data=["hello","have","you","world","设计界"];
+var Row = React.createClass({
+  render: function() {
+	var datas=this.props.datas;
+	var col="col-xs-"+parseInt(12/this.props.datas.length);
+    var i=0;
+	var items = {};
+	this.props.datas.forEach(function(data){
+		items['data-'+i]=<Col col={col} data={data}/>
+		i++;
+	});
+	
+    return (
+      <div className="row">
+		{items}
+      </div>
+    );
+  }
+});
+
+var Col = React.createClass({
+ render: function() {
+    return (
+	<div className={this.props.col}>{this.props.data}
+	</div>
+    );
+  }
+});
+
+
+React.render(
+	<Row datas={data}></Row>,
+	document.getElementById('example1')
+);	
+
+</script>
+</head>
+<body>
+	<div class="container-fluid" id="example"></div>
+	<div class="container-fluid" id="example1"></div>
+</body>
+</html>
