@@ -92,8 +92,7 @@ public class PublicKeyUtil {
 		}
 	}
 
-	public static PublicKey DeserializablePublicKey(String path)
-			throws ClassNotFoundException {
+	public static PublicKey DeserializablePublicKey(String path) {
 		FileInputStream fin = null;
 		ObjectInputStream ois = null;
 		try {
@@ -103,6 +102,9 @@ public class PublicKeyUtil {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally {
 			try {

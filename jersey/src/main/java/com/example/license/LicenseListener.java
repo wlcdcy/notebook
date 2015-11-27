@@ -1,6 +1,7 @@
 package com.example.license;
 
 import java.io.IOException;
+import java.security.PublicKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class LicenseListener implements ServletContextListener {
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
 		sc = sce.getServletContext();
+		
 		String key = (String) sc.getAttribute(ENVIRONMENT_LICENSE_KEY);
 		String value = (String) sc.getAttribute(ENVIRONMENT_LICENSE_VALUE);
 		if (key == null) {
@@ -41,12 +43,19 @@ public class LicenseListener implements ServletContextListener {
 		if (value == null) {
 			throw new RuntimeException(msg);
 		}
-		LicenseData licenseDate = LicenseUtil.parseLicense(key, value);
+		
+		String keyPath = sc.getRealPath("/license.key");
+		PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey(keyPath);
+		if(pub_key==null){
+			throw new RuntimeException(msg);
+		}
+		
+		LicenseData licenseDate = LicenseUtil.parseLicense(key, value,pub_key);
 		if (licenseDate == null) {
 			throw new RuntimeException(msg);
 		}
 		// TODO licenseDate初始化系统。
-
+		
 		// 保存 【数据+硬件信息】对称密钥加密后的。
 	}
 
