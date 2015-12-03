@@ -15,6 +15,8 @@ import javax.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.license.DESUtil;
+
 @ServerEndpoint(value = "/websocket/chat")
 public class ChatWebSocket {
 
@@ -26,6 +28,8 @@ public class ChatWebSocket {
 
 	private String nickname;
 	private Session session;
+	
+	private static final String KEY="helloaha";
 
 	public ChatWebSocket() {
 		// nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
@@ -36,8 +40,8 @@ public class ChatWebSocket {
 	public void start(Session session) {
 		this.session = session;
 		log.info("sessionId: " + session.getId());
-		log.info("UserPrincipal: " + session.getUserPrincipal().getName());
-		nickname = session.getUserPrincipal().getName();
+		//log.info("UserPrincipal: " + session.getUserPrincipal().getName());
+		nickname =session.getUserPrincipal()!=null? session.getUserPrincipal().getName():GUEST_PREFIX + connectionIds.getAndIncrement();
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");
 		broadcast(message);
@@ -55,6 +59,7 @@ public class ChatWebSocket {
 
 	@OnMessage
 	public void incoming(String message) {
+		message = decryptMessage(message);
 		// Never trust the client
 		String filteredMessage = String.format("%s: %s", nickname,
 		// HTMLFilter.filter(message.toString())
@@ -68,6 +73,7 @@ public class ChatWebSocket {
 	}
 
 	private static void broadcast(String msg) {
+		msg = encryptMessage(msg);
 		for (ChatWebSocket client : connections) {
 			try {
 				synchronized (client) {
@@ -86,5 +92,22 @@ public class ChatWebSocket {
 				broadcast(message);
 			}
 		}
+	}
+	
+	private static String encryptMessage(String message){
+		try {
+			return DESUtil.encryptBase64(message,KEY);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	private static String decryptMessage(String message){
+		try {
+			return DESUtil.decryptBase64(message, KEY);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 }

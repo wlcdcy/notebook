@@ -12,7 +12,7 @@ import org.apache.commons.codec.binary.Base64;
 
 public class DESUtil {
 	// 算法名称
-	public static final String KEY_ALGORITHM = "DES";
+	public static final String ALGORITHM = "DES";
 	// 算法名称/加密模式/填充方式
 	// DES共有四种工作模式-->>ECB：电子密码本模式、CBC：加密分组链接模式、CFB：加密反馈模式、OFB：输出反馈模式
 	// public static final String CIPHER_ALGORITHM = "DES/ECB/NoPadding";
@@ -35,7 +35,7 @@ public class DESUtil {
 		DESKeySpec desKey = new DESKeySpec(input);
 		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
 		SecretKeyFactory keyFactory = SecretKeyFactory
-				.getInstance(KEY_ALGORITHM);
+				.getInstance(ALGORITHM);
 		SecretKey securekey = keyFactory.generateSecret(desKey);
 		return securekey;
 	}
@@ -102,6 +102,47 @@ public class DESUtil {
 		cipher.init(Cipher.DECRYPT_MODE, deskey);
 		// 执行解密操作
 		return new String(cipher.doFinal(Base64.decodeBase64(data)));
+	}
+	
+	public static String encryptBase64(String data, String key) throws Exception {
+
+		DESKeySpec desKey = new DESKeySpec(key.getBytes());
+		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
+		SecretKey securekey = keyFactory.generateSecret(desKey);
+		
+		Cipher cipher = Cipher.getInstance(ALGORITHM);
+		cipher.init(Cipher.ENCRYPT_MODE, securekey);
+		
+		byte[] results = cipher.doFinal(data.getBytes("UTF-8"));
+        // Encrypt
+		//byte[] unencryptedByteArray = data.getBytes("UTF8");
+        //byte[] encryptedBytes = encryptCipher.doFinal(unencryptedByteArray);
+
+        // Encode bytes to base64 to get a string
+        byte [] encodedBytes = Base64.encodeBase64(results);
+        return new String(encodedBytes);
+	}
+
+	/**
+	 * 解密数据
+	 * 
+	 * @param data
+	 *            待解密数据
+	 * @param key
+	 *            密钥
+	 * @return 解密后的数据
+	 */
+	public static String decryptBase64(String data, String key) throws Exception {
+		DESKeySpec desKey = new DESKeySpec(key.getBytes());
+		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
+		SecretKey securekey = keyFactory.generateSecret(desKey);
+		
+		Cipher cipher = Cipher.getInstance(ALGORITHM);
+		cipher.init(Cipher.DECRYPT_MODE, securekey);		
+		// 执行解密操作
+		return new String(cipher.doFinal(Base64.decodeBase64(data.getBytes())));
 	}
 
 	public static void main(String[] args) throws Exception {
