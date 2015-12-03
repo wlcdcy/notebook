@@ -4,24 +4,18 @@
 <meta name="viewport"
 	content="width=device-width,height=device-height,initial-scale=1.0">
 <title></title>
+<script src="js/tripledes.js"></script>
+<script src="js/mode-ecb.js"></script>
+
 <!-- jquery CDN -->
-<script src="//cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <!-- Bootstrap CDN -->
 <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css"
-	integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ=="
-	crossorigin="anonymous">
+<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
 <!-- Optional theme -->
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
-	integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX"
-	crossorigin="anonymous">
+<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" rel="stylesheet">
 <!-- Latest compiled and minified JavaScript -->
-<script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"
-	integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ=="
-	crossorigin="anonymous"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
 <style type="text/css">
 <!
@@ -111,6 +105,8 @@ padding:
         Chat.sendMessage = (function() {
             var message = document.getElementById('chat').value;
             if (message != '') {
+            	//crypto
+            	message = encryptByDES(message,"helloaha");
                 Chat.socket.send(message);
                 document.getElementById('chat').value = '';
             }
@@ -123,6 +119,8 @@ padding:
             var content = document.getElementById('content');
             var p = document.createElement('p');
             p.style.wordWrap = 'break-word';
+          	//crypto
+            message= decryptByDES(message,"helloaha");
             p.innerHTML = message;
             console.appendChild(p);
 //             while (console.childNodes.length > 25) {
@@ -144,9 +142,38 @@ padding:
         }, false);
 
     
-
-
-
+        function encryptByDES(message, key) {
+            var keyHex = CryptoJS.enc.Utf8.parse(key);
+            var encrypted = CryptoJS.DES.encrypt(message, keyHex, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            });
+            return encrypted.toString();
+        }
+         
+        /**
+         * Decrypt ciphertext by DES in ECB mode and Pkcs7 padding scheme
+         * 
+         * @param  {String} ciphertext(base64 string)
+         * @param  {String} key
+         * @return {String} plaintext
+         *
+         * @author Sun
+         * @version 2013-5-15
+         */
+        function decryptByDES(ciphertext, key) {
+            var keyHex = CryptoJS.enc.Utf8.parse(key);      
+            // direct decrypt ciphertext
+            var decrypted = CryptoJS.DES.decrypt({
+                ciphertext: CryptoJS.enc.Base64.parse(ciphertext)
+            }, keyHex, {
+                mode: CryptoJS.mode.ECB,
+                padding: CryptoJS.pad.Pkcs7
+            });
+         
+            return decrypted.toString(CryptoJS.enc.Utf8);
+        }
+         
 </script>
 </head>
 <body>
