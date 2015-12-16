@@ -5,7 +5,7 @@
 	<display-name>Archetype Created Web Application</display-name>
 	
 <!-- 	<listener> -->
-<!-- 		<listener-class>com.example.listener.LicenseListener</listener-class> -->
+<!-- 		<listener-class>com.example.license.LicenseListener</listener-class> -->
 <!-- 	</listener> -->
 	<listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
