@@ -29,7 +29,7 @@ public class EnterpriseResource {
 
 	private String sToken = "YLc4SlkHpNQLoWFOfiUgYIeiQr";
 	private String sEncodingAESKey = "5A5iDCGKwTDn6aujq7t14XqsKsRIdCXPwsml4f2tmAZ";
-	private String sCorpID = "wx3c21617732d86306";
+	private String sCorpID = "wx6109d2b23a0abd2f";
 
 	WXBizMsgCrypt wxcpt;
 
@@ -41,7 +41,7 @@ public class EnterpriseResource {
 				EnterpriseResource.class.getName());
 	}
 
-	@Path("address")
+	@Path("callback")
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String addressBook(
@@ -71,7 +71,7 @@ public class EnterpriseResource {
 		return sEchoStr;
 	}
 
-	@Path("address")
+	@Path("callback")
 	@POST
 	@Produces(MediaType.APPLICATION_XML)
 	public String addressBook_post(
@@ -105,8 +105,10 @@ public class EnterpriseResource {
 				Node node = nodes.item(i);
 				String name = node.getNodeName();
 				NodeList nodelist1 = root.getElementsByTagName(name);
-				String Content = nodelist1.item(0).getTextContent();
-				logger.info(String.format("%s : %s", name, Content));
+				if (nodelist1.item(0) != null) {
+					String Content = nodelist1.item(0).getTextContent();
+					logger.info(String.format("%s : %s", name, Content));
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
