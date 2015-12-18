@@ -8,6 +8,9 @@
 <!-- 		<listener-class>com.example.license.LicenseListener</listener-class> -->
 <!-- 	</listener> -->
 	<listener>
+		<listener-class>com.weixin.qy.rests.WeixinListener</listener-class>
+	</listener>
+	<listener>
 		<listener-class>org.apache.shiro.web.env.EnvironmentLoaderListener</listener-class>
 	</listener>
 	<listener>
