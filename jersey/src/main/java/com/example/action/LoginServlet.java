@@ -24,9 +24,7 @@ public class LoginServlet extends HttpServlet {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	
-	
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -66,7 +64,7 @@ public class LoginServlet extends HttpServlet {
 			// req.getRequestDispatcher("/index.html").forward(req, resp);
 			((HttpServletResponse) resp).sendRedirect("index.php");
 		} else {// 登录成功
-		// req.getRequestDispatcher("/hello.html").forward(req, resp);
+			// req.getRequestDispatcher("/hello.html").forward(req, resp);
 			((HttpServletResponse) resp).sendRedirect("hello.php");
 		}
 

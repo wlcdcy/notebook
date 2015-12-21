@@ -59,8 +59,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class NetUtils {
-	public static Logger logger = LoggerFactory.getLogger(NetUtils.class);
+public class NETUtils {
+	public static Logger logger = LoggerFactory.getLogger(NETUtils.class);
 
 	@SuppressWarnings("resource")
 	public static void main1(String[] args) throws SocketException, IOException {
@@ -133,30 +133,7 @@ public class NetUtils {
 		if (!ssl) {
 			return HttpClients.createDefault();
 		}
-
-		SSLContext ctx = null;
-		try {
-			ctx = SSLContext.getInstance("TLS");
-			X509TrustManager tm = new X509TrustManager() {
-				public void checkClientTrusted(X509Certificate[] xcs,
-						String string) throws CertificateException {
-				}
-
-				public void checkServerTrusted(X509Certificate[] xcs,
-						String string) throws CertificateException {
-				}
-
-				public X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-			};
-			ctx.init(null, new TrustManager[] { tm }, null);
-
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
+		SSLContext ctx = getSslContext();
 
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
 		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory
@@ -173,9 +150,8 @@ public class NetUtils {
 		return httpclinet;
 	}
 
-	public static CloseableHttpClient getHttpClient() {
-		SSLContext ctx = getSslContext();// SSLContexts.createSystemDefault();
-
+	public static CloseableHttpClient getHttpsClient() {
+		SSLContext ctx = getSslContext();
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
 		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.INSTANCE;
 		Registry<ConnectionSocketFactory> r = RegistryBuilder
@@ -194,7 +170,7 @@ public class NetUtils {
 	 *            default【 "d:/hiwork.keystore"】;
 	 * @return
 	 */
-	public static CloseableHttpClient getHttpClient(String keystore) {
+	public static CloseableHttpClient getHttpsClient(String keystore) {
 		// 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式;
 		// 1、需要从浏览器导出证书 xxx.cer；
 		// 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
@@ -249,17 +225,62 @@ public class NetUtils {
 		return ctx;
 	}
 
+	public static String request4GET(String url) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = null;
+			response = httpclient.execute(createHttpGet(url));
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String request4POST(String method, String url,
+			Map<String, Object> params) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = httpclient.execute(createHttpPost(
+					url, params));
+
+			logger.info(response.toString());
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public static String request(String method, String url, String params) {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
 
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null;
 
 			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-				response = httpclient.execute(getHttpGet(url));
+				response = httpclient.execute(createHttpGet(url));
 			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(getHttpPost(url, params));
+				response = httpclient.execute(createHttpPost(url, params));
 			} else {
 				return null;
 			}
@@ -284,13 +305,13 @@ public class NetUtils {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
 
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null;
 
 			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-				response = httpclient.execute(getHttpGet(url));
+				response = httpclient.execute(createHttpGet(url));
 			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(getHttpPost(url, params));
+				response = httpclient.execute(createHttpPost(url, params));
 			} else {
 				return null;
 			}
@@ -308,7 +329,7 @@ public class NetUtils {
 		return null;
 	}
 
-	private static HttpGet getHttpGet(String req_url) {
+	private static HttpGet createHttpGet(String req_url) {
 		HttpGet httpRequest = new HttpGet(req_url);
 		httpRequest
 				.addHeader(HttpHeaders.USER_AGENT,
@@ -316,7 +337,7 @@ public class NetUtils {
 		return httpRequest;
 	}
 
-	private static HttpPost getHttpPost(String req_url, String params) {
+	private static HttpPost createHttpPost(String req_url, String params) {
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT,
 				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
@@ -329,7 +350,7 @@ public class NetUtils {
 		return httpPost;
 	}
 
-	private static HttpPost getHttpPost(String req_url,
+	private static HttpPost createHttpPost(String req_url,
 			Map<String, Object> params) {
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT,
@@ -381,7 +402,7 @@ public class NetUtils {
 
 		String webHooks = "https://api.hiwork.cc/api/sendmsg";
 		String token = "204913c1-9669-4f71-8afa-35445bb721e1";
-		CloseableHttpClient client = getHttpClient("d:/hiwork.ks");
+		CloseableHttpClient client = getHttpsClient("d:/hiwork.ks");
 		HttpPost post = new HttpPost(webHooks);
 		try {
 			JSONObject json = new JSONObject();

@@ -90,7 +90,7 @@ public class TrelloUtils<T> {
 		String url = "https://api.trello.com/1/board/4d5ea62fd76aa1136000000c";
 		String req_url = String.format("%s?key=%s&cards=open&lists=open", url,
 				key);
-		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
+		String resp_body = NETUtils.request(HttpGet.METHOD_NAME, req_url, "");
 		logger.info(resp_body);
 		return resp_body;
 
@@ -184,7 +184,7 @@ public class TrelloUtils<T> {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
-		CloseableHttpClient hpclient = NetUtils.getHttpClient(true);
+		CloseableHttpClient hpclient = NETUtils.getHttpClient(true);
 		try {
 			HttpPost hppost = new HttpPost(req_url);
 			StringEntity entity = new StringEntity(req_data,
@@ -220,7 +220,7 @@ public class TrelloUtils<T> {
 			String model_id) {
 		String req_url = String.format(
 				"https://trello.com/1/webhooks/%s/idModel", webhook_id);
-		CloseableHttpClient hpclient = NetUtils.getHttpClient(true);
+		CloseableHttpClient hpclient = NETUtils.getHttpClient(true);
 		HttpPut hpput = new HttpPut(req_url);
 		HttpEntity entity = EntityBuilder
 				.create()
@@ -261,7 +261,7 @@ public class TrelloUtils<T> {
 				"https://trello.com/1/webhooks/%s?key=%s&token=%s", webhook_id,
 				key, my_access_token);
 		HttpDelete hpdelete = new HttpDelete(req_url);
-		CloseableHttpClient hpclient = NetUtils.getHttpClient(true);
+		CloseableHttpClient hpclient = NETUtils.getHttpClient(true);
 		try {
 			CloseableHttpResponse response = hpclient.execute(hpdelete);
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -304,7 +304,7 @@ public class TrelloUtils<T> {
 		String url = "https://trello.com/1/members";
 		String req_url = String.format("%s/%s?boards=all&key=%s&token=%s", url,
 				username, key, my_access_token);
-		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
+		String resp_body = NETUtils.request(HttpGet.METHOD_NAME, req_url, "");
 		logger.info(resp_body);
 		return resp_body;
 	}
@@ -376,7 +376,7 @@ public class TrelloUtils<T> {
 		String req_url = String
 				.format("https://trello.com/1/notifications/all/read");
 
-		CloseableHttpClient hpclient = NetUtils.getHttpClient(true);
+		CloseableHttpClient hpclient = NETUtils.getHttpClient(true);
 		HttpPost httppost = new HttpPost(req_url);
 		HttpEntity entity = EntityBuilder
 				.create()
@@ -407,7 +407,7 @@ public class TrelloUtils<T> {
 		String req_url = String.format(
 				"https://trello.com/1/tokens/%s/webhooks?key=%s",
 				my_access_token, key);
-		String resp_body = NetUtils.request(HttpGet.METHOD_NAME, req_url, "");
+		String resp_body = NETUtils.request(HttpGet.METHOD_NAME, req_url, "");
 		return convertToListMap(resp_body, String.class, Object.class);
 	}
 }

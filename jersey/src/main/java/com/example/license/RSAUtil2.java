@@ -9,14 +9,17 @@ import org.apache.commons.codec.binary.Base64;
 
 public class RSAUtil2 {
 	public static final String CIPHER_ALGORITHM = "RSA/ECB/PKCS1Padding";
-	
-	/**私钥加密数据
+
+	/**
+	 * 私钥加密数据
+	 * 
 	 * @param data
 	 * @param pri_key
 	 * @return
 	 * @throws Exception
 	 */
-	public static String encrypt(String data, PrivateKey pri_key) throws Exception {
+	public static String encrypt(String data, PrivateKey pri_key)
+			throws Exception {
 		// 实例化Cipher对象，它用于完成实际的加密操作
 		Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
 		// SecureRandom random = new SecureRandom();
@@ -32,9 +35,9 @@ public class RSAUtil2 {
 		return Base64.encodeBase64String(results);
 	}
 
-	
-
-	/**公钥解密数据
+	/**
+	 * 公钥解密数据
+	 * 
 	 * @param data
 	 * @param pub_key
 	 * @return

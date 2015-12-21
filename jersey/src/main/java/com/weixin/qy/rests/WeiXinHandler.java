@@ -80,11 +80,11 @@ public class WeiXinHandler implements Runnable {
 			while ((line = reader.readLine()) != null) {
 				sb.append(line);
 			}
-			String resp= sb.toString();
+			String resp = sb.toString();
 			logger.info("turing return msg: " + resp);
-			Map<?,?> resp_obj =WeiXinAPIUtil.jsonToObject(Map.class, resp);
-			
-			return (String)resp_obj.get("text");
+			Map<?, ?> resp_obj = WeiXinAPIUtil.jsonToObject(Map.class, resp);
+
+			return (String) resp_obj.get("text");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (MalformedURLException e) {

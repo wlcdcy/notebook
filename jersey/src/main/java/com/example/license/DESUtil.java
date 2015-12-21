@@ -34,8 +34,7 @@ public class DESUtil {
 		byte input[] = HexString2Bytes(keyStr);
 		DESKeySpec desKey = new DESKeySpec(input);
 		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
-		SecretKeyFactory keyFactory = SecretKeyFactory
-				.getInstance(ALGORITHM);
+		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
 		SecretKey securekey = keyFactory.generateSecret(desKey);
 		return securekey;
 	}
@@ -103,25 +102,26 @@ public class DESUtil {
 		// 执行解密操作
 		return new String(cipher.doFinal(Base64.decodeBase64(data)));
 	}
-	
-	public static String encryptBase64(String data, String key) throws Exception {
+
+	public static String encryptBase64(String data, String key)
+			throws Exception {
 
 		DESKeySpec desKey = new DESKeySpec(key.getBytes());
 		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
 		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
 		SecretKey securekey = keyFactory.generateSecret(desKey);
-		
+
 		Cipher cipher = Cipher.getInstance(ALGORITHM);
 		cipher.init(Cipher.ENCRYPT_MODE, securekey);
-		
-		byte[] results = cipher.doFinal(data.getBytes("UTF-8"));
-        // Encrypt
-		//byte[] unencryptedByteArray = data.getBytes("UTF8");
-        //byte[] encryptedBytes = encryptCipher.doFinal(unencryptedByteArray);
 
-        // Encode bytes to base64 to get a string
-        byte [] encodedBytes = Base64.encodeBase64(results);
-        return new String(encodedBytes);
+		byte[] results = cipher.doFinal(data.getBytes("UTF-8"));
+		// Encrypt
+		// byte[] unencryptedByteArray = data.getBytes("UTF8");
+		// byte[] encryptedBytes = encryptCipher.doFinal(unencryptedByteArray);
+
+		// Encode bytes to base64 to get a string
+		byte[] encodedBytes = Base64.encodeBase64(results);
+		return new String(encodedBytes);
 	}
 
 	/**
@@ -133,14 +133,15 @@ public class DESUtil {
 	 *            密钥
 	 * @return 解密后的数据
 	 */
-	public static String decryptBase64(String data, String key) throws Exception {
+	public static String decryptBase64(String data, String key)
+			throws Exception {
 		DESKeySpec desKey = new DESKeySpec(key.getBytes());
 		// 创建一个密匙工厂，然后用它把DESKeySpec转换成
 		SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
 		SecretKey securekey = keyFactory.generateSecret(desKey);
-		
+
 		Cipher cipher = Cipher.getInstance(ALGORITHM);
-		cipher.init(Cipher.DECRYPT_MODE, securekey);		
+		cipher.init(Cipher.DECRYPT_MODE, securekey);
 		// 执行解密操作
 		return new String(cipher.doFinal(Base64.decodeBase64(data.getBytes())));
 	}

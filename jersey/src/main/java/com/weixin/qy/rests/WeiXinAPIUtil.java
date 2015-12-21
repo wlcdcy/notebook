@@ -13,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -24,18 +25,23 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.example.commons.NetUtils;
+import com.example.commons.NETUtils;
 
 public class WeiXinAPIUtil {
 	static Logger logger = LoggerFactory.getLogger(WeiXinAPIUtil.class);
 
+	/**
+	 * 获取访问token
+	 * 
+	 * @return
+	 */
 	public static String getAccessToken() {
 		// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect
 		String req_url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
 						WeixinResource.appCorpID,
 						WeixinResource.appEncodingAESKey);
-		CloseableHttpClient hc = NetUtils.getHttpClient(req_url
+		CloseableHttpClient hc = NETUtils.getHttpClient(req_url
 				.indexOf("https") == 0 ? true : false);
 		HttpGet get = new HttpGet(req_url);
 		try {
@@ -56,6 +62,12 @@ public class WeiXinAPIUtil {
 		return null;
 	}
 
+	/**
+	 * 发送消息
+	 * 
+	 * @param access_token
+	 * @param msg
+	 */
 	public static void sendMessage(String access_token, String msg) {
 		// "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN"
 		String req_url = String
@@ -64,7 +76,7 @@ public class WeiXinAPIUtil {
 
 		boolean ssl = req_url.indexOf("https") == 0 ? true : false;
 
-		CloseableHttpClient hc = NetUtils.getHttpClient(ssl);
+		CloseableHttpClient hc = NETUtils.getHttpClient(ssl);
 		HttpPost post = new HttpPost(req_url);
 
 		StringEntity entity = new StringEntity(msg,
@@ -78,11 +90,27 @@ public class WeiXinAPIUtil {
 				// String res_body = EntityUtils.toString(response.getEntity());
 				// logger.info(res_body);
 			}
-			;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
+	}
+
+	/**
+	 * @param access_token
+	 * @param pid
+	 *            id可以参数，当id不能空时，或者指定部门及其下的子部门，
+	 * @return
+	 */
+	public String getDept(String access_token, String pid) {
+		// https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=ACCESS_TOKEN&id=ID
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=%s",
+						access_token);
+		if (StringUtils.isNotEmpty(pid)) {
+			url += "&id=" + pid;
+		}
+		return NETUtils.request4GET(url);
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })

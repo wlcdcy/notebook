@@ -10,6 +10,5 @@ public class TextMassegeContent {
 	public void setContent(String content) {
 		this.content = content;
 	}
-	
 
 }

@@ -28,8 +28,8 @@ public class ChatWebSocket {
 
 	private String nickname;
 	private Session session;
-	
-	private static final String KEY="helloaha";
+
+	private static final String KEY = "helloaha";
 
 	public ChatWebSocket() {
 		// nickname = GUEST_PREFIX + connectionIds.getAndIncrement();
@@ -40,8 +40,10 @@ public class ChatWebSocket {
 	public void start(Session session) {
 		this.session = session;
 		log.info("sessionId: " + session.getId());
-		//log.info("UserPrincipal: " + session.getUserPrincipal().getName());
-		nickname =session.getUserPrincipal()!=null? session.getUserPrincipal().getName():GUEST_PREFIX + connectionIds.getAndIncrement();
+		// log.info("UserPrincipal: " + session.getUserPrincipal().getName());
+		nickname = session.getUserPrincipal() != null ? session
+				.getUserPrincipal().getName() : GUEST_PREFIX
+				+ connectionIds.getAndIncrement();
 		connections.add(this);
 		String message = String.format("* %s %s", nickname, "has joined.");
 		broadcast(message);
@@ -93,16 +95,17 @@ public class ChatWebSocket {
 			}
 		}
 	}
-	
-	private static String encryptMessage(String message){
+
+	private static String encryptMessage(String message) {
 		try {
-			return DESUtil.encryptBase64(message,KEY);
+			return DESUtil.encryptBase64(message, KEY);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return "";
 	}
-	private static String decryptMessage(String message){
+
+	private static String decryptMessage(String message) {
 		try {
 			return DESUtil.decryptBase64(message, KEY);
 		} catch (Exception e) {

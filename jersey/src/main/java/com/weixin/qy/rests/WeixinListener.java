@@ -7,6 +7,7 @@ public class WeixinListener implements ServletContextListener {
 
 	WeixinService ws;
 	Thread wsthraed;
+
 	@Override
 	public void contextDestroyed(ServletContextEvent arg0) {
 		ws.shutdownAndAwaitTermination();
@@ -14,9 +15,10 @@ public class WeixinListener implements ServletContextListener {
 
 	@Override
 	public void contextInitialized(ServletContextEvent arg0) {
-		
-		ws = new WeixinService(WeixinGlobalObject.getInstance().getBqueue(),100);
-		wsthraed= new Thread(ws);
+
+		ws = new WeixinService(WeixinGlobalObject.getInstance().getBqueue(),
+				100);
+		wsthraed = new Thread(ws);
 		wsthraed.start();
 	}
 }

@@ -104,35 +104,37 @@ public class WeixinResource {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
 			WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
-			
-			
 
-//			// TODO: 解析出明文xml标签的内容进行处理
-//			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-//			DocumentBuilder db = dbf.newDocumentBuilder();
-//			StringReader sr = new StringReader(sMsg);
-//			InputSource is = new InputSource(sr);
-//			Document document = db.parse(is);
-//
-//			Element root = document.getDocumentElement();
-//			NodeList nodes = root.getChildNodes();
-//			for (int i = 0; i < nodes.getLength(); i++) {
-//				Node node = nodes.item(i);
-//				String name = node.getNodeName();
-//				NodeList nodelist1 = root.getElementsByTagName(name);
-//				if (nodelist1.item(0) != null) {
-//					String Content = nodelist1.item(0).getTextContent();
-//					logger.info(String.format("%s : %s", name, Content));
-//				}
-//			}
-		
-//			WeixinMessage wxm = WeiXinAPIUtil.xml2Object(sMsg, WeixinMessage.class);
-//			String replyMsg="<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
-//			replyMsg = String.format(replyMsg, wxm.getFromUserName(),wxm.getToUserName(),wxm.getCreateTime(),"你还");
-//			logger.info(String.format("replyMsg : %s", replyMsg));
-//			String encrypt= wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
-//			logger.info(String.format("encrypt : %s", encrypt));
-//			return encrypt;
+			// // TODO: 解析出明文xml标签的内容进行处理
+			// DocumentBuilderFactory dbf =
+			// DocumentBuilderFactory.newInstance();
+			// DocumentBuilder db = dbf.newDocumentBuilder();
+			// StringReader sr = new StringReader(sMsg);
+			// InputSource is = new InputSource(sr);
+			// Document document = db.parse(is);
+			//
+			// Element root = document.getDocumentElement();
+			// NodeList nodes = root.getChildNodes();
+			// for (int i = 0; i < nodes.getLength(); i++) {
+			// Node node = nodes.item(i);
+			// String name = node.getNodeName();
+			// NodeList nodelist1 = root.getElementsByTagName(name);
+			// if (nodelist1.item(0) != null) {
+			// String Content = nodelist1.item(0).getTextContent();
+			// logger.info(String.format("%s : %s", name, Content));
+			// }
+			// }
+
+			// WeixinMessage wxm = WeiXinAPIUtil.xml2Object(sMsg,
+			// WeixinMessage.class);
+			// String
+			// replyMsg="<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
+			// replyMsg = String.format(replyMsg,
+			// wxm.getFromUserName(),wxm.getToUserName(),wxm.getCreateTime(),"你还");
+			// logger.info(String.format("replyMsg : %s", replyMsg));
+			// String encrypt= wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
+			// logger.info(String.format("encrypt : %s", encrypt));
+			// return encrypt;
 		} catch (AesException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

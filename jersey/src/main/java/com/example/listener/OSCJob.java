@@ -24,7 +24,7 @@ import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.example.commons.NetUtils;
+import com.example.commons.NETUtils;
 import com.example.commons.OscUtils;
 
 public class OSCJob implements Job {
@@ -72,7 +72,7 @@ public class OSCJob implements Job {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
 
-			CloseableHttpClient client = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient client = NETUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null;
 
 			HttpPost httppost = new HttpPost(url);

@@ -23,20 +23,21 @@ public class WeixinService implements Runnable {
 			String xmlStr;
 			try {
 				xmlStr = bq.take();
-				if (org.apache.commons.lang3.StringUtils.isNotEmpty(accessToken)) {
+				if (org.apache.commons.lang3.StringUtils
+						.isNotEmpty(accessToken)) {
 					accessToken = takeAccessToken();
 				}
 				pool.execute(new WeiXinHandler(accessToken, xmlStr));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
-	
-	private String takeAccessToken(){
+
+	private String takeAccessToken() {
 		String resp = WeiXinAPIUtil.getAccessToken();
-		Map<?,?> resp_obj = WeiXinAPIUtil.jsonToObject(Map.class, resp);
+		Map<?, ?> resp_obj = WeiXinAPIUtil.jsonToObject(Map.class, resp);
 		return (String) resp_obj.get("access_token");
 	}
 

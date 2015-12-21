@@ -352,7 +352,7 @@ public class TeambitionUtils<T> {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true
 					: false;
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
 			httpget.addHeader(HttpHeaders.AUTHORIZATION, _access_token);
 			CloseableHttpResponse response = httpclient.execute(httpget);
@@ -381,7 +381,7 @@ public class TeambitionUtils<T> {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true
 					: false;
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			HttpGet httpget = new HttpGet(req_url);
 			CloseableHttpResponse response = httpclient.execute(httpget);
 			logger.info(response.toString());
@@ -411,7 +411,7 @@ public class TeambitionUtils<T> {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true
 					: false;
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			HttpPost httpPost = new HttpPost(req_url);
 			httpPost.addHeader(HttpHeaders.USER_AGENT,
 					"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
@@ -450,7 +450,7 @@ public class TeambitionUtils<T> {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true
 					: false;
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 
 			HttpPost httpPost = new HttpPost(req_url);
 			ContentType contentType = ContentType.create(
@@ -486,7 +486,7 @@ public class TeambitionUtils<T> {
 		try {
 			boolean ssl = StringUtils.startsWith(req_url, "https") ? true
 					: false;
-			CloseableHttpClient httpclient = NetUtils.getHttpClient(ssl);
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 
 			HttpPut httpPut = new HttpPut(req_url);
 			ContentType contentType = ContentType.create(

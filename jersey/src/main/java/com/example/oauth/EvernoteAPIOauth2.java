@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evernote.auth.EvernoteService;
-import com.example.commons.NetUtils;
+import com.example.commons.NETUtils;
 
 public class EvernoteAPIOauth2 implements APIOauth2 {
 
@@ -126,7 +126,7 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 		CloseableHttpClient http_client = null;
 		CloseableHttpResponse response = null;
 		try {
-			http_client = NetUtils.getHttpClient();
+			http_client = NETUtils.getHttpsClient();
 			HttpGet http_get = new HttpGet(req_url);
 			response = http_client.execute(http_get);
 			logger.info(response.toString());
@@ -197,7 +197,7 @@ public class EvernoteAPIOauth2 implements APIOauth2 {
 		CloseableHttpClient http_client = null;
 		CloseableHttpResponse response = null;
 		try {
-			http_client = NetUtils.getHttpClient();
+			http_client = NETUtils.getHttpsClient();
 			HttpGet http_get = new HttpGet(req_url);
 			response = http_client.execute(http_get);
 			logger.info(response.toString());
