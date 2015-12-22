@@ -62,66 +62,6 @@ import org.slf4j.LoggerFactory;
 public class NETUtils {
 	public static Logger logger = LoggerFactory.getLogger(NETUtils.class);
 
-	@SuppressWarnings("resource")
-	public static void main1(String[] args) throws SocketException, IOException {
-
-		if (args.length != 2 && args.length != 3 && args.length != 5) {
-			System.out
-					.println("Usage: MessageThreading <hostname> <groupname> [<article specifier> [<user> <password>]]");
-			return;
-		}
-
-		String hostname = args[0];
-		String newsgroup = args[1];
-		// Article specifier can be numeric or Id in form <m.n.o.x@host>
-		String articleSpec = args.length >= 3 ? args[2] : null;
-
-		NNTPClient client = new NNTPClient();
-		client.addProtocolCommandListener(new PrintCommandListener(
-				new PrintWriter(System.out), true));
-		client.connect(hostname);
-
-		if (args.length == 5) { // Optional auth
-			String user = args[3];
-			String password = args[4];
-			if (!client.authenticate(user, password)) {
-				System.out.println("Authentication failed for user " + user
-						+ "!");
-				System.exit(1);
-			}
-		}
-
-		NewsgroupInfo group = new NewsgroupInfo();
-		client.selectNewsgroup(newsgroup, group);
-
-		BufferedReader br;
-		String line;
-		if (articleSpec != null) {
-			br = (BufferedReader) client.retrieveArticleHeader(articleSpec);
-		} else {
-			long articleNum = group.getLastArticleLong();
-			br = client.retrieveArticleHeader(articleNum);
-		}
-		if (br != null) {
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
-			br.close();
-		}
-		if (articleSpec != null) {
-			br = (BufferedReader) client.retrieveArticleBody(articleSpec);
-		} else {
-			long articleNum = group.getLastArticleLong();
-			br = client.retrieveArticleBody(articleNum);
-		}
-		if (br != null) {
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
-			br.close();
-		}
-	}
-
 	/**
 	 * 获取同时支持http和https的HttpClient对象
 	 * 
@@ -225,7 +165,7 @@ public class NETUtils {
 		return ctx;
 	}
 
-	public static String request4GET(String url) {
+	public static String httpGet(String url) {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
 
@@ -247,18 +187,61 @@ public class NETUtils {
 		return null;
 	}
 
-	public static String request4POST(String method, String url,
+	public static String httpPostWithJson(String url, String jsonString) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = httpclient
+					.execute(createPOSTWithJson(url, jsonString));
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String httpPostWithForm(String url, String params) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = httpclient
+					.execute(createPOSTWithForm(url, params));
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String httpPostWithMultipart(String url,
 			Map<String, Object> params) {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
 
 			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = httpclient.execute(createHttpPost(
-					url, params));
-
-			logger.info(response.toString());
+			CloseableHttpResponse response = httpclient
+					.execute(createPOSTWithMultipart(url, params));
 			if (response.getStatusLine().getStatusCode() < 300) {
 				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
 			}
 		} catch (UnsupportedCharsetException e) {
 			e.printStackTrace();
@@ -280,7 +263,7 @@ public class NETUtils {
 			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
 				response = httpclient.execute(createHttpGet(url));
 			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(createHttpPost(url, params));
+				response = httpclient.execute(createPOSTWithForm(url, params));
 			} else {
 				return null;
 			}
@@ -311,13 +294,16 @@ public class NETUtils {
 			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
 				response = httpclient.execute(createHttpGet(url));
 			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(createHttpPost(url, params));
+				response = httpclient.execute(createPOSTWithMultipart(url,
+						params));
 			} else {
 				return null;
 			}
-			logger.info(response.toString());
+
 			if (response.getStatusLine().getStatusCode() < 300) {
 				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
 			}
 		} catch (UnsupportedCharsetException e) {
 			e.printStackTrace();
@@ -337,7 +323,18 @@ public class NETUtils {
 		return httpRequest;
 	}
 
-	private static HttpPost createHttpPost(String req_url, String params) {
+	private static HttpPost createPOSTWithJson(String req_url, String jsonStr) {
+		HttpPost httpPost = new HttpPost(req_url);
+		httpPost.addHeader(HttpHeaders.USER_AGENT,
+				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+		httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
+		StringEntity entity = new StringEntity(jsonStr,
+				ContentType.APPLICATION_JSON);
+		httpPost.setEntity(entity);
+		return httpPost;
+	}
+
+	private static HttpPost createPOSTWithForm(String req_url, String params) {
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT,
 				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
@@ -350,7 +347,7 @@ public class NETUtils {
 		return httpPost;
 	}
 
-	private static HttpPost createHttpPost(String req_url,
+	private static HttpPost createPOSTWithMultipart(String req_url,
 			Map<String, Object> params) {
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT,
@@ -427,6 +424,66 @@ public class NETUtils {
 			logger.info("Error posting to hiwork", e);
 		} finally {
 			post.releaseConnection();
+		}
+	}
+
+	@SuppressWarnings("resource")
+	public static void main1(String[] args) throws SocketException, IOException {
+
+		if (args.length != 2 && args.length != 3 && args.length != 5) {
+			System.out
+					.println("Usage: MessageThreading <hostname> <groupname> [<article specifier> [<user> <password>]]");
+			return;
+		}
+
+		String hostname = args[0];
+		String newsgroup = args[1];
+		// Article specifier can be numeric or Id in form <m.n.o.x@host>
+		String articleSpec = args.length >= 3 ? args[2] : null;
+
+		NNTPClient client = new NNTPClient();
+		client.addProtocolCommandListener(new PrintCommandListener(
+				new PrintWriter(System.out), true));
+		client.connect(hostname);
+
+		if (args.length == 5) { // Optional auth
+			String user = args[3];
+			String password = args[4];
+			if (!client.authenticate(user, password)) {
+				System.out.println("Authentication failed for user " + user
+						+ "!");
+				System.exit(1);
+			}
+		}
+
+		NewsgroupInfo group = new NewsgroupInfo();
+		client.selectNewsgroup(newsgroup, group);
+
+		BufferedReader br;
+		String line;
+		if (articleSpec != null) {
+			br = (BufferedReader) client.retrieveArticleHeader(articleSpec);
+		} else {
+			long articleNum = group.getLastArticleLong();
+			br = client.retrieveArticleHeader(articleNum);
+		}
+		if (br != null) {
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+			}
+			br.close();
+		}
+		if (articleSpec != null) {
+			br = (BufferedReader) client.retrieveArticleBody(articleSpec);
+		} else {
+			long articleNum = group.getLastArticleLong();
+			br = client.retrieveArticleBody(articleNum);
+		}
+		if (br != null) {
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+			}
+			br.close();
 		}
 	}
 

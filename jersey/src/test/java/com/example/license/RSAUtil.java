@@ -50,8 +50,9 @@ public class RSAUtil {
 		// 执行加密操作。加密后的结果通常都会用Base64编码进行传输
 		return Base64.encodeBase64String(results);
 	}
-	
-	public static String encrypt(String data, PrivateKey pri_key) throws Exception {
+
+	public static String encrypt(String data, PrivateKey pri_key)
+			throws Exception {
 		// 实例化Cipher对象，它用于完成实际的加密操作
 		Cipher cipher = Cipher.getInstance(CIPHER_ALGORITHM);
 		// SecureRandom random = new SecureRandom();

@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.example.commons.CommonUtils;
+
 public class WeixinService implements Runnable {
 
 	private final BlockingQueue<String> bq;
@@ -37,7 +39,7 @@ public class WeixinService implements Runnable {
 
 	private String takeAccessToken() {
 		String resp = WeiXinAPIUtil.getAccessToken();
-		Map<?, ?> resp_obj = WeiXinAPIUtil.jsonToObject(Map.class, resp);
+		Map<?, ?> resp_obj = CommonUtils.jsonToObject(Map.class, resp);
 		return (String) resp_obj.get("access_token");
 	}
 

@@ -27,21 +27,22 @@ public class JnaMain {
 		// synchronized block, limiting native calls to one at a time
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native
 				.synchronizedLibrary(INSTANCE);
-		
+
 		public static class SYSTEMTIME extends Structure {
-		    public short wYear;
-		    public short wMonth;
-		    public short wDayOfWeek;
-		    public short wDay;
-		    public short wHour;
-		    public short wMinute;
-		    public short wSecond;
-		    public short wMilliseconds;
-		    protected List getFieldOrder() { 
-		        return Arrays.asList(new String[] { 
-		            "wYear", "wMonth", "wDayOfWeek", "wDay", "wHour", "wMinute", "wSecond", "wMilliseconds",
-		        });
-		    }
+			public short wYear;
+			public short wMonth;
+			public short wDayOfWeek;
+			public short wDay;
+			public short wHour;
+			public short wMinute;
+			public short wSecond;
+			public short wMilliseconds;
+
+			protected List<?> getFieldOrder() {
+				return Arrays.asList(new String[] { "wYear", "wMonth",
+						"wDayOfWeek", "wDay", "wHour", "wMinute", "wSecond",
+						"wMilliseconds", });
+			}
 		}
 
 		void GetSystemTime(SYSTEMTIME result);
@@ -52,7 +53,7 @@ public class JnaMain {
 		for (int i = 0; i < args.length; i++) {
 			CLibrary.INSTANCE.printf("Argument %d: %s\n", i, args[i]);
 		}
-		
+
 		Kernel32 lib = Kernel32.INSTANCE;
 		SYSTEMTIME time = new SYSTEMTIME();
 		lib.GetSystemTime(time);

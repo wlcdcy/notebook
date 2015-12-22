@@ -1,17 +1,9 @@
 package com.weixin.qy.rests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.namespace.QName;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -21,12 +13,23 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.CommonUtils;
 import com.example.commons.NETUtils;
+import com.weixin.qy.entity.Department;
+import com.weixin.qy.entity.Member;
+import com.weixin.qy.entity.RespDeparment;
 
+/**
+ * @author Administrator
+ *
+ */
+/**
+ * @author Administrator
+ *
+ */
 public class WeiXinAPIUtil {
 	static Logger logger = LoggerFactory.getLogger(WeiXinAPIUtil.class);
 
@@ -96,13 +99,15 @@ public class WeiXinAPIUtil {
 
 	}
 
+	// TODO ------管理部门------
 	/**
+	 * 获取部门信息
+	 * 
 	 * @param access_token
 	 * @param pid
-	 *            id可以参数，当id不能空时，或者指定部门及其下的子部门，
 	 * @return
 	 */
-	public String getDept(String access_token, String pid) {
+	public static String listDept(String access_token, String pid) {
 		// https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=ACCESS_TOKEN&id=ID
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=%s",
@@ -110,88 +115,216 @@ public class WeiXinAPIUtil {
 		if (StringUtils.isNotEmpty(pid)) {
 			url += "&id=" + pid;
 		}
-		return NETUtils.request4GET(url);
+		return NETUtils.httpGet(url);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T> String object2XML(T obj) {
-
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		Class<?> clazz = obj.getClass();
-		Marshaller marshaller = null;
-		if (marshaller == null) {
-			try {
-				JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
-				marshaller = jaxbContext.createMarshaller();
-				marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
-			} catch (JAXBException e) {
-				throw new IllegalArgumentException(e);
-			}
-		}
-		try {
-			XmlRootElement rootElement = (XmlRootElement) clazz
-					.getAnnotation(XmlRootElement.class);
-			if (rootElement == null
-					|| rootElement.name().equals(
-							XmlRootElement.class.getMethod("name")
-									.getDefaultValue().toString())) {
-				marshaller.marshal(
-						new JAXBElement(new QName("xml"), clazz, obj), os);
-			} else {
-				marshaller.marshal(obj, os);
-			}
-		} catch (Exception e) {
-			throw new IllegalArgumentException(e);
-		} finally {
-			if (os != null) {
-				try {
-					os.close();
-				} catch (IOException e) {
-					;
-				}
-			}
-		}
-		return new String(os.toByteArray());
+	/**
+	 * 增加部门
+	 * 
+	 * @param access_token
+	 * @param dept
+	 * @return
+	 */
+	public static String createDept(String access_token, Department dept) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/department/create?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(dept);
+		return NETUtils.httpPostWithJson(url, jsonString);
 	}
 
-	@SuppressWarnings({ "unchecked", "unused" })
-	public static <T> T xml2Object(String xmlStr, Class<T> clazz) {
-
-		Unmarshaller unmarshaller = null;
-		if (unmarshaller == null) {
-			try {
-				JAXBContext jaxbContext = JAXBContext.newInstance(clazz);
-				unmarshaller = jaxbContext.createUnmarshaller();
-				Reader reader = new StringReader(xmlStr);
-				return (T) unmarshaller.unmarshal(reader);
-			} catch (JAXBException e) {
-				throw new IllegalArgumentException(e);
-			}
-		}
-		return null;
+	/**
+	 * 更新部门信息
+	 * 
+	 * @param access_token
+	 * @param dept
+	 * @return
+	 */
+	public static String updateDept(String access_token, Department dept) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/department/update?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(dept);
+		return NETUtils.httpPostWithJson(url, jsonString);
 	}
 
-	public static <T> String object2Json(T clazz) {
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			return mapper.writeValueAsString(clazz);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+	/**
+	 * 删除部门
+	 * 
+	 * @param access_token
+	 * @param id
+	 * @return
+	 */
+	public static String deleteDept(String access_token, String id) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/department/delete?access_token=%s&id=%s",
+						access_token, id);
+		return NETUtils.httpGet(url);
 	}
 
-	public static <T> T jsonToObject(Class<T> clazz, String jsonStr) {
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			return mapper.readValue(jsonStr, clazz);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
+	// TODO ------管理成员 ------
+	/**
+	 * 创建成员
+	 * 
+	 * @param access_token
+	 * @param member
+	 * @return
+	 */
+	public static String createMember(String access_token, Member member) {
+		// https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=ACCESS_TOKEN
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(member);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 更新成员
+	 * 
+	 * @param access_token
+	 * @param member
+	 * @return
+	 */
+	public static String updateMember(String access_token, Member member) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/update?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(member);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 删除成员
+	 * 
+	 * @param access_token
+	 * @param userid
+	 * @return
+	 */
+	public static String deleteMember(String access_token, String userid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/delete?access_token=%s&userid=%s",
+						access_token, userid);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 批量删除成员
+	 * 
+	 * @param access_token
+	 * @param useridlist
+	 * @return
+	 */
+	public static String batchDeleteMember(String access_token,
+			List<String> useridlist) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/batchDelete?access_token=%s",
+						access_token);
+		Map<String, List<String>> userids = new HashMap<String, List<String>>();
+		userids.put("useridlist", useridlist);
+		String jsonString = CommonUtils.object2Json(userids);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 获取成员
+	 * 
+	 * @param access_token
+	 * @param userid
+	 * @return
+	 */
+	public static String getMember(String access_token, String userid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/get?access_token=%s&userid=%s",
+						access_token, userid);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 获取部门成员
+	 * 
+	 * @param access_token
+	 * @param deptid
+	 * @param fetch_child
+	 * @param status
+	 * @return
+	 */
+	public static String simpleListMember(String access_token, int deptid,
+			int fetch_child, int status) {
+		// https://qyapi.weixin.qq.com/cgi-bin/user/simplelist?access_token=ACCESS_TOKEN&department_id=DEPARTMENT_ID&fetch_child=FETCH_CHILD&status=STATUS
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/simplelist?access_token=%s&department_id=%s&fetch_child=%s&status=%s",
+						access_token, deptid, fetch_child, status);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 获取部门成员(详情)
+	 * 
+	 * @param access_token
+	 * @param deptid
+	 * @param fetch_child
+	 * @param status
+	 * @return
+	 */
+	public static String listMember(String access_token, int deptid,
+			int fetch_child, int status) {
+		// https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=ACCESS_TOKEN&department_id=DEPARTMENT_ID&fetch_child=FETCH_CHILD&status=STATUS
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=%s&department_id=%s&fetch_child=%s&status=%s",
+						access_token, deptid, fetch_child, status);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 邀请成员关注 [为避免骚扰成员，企业应遵守以下邀请规则：每月邀请的总人次不超过成员上限的2倍；每7天对同一个成员只能邀请一次]
+	 * 
+	 * @param access_token
+	 * @param userid
+	 * @return
+	 */
+	public static String inviteMember(String access_token, String userid) {
+		// https://qyapi.weixin.qq.com/cgi-bin/invite/send?access_token=ACCESS_TOKEN
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/invite/send?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(userid);
+		return NETUtils.httpPostWithJson(url, jsonString);
 	}
 
 	public static void main(String[] args) {
+		getAccessToken();
+		String access_token = "aKOHhhnPsTNqgfYZ188uTRsOPcyUqagpAPl0DchZ-yco1dYQTKI4I5B5Ifd152Ud_oHZXgwFO3apa6UAFNT_9w";
 
+		Department dept = new Department();
+		String name = "jdj";
+		String id = null;
+		dept.setName(name);
+		dept.setParentid("1");
+		logger.info(createDept(access_token, dept));
+
+		String deptsJson = listDept(access_token, "1");
+		logger.info(deptsJson);
+		RespDeparment obj = CommonUtils.jsonToObject(RespDeparment.class,
+				deptsJson);
+		List<Department> depts = obj.getDepartment();
+		for (Department dept_ : depts) {
+			id = dept_.getId();
+			logger.info("id : " + id);
+			if (StringUtils.equals(dept_.getName(), name)) {
+				name += "空时";
+				dept_.setName(name);
+				updateDept(access_token, dept_);
+				break;
+			}
+		}
+
+		deptsJson = listDept(access_token, "1");
+		logger.info(deptsJson);
+
+		deleteDept(access_token, id);
+
+		deptsJson = listDept(access_token, "1");
+		logger.info(deptsJson);
 	}
 }

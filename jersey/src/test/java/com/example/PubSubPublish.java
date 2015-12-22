@@ -1,6 +1,5 @@
 package com.example;
 
-
 import java.io.IOException;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -23,17 +22,15 @@ import org.jivesoftware.smackx.pubsub.SimplePayload;
 import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 public class PubSubPublish {
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void publish(){
+	public static void publish() {
 		try {
 			XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration
-			.builder().setHost("192.168.1.227").setPort(5222)
-			.setResource("test")
-			.setCompressionEnabled(false)
-			.setSecurityMode(SecurityMode.disabled)
-			.setServiceName("im")
-			.build();
+					.builder().setHost("192.168.1.227").setPort(5222)
+					.setResource("test").setCompressionEnabled(false)
+					.setSecurityMode(SecurityMode.disabled)
+					.setServiceName("im").build();
 			AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
 			conn.login("hello", "hello");
 			PubSubManager psManager = new PubSubManager(conn);
@@ -46,21 +43,22 @@ public class PubSubPublish {
 			form.setNotifyRetract(true);
 			form.setPersistentItems(true);
 			form.setPublishModel(PublishModel.open);
-//			form.setDataType(FormField.ELEMENT);
+			// form.setDataType(FormField.ELEMENT);
 
 			LeafNode leaf = (LeafNode) psManager.createNode("svn2", form);
-//			LeafNode leaf = (LeafNode) psManager.getNode("svn2");
-			
-			//leaf.send(new Item());
-			//leaf.deleteItem("incoming svn");
-			
-			 //Now publish something – See Javadocs
-			SimplePayload payload = new SimplePayload("book","pubsub_book", "");
+			// LeafNode leaf = (LeafNode) psManager.getNode("svn2");
+
+			// leaf.send(new Item());
+			// leaf.deleteItem("incoming svn");
+
+			// Now publish something – See Javadocs
+			SimplePayload payload = new SimplePayload("book", "pubsub_book", "");
 
 			PayloadItem payloadItem = new PayloadItem(null, payload);
 			leaf.send(payloadItem);
-			//leaf.publish(payloadItem);
-			//leaf.send(new PayloadItem("test" + System.currentTimeMillis(),new SimplePayload("book", "pubsub:test:book", "Two Towers")));
+			// leaf.publish(payloadItem);
+			// leaf.send(new PayloadItem("test" + System.currentTimeMillis(),new
+			// SimplePayload("book", "pubsub:test:book", "Two Towers")));
 		} catch (NoResponseException e) {
 			e.printStackTrace();
 		} catch (XMPPErrorException e) {
@@ -78,7 +76,7 @@ public class PubSubPublish {
 
 	public static void main(String[] args) {
 
-			System.out.println(StringUtils.escapeForXML("你好，的进货价接口").toString());
+		System.out.println(StringUtils.escapeForXML("你好，的进货价接口").toString());
 	}
 
 }

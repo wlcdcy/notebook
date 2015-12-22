@@ -24,12 +24,10 @@ public class PubSubSubscribe {
 
 		try {
 			XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration
-			.builder().setHost("192.168.1.227").setPort(5222)
-			.setResource("test")
-			.setCompressionEnabled(false)
-			.setSecurityMode(SecurityMode.disabled)
-			.setServiceName("im")
-			.build();
+					.builder().setHost("192.168.1.227").setPort(5222)
+					.setResource("test").setCompressionEnabled(false)
+					.setSecurityMode(SecurityMode.disabled)
+					.setServiceName("im").build();
 			AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
 			conn.login("hello", "hello");
 			PubSubManager psManager = new PubSubManager(conn);
@@ -37,19 +35,19 @@ public class PubSubSubscribe {
 			LeafNode node = psManager.getNode("svn2");
 			List<? extends Item> items = node.getItems(100);
 			System.out.println(items.get(2).getId());
-			
-			/*node.addConfigurationListener(new NodeConfigCoordinator());
-			node.subscribe(conn.getStreamId());
 
-			ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
-			form.setAccessModel(AccessModel.open);
-			form.setDeliverPayloads(false);
-			form.setNotifyRetract(true);
-			form.setPersistentItems(true);
-			form.setPublishModel(PublishModel.open);
-			
-			node.sendConfigurationForm(form);
-			*/
+			/*
+			 * node.addConfigurationListener(new NodeConfigCoordinator());
+			 * node.subscribe(conn.getStreamId());
+			 * 
+			 * ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
+			 * form.setAccessModel(AccessModel.open);
+			 * form.setDeliverPayloads(false); form.setNotifyRetract(true);
+			 * form.setPersistentItems(true);
+			 * form.setPublishModel(PublishModel.open);
+			 * 
+			 * node.sendConfigurationForm(form);
+			 */
 		} catch (NoResponseException e) {
 			e.printStackTrace();
 		} catch (XMPPErrorException e) {

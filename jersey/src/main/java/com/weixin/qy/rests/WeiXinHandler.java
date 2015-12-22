@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.CommonUtils;
 import com.weixin.qy.entity.TextMassegeContent;
 import com.weixin.qy.entity.TextMessage;
 import com.weixin.qy.entity.WeixinMessage;
@@ -32,8 +33,7 @@ public class WeiXinHandler implements Runnable {
 	@Override
 	public void run() {
 
-		WeixinMessage wxm = WeiXinAPIUtil.xml2Object(xmlStr,
-				WeixinMessage.class);
+		WeixinMessage wxm = CommonUtils.xml2Object(xmlStr, WeixinMessage.class);
 		String replyMsg = turing(wxm.getContent());
 		if (StringUtils.isNotEmpty(replyMsg)) {
 
@@ -46,7 +46,7 @@ public class WeiXinHandler implements Runnable {
 			_tm.setAgentid(wxm.getAgentID());
 			_tm.setToparty("1");
 			// _tm.setTotag(totag);
-			String msg = WeiXinAPIUtil.object2Json(_tm);
+			String msg = CommonUtils.object2Json(_tm);
 			WeiXinAPIUtil.sendMessage(accessToken, msg);
 		}
 	}
@@ -82,7 +82,7 @@ public class WeiXinHandler implements Runnable {
 			}
 			String resp = sb.toString();
 			logger.info("turing return msg: " + resp);
-			Map<?, ?> resp_obj = WeiXinAPIUtil.jsonToObject(Map.class, resp);
+			Map<?, ?> resp_obj = CommonUtils.jsonToObject(Map.class, resp);
 
 			return (String) resp_obj.get("text");
 		} catch (UnsupportedEncodingException e) {
