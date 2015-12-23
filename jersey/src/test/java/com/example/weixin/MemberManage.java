@@ -15,7 +15,7 @@ import com.weixin.qy.rests.WeiXinAPIUtil;
 
 public class MemberManage {
 
-	String access_token = "aKOHhhnPsTNqgfYZ188uTRsOPcyUqagpAPl0DchZ-yco1dYQTKI4I5B5Ifd152Ud_oHZXgwFO3apa6UAFNT_9w";
+	String access_token = "m6Vr_nPgO_CIKH6C-xmUWlLzo29CAtX5p0gPMbLH9oEVGqwmdjCHP8_j23FXWSFVU-_aCa_QWj_5JK7yR22q0w";
 	Member member = new Member();
 	List<Integer> depts = new ArrayList<Integer>();
 	String userid = "lisa";

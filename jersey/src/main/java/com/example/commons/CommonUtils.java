@@ -85,9 +85,9 @@ public class CommonUtils {
 		return null;
 	}
 
-	public static <T> T jsonToObject(Class<T> clazz, String jsonStr) {
+	public static <T> T jsonToObject(Class<T> clazz, String jsonString) {
 		try {
-			return mapper.readValue(jsonStr, clazz);
+			return mapper.readValue(jsonString, clazz);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

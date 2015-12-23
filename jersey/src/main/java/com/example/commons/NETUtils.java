@@ -23,11 +23,12 @@ import javax.net.ssl.X509TrustManager;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.nntp.NNTPClient;
 import org.apache.commons.net.nntp.NewsgroupInfo;
 import org.apache.http.Consts;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -168,12 +169,88 @@ public class NETUtils {
 	public static String httpGet(String url) {
 		try {
 			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-
 			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
 			CloseableHttpResponse response = null;
 			response = httpclient.execute(createHttpGet(url));
 			if (response.getStatusLine().getStatusCode() < 300) {
 				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * @param url
+	 * @return String|InputStream
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T httpGet2(String url) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = null;
+			response = httpclient.execute(createHttpGet(url));
+			if (response.getStatusLine().getStatusCode() < 300) {
+				HttpEntity entity = response.getEntity();
+				String contenType = response.getFirstHeader("Content-Type")
+						.getValue();// EntityUtils.getContentMimeType(entity);
+				if (StringUtils.startsWith(contenType,
+						ContentType.APPLICATION_JSON.getMimeType())) {
+					return (T) EntityUtils.toString(entity);
+				} else {
+					return (T) entity.getContent();
+				}
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static CloseableHttpResponse httpGetStream(String url) {
+		boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+		CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+		try {
+			return httpclient.execute(createHttpGet(url));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T httpGet(String url, Class<T> clazz) {
+		try {
+			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
+			CloseableHttpResponse response = null;
+			response = httpclient.execute(createHttpGet(url));
+			if (response.getStatusLine().getStatusCode() < 300) {
+				HttpEntity entity = response.getEntity();
+				if (clazz.equals(String.class)) {
+					return (T) EntityUtils.toString(entity);
+				} else if (clazz.equals(byte[].class)) {
+					return (T) EntityUtils.toByteArray(entity);
+				} else if (clazz.equals(InputStream.class)) {
+					return (T) entity.getContent();
+				} else {
+					logger.info("invalid return type: " + clazz.getName());
+				}
+
 			} else {
 				logger.info(response.toString());
 			}

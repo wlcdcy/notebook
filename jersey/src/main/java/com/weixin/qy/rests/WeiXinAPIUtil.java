@@ -1,11 +1,17 @@
 package com.weixin.qy.rests;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -19,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import com.example.commons.CommonUtils;
 import com.example.commons.NETUtils;
 import com.weixin.qy.entity.Department;
+import com.weixin.qy.entity.InviteUser;
+import com.weixin.qy.entity.Material;
 import com.weixin.qy.entity.Member;
+import com.weixin.qy.entity.QueryParam;
 import com.weixin.qy.entity.RespDeparment;
 
 /**
@@ -292,9 +301,258 @@ public class WeiXinAPIUtil {
 		return NETUtils.httpPostWithJson(url, jsonString);
 	}
 
+	// TODO
+	// ------异步任务接口[异步任务接口用于大批量数据的处理，提交后接口即返回，企业号会在后台继续执行任务。执行完成后，通过任务事件通知企业获取结果]------
+	/**
+	 * 邀请成员关注
+	 * 
+	 * @param access_token
+	 * @param inviteUser
+	 * @return
+	 */
+	public static String batchInviteMember(String access_token,
+			InviteUser inviteUser) {
+		// https://qyapi.weixin.qq.com/cgi-bin/batch/inviteuser?access_token=ACCESS_TOKEN
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/batch/inviteuser?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(inviteUser);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	// TODO ------管理素材文件------
+	/**
+	 * 上传临时素材文件
+	 * 
+	 * @param access_token
+	 * @param type
+	 * @param file
+	 * @return
+	 */
+	public static String mediaUpload(String access_token, String type, File file) {
+		// https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s",
+						access_token, type);
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put(file.getName(), file);
+		return NETUtils.httpPostWithMultipart(url, params);
+	}
+
+	/**
+	 * 获取临时素材文件
+	 * 
+	 * @param access_token
+	 * @param media_id
+	 * @param clazz
+	 *            [support type: InputStream|byte[]|String]
+	 * @return
+	 */
+	public static <T> T mediaGet(String access_token, String media_id,
+			Class<T> clazz) {
+		// https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s",
+						access_token, media_id);
+		return NETUtils.httpGet(url, clazz);
+	}
+
+	/**
+	 * 上传图文消息素材
+	 * 
+	 * @param access_token
+	 * @param type
+	 * @param agentid
+	 * @param file
+	 * @return
+	 */
+	public static String materialUpload(String access_token, Material material) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/add_mpnews?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(material);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 上传其他类型永久素材【图片、语音、视频等媒体资源文件以及普通文件（如doc，ppt）】
+	 * 
+	 * @param access_token
+	 * @param type
+	 * @param agentid企业应用的id
+	 * @param file
+	 * @return
+	 */
+	public static String materialUpload4Other(String access_token, String type,
+			int agentid, File file) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/add_material?agentid=%s&type=%s&access_token=%s",
+						agentid, type, access_token);
+		Map<String, Object> params = new HashMap<String, Object>();
+		params.put(file.getName(), file);
+		return NETUtils.httpPostWithMultipart(url, params);
+	}
+
+	/**
+	 * 获取永久素材【图片、语音、视频等媒体资源文件以及普通文件（如doc，ppt）】
+	 * 
+	 * @param access_token
+	 * @param media_id
+	 * @param agentid
+	 * @param clazz
+	 *            [support type: InputStream|byte[]|String]
+	 * @return
+	 */
+	public static <T> T materialGet(String access_token, String media_id,
+			int agentid) {
+		// https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID&agentid=AGENTID
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=%s&media_id=%s&agentid=%s",
+						access_token, media_id, agentid);
+		return NETUtils.httpGet2(url);
+	}
+
+	/**
+	 * 获取永久素材
+	 * 
+	 * @param access_token
+	 * @param media_id
+	 * @param agentid
+	 * @return
+	 */
+	public static InputStream materialGet4OtherByStream(String access_token,
+			String media_id, int agentid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=%s&media_id=%s&agentid=%s",
+						access_token, media_id, agentid);
+		return NETUtils.httpGet(url, InputStream.class);
+	}
+
+	/**
+	 * 下载 永久素材
+	 * 
+	 * @param access_token
+	 * @param media_id
+	 *            素材id
+	 * @param agentid
+	 *            应用id
+	 * @param dist
+	 *            保存位置
+	 */
+	public static void materialDown4Other(String access_token, String media_id,
+			int agentid, String dist) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=%s&media_id=%s&agentid=%s",
+						access_token, media_id, agentid);
+		CloseableHttpResponse response = NETUtils.httpGetStream(url);
+		try {
+			if (response.getStatusLine().getStatusCode() < 300) {
+				HttpEntity entity = response.getEntity();
+				// Header contentType = entity.getContentType();
+				NameValuePair nvp = response.getFirstHeader(
+						"Content-disposition").getElements()[0].getParameters()[0];
+				InputStream is = null;
+				OutputStream os = null;
+				try {
+					is = entity.getContent();
+					os = new FileOutputStream(new File(dist, nvp.getValue()));
+					byte[] b = new byte[1024 * 8];
+					int len = 0;
+					while ((len = is.read(b)) > 0) {
+						os.write(b, 0, len);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						os.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					try {
+						is.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		} finally {
+			try {
+				response.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 删除永久素材
+	 * 
+	 * @param access_token
+	 * @param media_id
+	 * @param agentid
+	 * @return
+	 */
+	public static String materialDelete(String access_token, String media_id,
+			int agentid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/del?access_token=%s&agentid=%s&media_id=%s",
+						access_token, agentid, media_id);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 修改永久图文素材
+	 * 
+	 * @param access_token
+	 * @param material
+	 * @return
+	 */
+	public static String materialUpdate(String access_token, Material material) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/update_mpnews?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(material);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 获取素材总数
+	 * 
+	 * @param access_token
+	 * @param agentid
+	 * @return
+	 */
+	public static String materialCount(String access_token, int agentid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/get_count?access_token=%s&agentid=%s",
+						access_token, agentid);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 获取素材列表
+	 * 
+	 * @param access_token
+	 * @param param
+	 * @return
+	 */
+	public static String materialList(String access_token, QueryParam param) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/material/batchget?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(param);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
 	public static void main(String[] args) {
-		getAccessToken();
-		String access_token = "aKOHhhnPsTNqgfYZ188uTRsOPcyUqagpAPl0DchZ-yco1dYQTKI4I5B5Ifd152Ud_oHZXgwFO3apa6UAFNT_9w";
+		// getAccessToken();
+		String access_token = "m6Vr_nPgO_CIKH6C-xmUWlLzo29CAtX5p0gPMbLH9oEVGqwmdjCHP8_j23FXWSFVU-_aCa_QWj_5JK7yR22q0w";
 
 		Department dept = new Department();
 		String name = "jdj";
