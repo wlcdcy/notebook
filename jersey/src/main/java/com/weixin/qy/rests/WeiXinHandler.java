@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -15,8 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.commons.CommonUtils;
-import com.weixin.qy.entity.TextMassegeContent;
+import com.weixin.qy.entity.QueryParam;
+import com.weixin.qy.entity.TextContent;
 import com.weixin.qy.entity.TextMessage;
+import com.weixin.qy.entity.VoiceContent;
 import com.weixin.qy.entity.WeixinMessage;
 
 public class WeiXinHandler implements Runnable {
@@ -34,21 +37,36 @@ public class WeiXinHandler implements Runnable {
 	public void run() {
 
 		WeixinMessage wxm = CommonUtils.xml2Object(xmlStr, WeixinMessage.class);
-		String replyMsg = turing(wxm.getContent());
-		if (StringUtils.isNotEmpty(replyMsg)) {
-
-			TextMassegeContent tmc = new TextMassegeContent();
+		String replyMsg = null;
+		TextMessage _tm = new TextMessage();
+		_tm.setTouser(wxm.getFromUserName());
+		_tm.setAgentid(wxm.getAgentID());
+		_tm.setToparty("1");
+		// _tm.setTotag(totag);
+		
+		if(StringUtils.equals(wxm.getMsgType(), "text")){
+			replyMsg = turing(wxm.getContent());
+			TextContent tmc = new TextContent();
 			tmc.setContent(replyMsg);
-
-			TextMessage _tm = new TextMessage();
 			_tm.setText(tmc);
-			_tm.setTouser(wxm.getFromUserName());
-			_tm.setAgentid(wxm.getAgentID());
-			_tm.setToparty("1");
-			// _tm.setTotag(totag);
-			String msg = CommonUtils.object2Json(_tm);
-			WeiXinAPIUtil.sendMessage(accessToken, msg);
+		}else if(StringUtils.equals(wxm.getMsgType(), "voice")){
+			QueryParam param = new QueryParam();
+			param.setAgentid(0);
+			param.setType("voice");
+			param.setOffset(0);
+			param.setCount(10);
+			String jsonString = WeiXinAPIUtil.materialList(accessToken, param);
+			Map<?, ?> result = CommonUtils.jsonToObject(Map.class, jsonString);
+			@SuppressWarnings("rawtypes")
+			String media_id = (String)((Map)((List)result.get("itemlist")).get(0)).get("media_id");
+			_tm.setMsgtype("voice");
+			VoiceContent voice = new VoiceContent();
+			voice.setMedia_id(media_id);
+			_tm.setVoice(voice);
 		}
+		
+		String msg = CommonUtils.object2Json(_tm);
+		WeiXinAPIUtil.sendMessage(accessToken, msg);
 	}
 
 	public static void main(String[] args) {
