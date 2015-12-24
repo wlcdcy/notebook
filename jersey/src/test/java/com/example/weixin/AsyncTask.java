@@ -24,7 +24,7 @@ import com.weixin.qy.entity.QueryParam;
 import com.weixin.qy.rests.WeiXinAPIUtil;
 
 public class AsyncTask {
-	String access_token = "m6Vr_nPgO_CIKH6C-xmUWlLzo29CAtX5p0gPMbLH9oEVGqwmdjCHP8_j23FXWSFVU-_aCa_QWj_5JK7yR22q0w";
+	String access_token = "iJ7JO4r17JvI8EHil4iToHLBzCtV2oaZDBLm2CDyS6sfDTvpHfTQjJHfcd-E-tAVRzKt6IoTDxgDttpkhXsCAg";
 	String imagePath = "d:/20150612113904.png";
 	String media_id = "2J4IJTOBrh7XAITLbn2qpH1yV1nMf5easSeLte8T5H9zna2qrQmyAePBgPeUvZDp3pGBhzAXK-5mkFjxQzOwXAA";
 	String material_id = "20FWTCmros1WAie8W9FCxDuX2xsFKy3X-tdi6bJ9oymR3sfYOuYH20y2mUvjA7KhD";

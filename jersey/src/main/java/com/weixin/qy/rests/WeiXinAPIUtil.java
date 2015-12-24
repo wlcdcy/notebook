@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.commons.CommonUtils;
 import com.example.commons.NETUtils;
+import com.weixin.qy.entity.Agent;
 import com.weixin.qy.entity.Department;
 import com.weixin.qy.entity.InviteUser;
 import com.weixin.qy.entity.Material;
@@ -31,10 +32,6 @@ import com.weixin.qy.entity.Member;
 import com.weixin.qy.entity.QueryParam;
 import com.weixin.qy.entity.RespDeparment;
 
-/**
- * @author Administrator
- *
- */
 /**
  * @author Administrator
  *
@@ -48,7 +45,6 @@ public class WeiXinAPIUtil {
 	 * @return
 	 */
 	public static String getAccessToken() {
-		// https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect
 		String req_url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s",
 						WeixinResource.appCorpID,
@@ -81,7 +77,6 @@ public class WeiXinAPIUtil {
 	 * @param msg
 	 */
 	public static void sendMessage(String access_token, String msg) {
-		// "https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN"
 		String req_url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s",
 						access_token);
@@ -117,7 +112,6 @@ public class WeiXinAPIUtil {
 	 * @return
 	 */
 	public static String listDept(String access_token, String pid) {
-		// https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=ACCESS_TOKEN&id=ID
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/department/list?access_token=%s",
 						access_token);
@@ -180,7 +174,6 @@ public class WeiXinAPIUtil {
 	 * @return
 	 */
 	public static String createMember(String access_token, Member member) {
-		// https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=ACCESS_TOKEN
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=%s",
 						access_token);
@@ -260,7 +253,6 @@ public class WeiXinAPIUtil {
 	 */
 	public static String simpleListMember(String access_token, int deptid,
 			int fetch_child, int status) {
-		// https://qyapi.weixin.qq.com/cgi-bin/user/simplelist?access_token=ACCESS_TOKEN&department_id=DEPARTMENT_ID&fetch_child=FETCH_CHILD&status=STATUS
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/user/simplelist?access_token=%s&department_id=%s&fetch_child=%s&status=%s",
 						access_token, deptid, fetch_child, status);
@@ -278,7 +270,6 @@ public class WeiXinAPIUtil {
 	 */
 	public static String listMember(String access_token, int deptid,
 			int fetch_child, int status) {
-		// https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=ACCESS_TOKEN&department_id=DEPARTMENT_ID&fetch_child=FETCH_CHILD&status=STATUS
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/user/list?access_token=%s&department_id=%s&fetch_child=%s&status=%s",
 						access_token, deptid, fetch_child, status);
@@ -312,7 +303,6 @@ public class WeiXinAPIUtil {
 	 */
 	public static String batchInviteMember(String access_token,
 			InviteUser inviteUser) {
-		// https://qyapi.weixin.qq.com/cgi-bin/batch/inviteuser?access_token=ACCESS_TOKEN
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/batch/inviteuser?access_token=%s",
 						access_token);
@@ -330,7 +320,6 @@ public class WeiXinAPIUtil {
 	 * @return
 	 */
 	public static String mediaUpload(String access_token, String type, File file) {
-		// https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=%s",
 						access_token, type);
@@ -350,7 +339,6 @@ public class WeiXinAPIUtil {
 	 */
 	public static <T> T mediaGet(String access_token, String media_id,
 			Class<T> clazz) {
-		// https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/media/get?access_token=%s&media_id=%s",
 						access_token, media_id);
@@ -405,7 +393,6 @@ public class WeiXinAPIUtil {
 	 */
 	public static <T> T materialGet(String access_token, String media_id,
 			int agentid) {
-		// https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=ACCESS_TOKEN&media_id=MEDIA_ID&agentid=AGENTID
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/material/get?access_token=%s&media_id=%s&agentid=%s",
 						access_token, media_id, agentid);
@@ -550,8 +537,51 @@ public class WeiXinAPIUtil {
 		return NETUtils.httpPostWithJson(url, jsonString);
 	}
 
+	// TODO ------管理企业号应用------
+	/**
+	 * 获取企业号应用
+	 * 
+	 * @param access_token
+	 * @param agentid
+	 * @return
+	 */
+	public static String AgentGet(String access_token, int agentid) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/agent/get?access_token=%s&agentid=%s",
+						access_token, agentid);
+		return NETUtils.httpGet(url);
+	}
+
+	/**
+	 * 设置企业号应用
+	 * 
+	 * @param access_token
+	 * @param agent
+	 * @return
+	 */
+	public static String AgentSet(String access_token, Agent agent) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/agent/set?access_token=%s",
+						access_token);
+		String jsonString = CommonUtils.object2Json(agent);
+		return NETUtils.httpPostWithJson(url, jsonString);
+	}
+
+	/**
+	 * 获取应用概况列表
+	 * 
+	 * @param access_token
+	 * @return
+	 */
+	public static String AgentList(String access_token) {
+		String url = String
+				.format("https://qyapi.weixin.qq.com/cgi-bin/agent/list?access_token=%s",
+						access_token);
+		return NETUtils.httpGet(url);
+	}
+
 	public static void main(String[] args) {
-		// getAccessToken();
+		getAccessToken();
 		String access_token = "m6Vr_nPgO_CIKH6C-xmUWlLzo29CAtX5p0gPMbLH9oEVGqwmdjCHP8_j23FXWSFVU-_aCa_QWj_5JK7yR22q0w";
 
 		Department dept = new Department();
