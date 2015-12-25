@@ -113,8 +113,10 @@ public class WeixinResource {
 		try {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
+			// TODO 异步模式回复
 			// WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
 
+			// TODO 同步模式回复
 			WeixinMessage wxm = CommonUtils.xml2Object(sMsg,
 					WeixinMessage.class);
 
@@ -157,7 +159,6 @@ public class WeixinResource {
 				logger.info(String.format("encrypt : %s", encrypt));
 				return encrypt;
 			}
-
 		} catch (AesException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
