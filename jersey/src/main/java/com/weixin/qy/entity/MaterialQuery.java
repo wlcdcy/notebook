@@ -1,6 +1,6 @@
 package com.weixin.qy.entity;
 
-public class QueryParam {
+public class MaterialQuery {
 
 	private String type;
 	private int agentid;

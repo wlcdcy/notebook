@@ -11,12 +11,13 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.commons.CommonUtils;
-import com.weixin.qy.entity.QueryParam;
+import com.weixin.qy.entity.MaterialQuery;
 import com.weixin.qy.entity.TextContent;
 import com.weixin.qy.entity.TextMessage;
 import com.weixin.qy.entity.VoiceContent;
@@ -24,7 +25,7 @@ import com.weixin.qy.entity.WeixinMessage;
 
 public class WeiXinHandler implements Runnable {
 
-	Logger logger = LoggerFactory.getLogger(WeiXinHandler.class);
+	static Logger logger = LoggerFactory.getLogger(WeiXinHandler.class);
 	private String accessToken;
 	private String xmlStr;
 
@@ -43,28 +44,30 @@ public class WeiXinHandler implements Runnable {
 		_tm.setAgentid(wxm.getAgentID());
 		_tm.setToparty("1");
 		// _tm.setTotag(totag);
-		
-		if(StringUtils.equals(wxm.getMsgType(), "text")){
+
+		if (StringUtils.equals(wxm.getMsgType(), "text")) {
 			replyMsg = turing(wxm.getContent());
 			TextContent tmc = new TextContent();
 			tmc.setContent(replyMsg);
 			_tm.setText(tmc);
-		}else if(StringUtils.equals(wxm.getMsgType(), "voice")){
-			QueryParam param = new QueryParam();
+		} else if (StringUtils.equals(wxm.getMsgType(), "voice")) {
+			MaterialQuery param = new MaterialQuery();
 			param.setAgentid(0);
 			param.setType("voice");
 			param.setOffset(0);
 			param.setCount(10);
 			String jsonString = WeiXinAPIUtil.materialList(accessToken, param);
 			Map<?, ?> result = CommonUtils.jsonToObject(Map.class, jsonString);
+			int index = RandomUtils.nextInt(0, 4);
 			@SuppressWarnings("rawtypes")
-			String media_id = (String)((Map)((List)result.get("itemlist")).get(0)).get("media_id");
+			String media_id = (String) ((Map) ((List) result.get("itemlist"))
+					.get(index)).get("media_id");
 			_tm.setMsgtype("voice");
 			VoiceContent voice = new VoiceContent();
 			voice.setMedia_id(media_id);
 			_tm.setVoice(voice);
 		}
-		
+
 		String msg = CommonUtils.object2Json(_tm);
 		WeiXinAPIUtil.sendMessage(accessToken, msg);
 	}
@@ -77,7 +80,7 @@ public class WeiXinHandler implements Runnable {
 		handler.run();
 	}
 
-	private String turing(String content) {
+	public static String turing(String content) {
 		StringBuffer sb = null;
 		BufferedReader reader = null;
 		HttpURLConnection connection = null;

@@ -1,5 +1,8 @@
 package com.weixin.qy.rests;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -7,11 +10,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.CommonUtils;
 import com.qq.weixin.mp.aes.AesException;
 import com.qq.weixin.mp.aes.WXBizMsgCrypt;
+import com.weixin.qy.entity.MaterialQuery;
+import com.weixin.qy.entity.WeixinMessage;
 
 @Path("weixin/qy")
 public class WeixinResource {
@@ -24,6 +32,8 @@ public class WeixinResource {
 
 	public static String appEncodingAESKey = "Na4fKP0Ugc0gd0Vf4l7luvMyYngDhq23XbMzs7TMfAzadVehcPiEAwc5FoZz51-p";
 	public static String appCorpID = "wx6109d2b23a0abd2f";
+
+	String accessToken;
 
 	WXBizMsgCrypt wxcpt;
 
@@ -103,38 +113,51 @@ public class WeixinResource {
 		try {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
-			WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
+			// WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
 
-			// // TODO: 解析出明文xml标签的内容进行处理
-			// DocumentBuilderFactory dbf =
-			// DocumentBuilderFactory.newInstance();
-			// DocumentBuilder db = dbf.newDocumentBuilder();
-			// StringReader sr = new StringReader(sMsg);
-			// InputSource is = new InputSource(sr);
-			// Document document = db.parse(is);
-			//
-			// Element root = document.getDocumentElement();
-			// NodeList nodes = root.getChildNodes();
-			// for (int i = 0; i < nodes.getLength(); i++) {
-			// Node node = nodes.item(i);
-			// String name = node.getNodeName();
-			// NodeList nodelist1 = root.getElementsByTagName(name);
-			// if (nodelist1.item(0) != null) {
-			// String Content = nodelist1.item(0).getTextContent();
-			// logger.info(String.format("%s : %s", name, Content));
-			// }
-			// }
+			WeixinMessage wxm = CommonUtils.xml2Object(sMsg,
+					WeixinMessage.class);
 
-			// WeixinMessage wxm = WeiXinAPIUtil.xml2Object(sMsg,
-			// WeixinMessage.class);
-			// String
-			// replyMsg="<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
-			// replyMsg = String.format(replyMsg,
-			// wxm.getFromUserName(),wxm.getToUserName(),wxm.getCreateTime(),"你还");
-			// logger.info(String.format("replyMsg : %s", replyMsg));
-			// String encrypt= wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
-			// logger.info(String.format("encrypt : %s", encrypt));
-			// return encrypt;
+			if (StringUtils.equals(wxm.getMsgType(), "text")) {
+				String textContent = WeiXinHandler.turing(wxm.getContent());
+
+				String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
+				replyMsg = String.format(replyMsg, wxm.getFromUserName(),
+						wxm.getToUserName(), wxm.getCreateTime(), textContent);
+				logger.info(String.format("replyMsg : %s", replyMsg));
+				String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
+				logger.info(String.format("encrypt : %s", encrypt));
+				return encrypt;
+			} else if (StringUtils.equals(wxm.getMsgType(), "voice")) {
+				MaterialQuery param = new MaterialQuery();
+				param.setAgentid(0);
+				param.setType("voice");
+				param.setOffset(0);
+				param.setCount(10);
+				if (StringUtils.isEmpty(accessToken)) {
+					String resp = WeiXinAPIUtil.getAccessToken();
+					Map<?, ?> resp_obj = CommonUtils.jsonToObject(Map.class,
+							resp);
+					accessToken = (String) resp_obj.get("access_token");
+				}
+
+				String jsonString = WeiXinAPIUtil.materialList(accessToken,
+						param);
+				Map<?, ?> result = CommonUtils.jsonToObject(Map.class,
+						jsonString);
+				int index = RandomUtils.nextInt(0, 4);
+				@SuppressWarnings("rawtypes")
+				String media_id = (String) ((Map) ((List) result
+						.get("itemlist")).get(index)).get("media_id");
+				String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[voice]]></MsgType><Voice><MediaId><![CDATA[%s]]></MediaId></Voice></xml>";
+				replyMsg = String.format(replyMsg, wxm.getFromUserName(),
+						wxm.getToUserName(), wxm.getCreateTime(), media_id);
+				logger.info(String.format("replyMsg : %s", replyMsg));
+				String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
+				logger.info(String.format("encrypt : %s", encrypt));
+				return encrypt;
+			}
+
 		} catch (AesException e) {
 			e.printStackTrace();
 		} catch (Exception e) {

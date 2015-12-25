@@ -20,7 +20,7 @@ import org.junit.Test;
 import com.example.commons.CommonUtils;
 import com.weixin.qy.entity.Article;
 import com.weixin.qy.entity.Material;
-import com.weixin.qy.entity.QueryParam;
+import com.weixin.qy.entity.MaterialQuery;
 import com.weixin.qy.rests.WeiXinAPIUtil;
 
 public class AsyncTask {
@@ -157,7 +157,7 @@ public class AsyncTask {
 
 	@Test
 	public void materialList() {
-		QueryParam param = new QueryParam();
+		MaterialQuery param = new MaterialQuery();
 		param.setAgentid(agentid);
 		param.setType("image");
 		;

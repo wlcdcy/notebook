@@ -29,7 +29,7 @@ import com.weixin.qy.entity.Department;
 import com.weixin.qy.entity.InviteUser;
 import com.weixin.qy.entity.Material;
 import com.weixin.qy.entity.Member;
-import com.weixin.qy.entity.QueryParam;
+import com.weixin.qy.entity.MaterialQuery;
 import com.weixin.qy.entity.RespDeparment;
 
 /**
@@ -529,7 +529,7 @@ public class WeiXinAPIUtil {
 	 * @param param
 	 * @return
 	 */
-	public static String materialList(String access_token, QueryParam param) {
+	public static String materialList(String access_token, MaterialQuery param) {
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/material/batchget?access_token=%s",
 						access_token);
