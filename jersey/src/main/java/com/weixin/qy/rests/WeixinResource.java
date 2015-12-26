@@ -114,50 +114,55 @@ public class WeixinResource {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
 			// TODO 异步模式回复
-			// WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
+			if (!WeixinGlobalObject.getInstance().isMessageReplySync()) {
+				WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
+			} else {
+				// TODO 同步模式回复
+				WeixinMessage wxm = CommonUtils.xml2Object(sMsg,
+						WeixinMessage.class);
 
-			// TODO 同步模式回复
-			WeixinMessage wxm = CommonUtils.xml2Object(sMsg,
-					WeixinMessage.class);
+				if (StringUtils.equals(wxm.getMsgType(), "text")) {
+					String textContent = WeiXinHandler.turing(wxm.getContent());
 
-			if (StringUtils.equals(wxm.getMsgType(), "text")) {
-				String textContent = WeiXinHandler.turing(wxm.getContent());
+					String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
+					replyMsg = String.format(replyMsg, wxm.getFromUserName(),
+							wxm.getToUserName(), wxm.getCreateTime(),
+							textContent);
+					logger.info(String.format("replyMsg : %s", replyMsg));
+					String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp,
+							nonce);
+					logger.info(String.format("encrypt : %s", encrypt));
+					return encrypt;
+				} else if (StringUtils.equals(wxm.getMsgType(), "voice")) {
+					MaterialQuery param = new MaterialQuery();
+					param.setAgentid(0);
+					param.setType("voice");
+					param.setOffset(0);
+					param.setCount(10);
+					if (StringUtils.isEmpty(accessToken)) {
+						String resp = WeiXinAPIUtil.getAccessToken();
+						Map<?, ?> resp_obj = CommonUtils.jsonToObject(
+								Map.class, resp);
+						accessToken = (String) resp_obj.get("access_token");
+					}
 
-				String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content></xml>";
-				replyMsg = String.format(replyMsg, wxm.getFromUserName(),
-						wxm.getToUserName(), wxm.getCreateTime(), textContent);
-				logger.info(String.format("replyMsg : %s", replyMsg));
-				String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
-				logger.info(String.format("encrypt : %s", encrypt));
-				return encrypt;
-			} else if (StringUtils.equals(wxm.getMsgType(), "voice")) {
-				MaterialQuery param = new MaterialQuery();
-				param.setAgentid(0);
-				param.setType("voice");
-				param.setOffset(0);
-				param.setCount(10);
-				if (StringUtils.isEmpty(accessToken)) {
-					String resp = WeiXinAPIUtil.getAccessToken();
-					Map<?, ?> resp_obj = CommonUtils.jsonToObject(Map.class,
-							resp);
-					accessToken = (String) resp_obj.get("access_token");
+					String jsonString = WeiXinAPIUtil.materialList(accessToken,
+							param);
+					Map<?, ?> result = CommonUtils.jsonToObject(Map.class,
+							jsonString);
+					int index = RandomUtils.nextInt(0, 4);
+					@SuppressWarnings("rawtypes")
+					String media_id = (String) ((Map) ((List) result
+							.get("itemlist")).get(index)).get("media_id");
+					String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[voice]]></MsgType><Voice><MediaId><![CDATA[%s]]></MediaId></Voice></xml>";
+					replyMsg = String.format(replyMsg, wxm.getFromUserName(),
+							wxm.getToUserName(), wxm.getCreateTime(), media_id);
+					logger.info(String.format("replyMsg : %s", replyMsg));
+					String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp,
+							nonce);
+					logger.info(String.format("encrypt : %s", encrypt));
+					return encrypt;
 				}
-
-				String jsonString = WeiXinAPIUtil.materialList(accessToken,
-						param);
-				Map<?, ?> result = CommonUtils.jsonToObject(Map.class,
-						jsonString);
-				int index = RandomUtils.nextInt(0, 4);
-				@SuppressWarnings("rawtypes")
-				String media_id = (String) ((Map) ((List) result
-						.get("itemlist")).get(index)).get("media_id");
-				String replyMsg = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[voice]]></MsgType><Voice><MediaId><![CDATA[%s]]></MediaId></Voice></xml>";
-				replyMsg = String.format(replyMsg, wxm.getFromUserName(),
-						wxm.getToUserName(), wxm.getCreateTime(), media_id);
-				logger.info(String.format("replyMsg : %s", replyMsg));
-				String encrypt = wxcpt.EncryptMsg(replyMsg, timeStamp, nonce);
-				logger.info(String.format("encrypt : %s", encrypt));
-				return encrypt;
 			}
 		} catch (AesException e) {
 			e.printStackTrace();
