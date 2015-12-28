@@ -7,7 +7,7 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import com.weixin.qy.entity.AgentDetail;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-public class AgentsRES {
+public class AgentListRES {
 	private int errcode;
 	private String errmsg;
 	private List<AgentDetail> agentlist;

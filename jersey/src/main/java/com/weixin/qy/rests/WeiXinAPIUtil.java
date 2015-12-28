@@ -30,9 +30,9 @@ import com.weixin.qy.entity.Agent;
 import com.weixin.qy.entity.Department;
 import com.weixin.qy.entity.InviteUser;
 import com.weixin.qy.entity.Material;
-import com.weixin.qy.entity.Member;
+import com.weixin.qy.entity.User;
 import com.weixin.qy.entity.MaterialQuery;
-import com.weixin.qy.entity.RespDeparment;
+import com.weixin.qy.entity.res.DeparmentRES;
 
 /**
  * @author Administrator
@@ -77,12 +77,12 @@ public class WeiXinAPIUtil {
 	 * 
 	 * @param access_token
 	 * @param msg
-	 * @throws APIException
+	 * @throws WeixinAPIEx
 	 * @throws IOException
 	 * @throws ClientProtocolException
 	 */
 	public static String sendMessage(String access_token, String msg)
-			throws APIException {
+			throws WeixinAPIEx {
 		String req_url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s",
 						access_token);
@@ -102,7 +102,7 @@ public class WeiXinAPIUtil {
 				response = hc.execute(post);
 			} catch (IOException e1) {
 				e1.printStackTrace();
-				throw new APIException("send message exception ["
+				throw new WeixinAPIEx("send message exception ["
 						+ e1.toString() + "]");
 			}
 			if (response.getStatusLine().getStatusCode() == 200) {
@@ -118,7 +118,7 @@ public class WeiXinAPIUtil {
 				} catch (ParseException | IOException e) {
 					e.printStackTrace();
 				}
-				throw new APIException("send message exception [" + ex + "]");
+				throw new WeixinAPIEx("send message exception [" + ex + "]");
 			}
 		} finally {
 			try {
@@ -200,7 +200,7 @@ public class WeiXinAPIUtil {
 	 * @param member
 	 * @return
 	 */
-	public static String createMember(String access_token, Member member) {
+	public static String createMember(String access_token, User member) {
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/user/create?access_token=%s",
 						access_token);
@@ -215,7 +215,7 @@ public class WeiXinAPIUtil {
 	 * @param member
 	 * @return
 	 */
-	public static String updateMember(String access_token, Member member) {
+	public static String updateMember(String access_token, User member) {
 		String url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/user/update?access_token=%s",
 						access_token);
@@ -620,7 +620,7 @@ public class WeiXinAPIUtil {
 
 		String deptsJson = listDept(access_token, "1");
 		logger.info(deptsJson);
-		RespDeparment obj = CommonUtils.jsonToObject(RespDeparment.class,
+		DeparmentRES obj = CommonUtils.jsonToObject(DeparmentRES.class,
 				deptsJson);
 		List<Department> depts = obj.getDepartment();
 		for (Department dept_ : depts) {

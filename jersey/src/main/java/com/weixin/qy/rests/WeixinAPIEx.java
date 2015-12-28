@@ -1,8 +1,8 @@
 package com.weixin.qy.rests;
 
-public class APIException extends Exception {
+public class WeixinAPIEx extends Exception {
 
-	public APIException(String arg0) {
+	public WeixinAPIEx(String arg0) {
 		super(arg0);
 	}
 

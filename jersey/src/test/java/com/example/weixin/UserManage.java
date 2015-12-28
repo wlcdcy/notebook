@@ -9,14 +9,14 @@ import java.util.Map;
 import org.junit.Test;
 
 import com.example.commons.CommonUtils;
-import com.weixin.qy.entity.Member;
-import com.weixin.qy.entity.RespMember;
+import com.weixin.qy.entity.User;
+import com.weixin.qy.entity.res.UserRES;
 import com.weixin.qy.rests.WeiXinAPIUtil;
 
-public class MemberManage {
+public class UserManage {
 
 	String access_token = "iJ7JO4r17JvI8EHil4iToHLBzCtV2oaZDBLm2CDyS6sfDTvpHfTQjJHfcd-E-tAVRzKt6IoTDxgDttpkhXsCAg";
-	Member member = new Member();
+	User member = new User();
 	List<Integer> depts = new ArrayList<Integer>();
 	String userid = "lisa";
 	String name = "丽萨";
@@ -59,7 +59,7 @@ public class MemberManage {
 	@Test
 	public void listMember() {
 		String jsonString = WeiXinAPIUtil.listMember(access_token, 2, 1, 0);
-		RespMember m = CommonUtils.jsonToObject(RespMember.class, jsonString);
+		UserRES m = CommonUtils.jsonToObject(UserRES.class, jsonString);
 		assertEquals("++++++++++++++++++", m.getUserlist().size(), 3);
 		assertNotNull("listMember error", m.getUserlist().get(0).getStatus());
 	}
@@ -68,7 +68,7 @@ public class MemberManage {
 	public void listSimpleMember() {
 		String jsonString = WeiXinAPIUtil.simpleListMember(access_token, 2, 1,
 				0);
-		RespMember m = CommonUtils.jsonToObject(RespMember.class, jsonString);
+		UserRES m = CommonUtils.jsonToObject(UserRES.class, jsonString);
 		assertEquals("++++++++++++++++++", m.getUserlist().size(), 3);
 		assertNull("simpleListMember error", m.getUserlist().get(0).getStatus());
 	}

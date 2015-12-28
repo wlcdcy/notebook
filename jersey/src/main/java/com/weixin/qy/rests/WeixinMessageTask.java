@@ -5,12 +5,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-public class WeixinService implements Runnable {
+public class WeixinMessageTask implements Runnable {
 
 	private final BlockingQueue<String> bq;
 	private final ExecutorService pool;
 
-	public WeixinService(BlockingQueue<String> bqueue, int poolSize) {
+	public WeixinMessageTask(BlockingQueue<String> bqueue, int poolSize) {
 		this.bq = bqueue;
 		pool = Executors.newFixedThreadPool(poolSize);
 	}

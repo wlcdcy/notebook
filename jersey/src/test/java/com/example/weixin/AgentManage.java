@@ -11,7 +11,7 @@ import com.example.commons.CommonUtils;
 import com.weixin.qy.entity.Agent;
 import com.weixin.qy.entity.AgentDetail;
 import com.weixin.qy.entity.res.AgentRES;
-import com.weixin.qy.entity.res.AgentsRES;
+import com.weixin.qy.entity.res.AgentListRES;
 import com.weixin.qy.rests.WeiXinAPIUtil;
 
 public class AgentManage {
@@ -29,7 +29,7 @@ public class AgentManage {
 
 	List<AgentDetail> AgentList() {
 		String jsonString = WeiXinAPIUtil.AgentList(access_token);
-		AgentsRES agentsres = CommonUtils.jsonToObject(AgentsRES.class,
+		AgentListRES agentsres = CommonUtils.jsonToObject(AgentListRES.class,
 				jsonString);
 		assertEquals(agentsres.getErrmsg(), agentsres.getErrcode(), 0);
 

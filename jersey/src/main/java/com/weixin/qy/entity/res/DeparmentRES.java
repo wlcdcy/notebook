@@ -1,11 +1,13 @@
-package com.weixin.qy.entity;
+package com.weixin.qy.entity.res;
 
 import java.util.List;
 
-public class RespMember {
+import com.weixin.qy.entity.Department;
+
+public class DeparmentRES {
 	String errcode;
 	String errmsg;
-	List<Member> userlist;
+	List<Department> department;
 
 	public String getErrcode() {
 		return errcode;
@@ -23,12 +25,12 @@ public class RespMember {
 		this.errmsg = errmsg;
 	}
 
-	public List<Member> getUserlist() {
-		return userlist;
+	public List<Department> getDepartment() {
+		return department;
 	}
 
-	public void setUserlist(List<Member> userlist) {
-		this.userlist = userlist;
+	public void setDepartment(List<Department> department) {
+		this.department = department;
 	}
 
 }

@@ -8,7 +8,7 @@ import org.apache.shiro.config.ConfigurationException;
 
 public class WeixinListener implements ServletContextListener {
 
-	WeixinService ws;
+	WeixinMessageTask ws;
 	Thread wsthraed;
 
 	public static final String MESSAGE_REPLY_SYNC = "messageReplySync";
@@ -42,7 +42,7 @@ public class WeixinListener implements ServletContextListener {
 				WeixinConfig.getInstance().setMessageReplySync(true);
 			} else if (StringUtils.equals("false", reply_model)) {
 				WeixinConfig.getInstance().setMessageReplySync(false);
-				ws = new WeixinService(WeixinConfig.getInstance().getBqueue(),
+				ws = new WeixinMessageTask(WeixinConfig.getInstance().getBqueue(),
 						poolSize);
 				wsthraed = new Thread(ws);
 				wsthraed.start();

@@ -95,7 +95,7 @@ public class WeiXinHandler implements Runnable {
 		String jsonString = null;
 		try {
 			jsonString = WeiXinAPIUtil.sendMessage(access.getToken(), msg);
-		} catch (APIException e) {
+		} catch (WeixinAPIEx e) {
 			e.printStackTrace();
 			sendMessage(access, msg);
 		}
