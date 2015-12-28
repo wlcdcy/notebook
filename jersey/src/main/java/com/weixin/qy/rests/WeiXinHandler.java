@@ -22,16 +22,15 @@ import com.weixin.qy.entity.TextContent;
 import com.weixin.qy.entity.TextMessage;
 import com.weixin.qy.entity.VoiceContent;
 import com.weixin.qy.entity.WeixinMessage;
+import com.weixin.qy.rests.WeixinConfig.WeixinAccess;
 
 public class WeiXinHandler implements Runnable {
 
 	static Logger logger = LoggerFactory.getLogger(WeiXinHandler.class);
-	private String accessToken;
 	private String xmlStr;
 
-	WeiXinHandler(String accessToken, String str) {
+	WeiXinHandler(String str) {
 		this.xmlStr = str;
-		this.accessToken = accessToken;
 	}
 
 	@Override
@@ -56,8 +55,9 @@ public class WeiXinHandler implements Runnable {
 			param.setType("voice");
 			param.setOffset(0);
 			param.setCount(10);
-			String jsonString = WeiXinAPIUtil.materialList(accessToken, param);
-			Map<?, ?> result = CommonUtils.jsonToObject(Map.class, jsonString);
+			Map<?, ?> result = getMaterialList(WeixinConfig.getInstance()
+					.buildWeixinAccess(), param);
+
 			int index = RandomUtils.nextInt(0, 4);
 			@SuppressWarnings("rawtypes")
 			String media_id = (String) ((Map) ((List) result.get("itemlist"))
@@ -69,14 +69,55 @@ public class WeiXinHandler implements Runnable {
 		}
 
 		String msg = CommonUtils.object2Json(_tm);
-		WeiXinAPIUtil.sendMessage(accessToken, msg);
+		sendMessage(WeixinConfig.getInstance().buildWeixinAccess(), msg);
+	}
+
+	private Map<?, ?> getMaterialList(WeixinAccess access, MaterialQuery param) {
+		String jsonString = WeiXinAPIUtil
+				.materialList(access.getToken(), param);
+		Map<?, ?> result = CommonUtils.jsonToObject(Map.class, jsonString);
+		if ((Integer) result.get("errcode") == WeixinConfig.access_token_expired) {
+			logger.info((String) result.get("errmsg"));
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
+			WeixinAccess access_ = WeixinConfig.getInstance()
+					.rebuildWeixinAccess(access);
+			return getMaterialList(access_, param);
+		} else {
+			return result;
+		}
+	}
+
+	private void sendMessage(WeixinAccess access, String msg) {
+		String jsonString = null;
+		try {
+			jsonString = WeiXinAPIUtil.sendMessage(access.getToken(), msg);
+		} catch (APIException e) {
+			e.printStackTrace();
+			sendMessage(access, msg);
+		}
+
+		if (StringUtils.isNotEmpty(jsonString)) {
+			Map<?, ?> result = CommonUtils.jsonToObject(Map.class, jsonString);
+			if ((Integer) result.get("errcode") == WeixinConfig.access_token_expired) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ex) {
+					ex.printStackTrace();
+				}
+				WeixinAccess access_ = WeixinConfig.getInstance()
+						.rebuildWeixinAccess(access);
+				sendMessage(access_, msg);
+			}
+		}
 	}
 
 	public static void main(String[] args) {
 		String xml = "";
-		WeiXinHandler handler = new WeiXinHandler(
-				"_woFjJl6sW3tCWME_M_sZmPsgIgN1mLlDwagomU9_Tw4I4_26rloRPUDxT_L2CP2IFu3AumRAFZv71r3l3RC0w",
-				xml);
+		WeiXinHandler handler = new WeiXinHandler(xml);
 		handler.run();
 	}
 

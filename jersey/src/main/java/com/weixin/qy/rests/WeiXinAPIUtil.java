@@ -12,6 +12,8 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -75,8 +77,12 @@ public class WeiXinAPIUtil {
 	 * 
 	 * @param access_token
 	 * @param msg
+	 * @throws APIException
+	 * @throws IOException
+	 * @throws ClientProtocolException
 	 */
-	public static void sendMessage(String access_token, String msg) {
+	public static String sendMessage(String access_token, String msg)
+			throws APIException {
 		String req_url = String
 				.format("https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s",
 						access_token);
@@ -89,18 +95,39 @@ public class WeiXinAPIUtil {
 		StringEntity entity = new StringEntity(msg,
 				ContentType.APPLICATION_JSON);
 		post.setEntity(entity);
-		try {
-			CloseableHttpResponse response = hc.execute(post);
-			String res_body = EntityUtils.toString(response.getEntity());
-			logger.info(res_body);
-			if (response.getStatusLine().getStatusCode() != 200) {
-				// String res_body = EntityUtils.toString(response.getEntity());
-				// logger.info(res_body);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 
+		CloseableHttpResponse response = null;
+		try {
+			try {
+				response = hc.execute(post);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				throw new APIException("send message exception ["
+						+ e1.toString() + "]");
+			}
+			if (response.getStatusLine().getStatusCode() == 200) {
+				try {
+					return EntityUtils.toString(response.getEntity());
+				} catch (ParseException | IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				String ex = response.getStatusLine().toString();
+				try {
+					ex = EntityUtils.toString(response.getEntity());
+				} catch (ParseException | IOException e) {
+					e.printStackTrace();
+				}
+				throw new APIException("send message exception [" + ex + "]");
+			}
+		} finally {
+			try {
+				response.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 
 	// TODO ------管理部门------

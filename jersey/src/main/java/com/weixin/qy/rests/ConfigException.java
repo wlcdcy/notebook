@@ -1,6 +1,6 @@
 package com.weixin.qy.rests;
 
-public class ConfigurationException extends Exception {
+public class ConfigException extends Exception {
 
 	/**
 	 * 

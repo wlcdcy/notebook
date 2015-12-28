@@ -114,8 +114,8 @@ public class WeixinResource {
 			sMsg = wxcpt.DecryptMsg(msgSignature, timeStamp, nonce, postData);
 			logger.info("after decrypt msg: " + sMsg);
 			// TODO 异步模式回复
-			if (!WeixinGlobalObject.getInstance().isMessageReplySync()) {
-				WeixinGlobalObject.getInstance().getBqueue().add(sMsg);
+			if (!WeixinConfig.getInstance().isMessageReplySync()) {
+				WeixinConfig.getInstance().getBqueue().add(sMsg);
 			} else {
 				// TODO 同步模式回复
 				WeixinMessage wxm = CommonUtils.xml2Object(sMsg,
