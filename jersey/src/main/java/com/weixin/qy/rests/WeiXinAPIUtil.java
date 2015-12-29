@@ -65,7 +65,6 @@ public class WeiXinAPIUtil {
 				String res_body = EntityUtils.toString(response.getEntity());
 				logger.info(res_body);
 			}
-			;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

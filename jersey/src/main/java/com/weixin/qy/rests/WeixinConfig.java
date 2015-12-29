@@ -68,6 +68,7 @@ public class WeixinConfig {
 
 	public synchronized WeixinAccess rebuildWeixinAccess(WeixinAccess old) {
 		if (weixinAccess != null && weixinAccess.getTime() <= old.getTime()) {
+			weixinAccess=null;
 			buildWeixinAccess();
 		}
 		return weixinAccess;
