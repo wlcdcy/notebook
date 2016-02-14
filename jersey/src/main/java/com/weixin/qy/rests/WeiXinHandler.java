@@ -69,6 +69,7 @@ public class WeiXinHandler implements Runnable {
 		}
 
 		String msg = CommonUtils.object2Json(_tm);
+		logger.info("response: "+msg);
 		sendMessage(WeixinConfig.getInstance().buildWeixinAccess(), msg);
 	}
 
