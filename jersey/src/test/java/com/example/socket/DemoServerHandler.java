@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.core.session.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.socket.obj.FileTransfer;
 import com.example.socket.obj.MessageResponse;
@@ -19,6 +21,7 @@ import com.example.socket.obj.State;
 import com.example.socket.obj.Type;
 
 public class DemoServerHandler extends IoHandlerAdapter {
+	Logger logger = LoggerFactory.getLogger(DemoServerHandler.class);
 
 	@Override
 	public void sessionIdle(IoSession session, IdleStatus status)
@@ -33,8 +36,7 @@ public class DemoServerHandler extends IoHandlerAdapter {
 		// super.exceptionCaught(session, cause);
 		cause.printStackTrace();
 	}
-	
-	
+
 	long offset = 0;
 	State state = State.RECVREADY;
 
@@ -49,16 +51,20 @@ public class DemoServerHandler extends IoHandlerAdapter {
 		// }
 		FileTransfer msg = (FileTransfer) message;
 		if (msg.type.equals(Type.MSG_REQUSET)) {
+
 			String fileName = msg.body.request.filename.get();
-			String nd5Val = msg.body.request.md5Val.get();
+			String md5Val = msg.body.request.md5Val.get();
+			logger.info("fileName:" + fileName);
+			logger.info("md5Val:" + md5Val);
+			// long offset = 0;
+			// State state = State.RECVREADY;
+
 			// TODO 检查是否已经接收，计算offset值。
-//			long offset = 0;
-//			State state = State.RECVREADY;
 			File file = fileIsExist(fileName);
 			if (file != null) {
 				offset = file.length();
 				String fileMd5Val = getFileMd5Val(file);
-				if (StringUtils.equals(nd5Val, fileMd5Val)) {
+				if (StringUtils.equals(md5Val, fileMd5Val)) {
 					state = State.RECVCOMPLE;
 				}
 			}
@@ -75,10 +81,13 @@ public class DemoServerHandler extends IoHandlerAdapter {
 			short length = msg.body.content.len.get();
 			String content = msg.body.content.content.get();
 			int crc16 = msg.body.content.crc16Val.get();
+			logger.info("length:" + length);
+			logger.info("content:" + content);
+			logger.info("crc16:" + crc16);
 			// TODO 验证crc值，
-			offset+=content.getBytes().length;
+			offset += content.getBytes().length;
 			state = State.RECVOK;
-			
+
 			FileTransfer reply = new FileTransfer();
 			reply.type.set(Type.MSG_RESPONSE);
 			reply.sn.set(msg.sn.get());
@@ -88,17 +97,13 @@ public class DemoServerHandler extends IoHandlerAdapter {
 			messageResponse.state.set(state);
 			reply.body.setByteBuffer(messageResponse.getByteBuffer(), 0);
 			session.write(reply);
-			
+
 		} else if (msg.type.equals(Type.MSG_COMPLETE)) {
 			session.close(false);
 		}
 		System.out.println("Message written...");
 
 	}
-	
-	
-	
-	
 
 	public File fileIsExist(String fileName) {
 		File file = new File(fileName);
