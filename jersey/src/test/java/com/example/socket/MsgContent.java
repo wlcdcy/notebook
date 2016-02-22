@@ -3,6 +3,10 @@ package com.example.socket;
 import java.io.Serializable;
 
 public class MsgContent implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int len;
 	private char content[];
 	private long crc16val;

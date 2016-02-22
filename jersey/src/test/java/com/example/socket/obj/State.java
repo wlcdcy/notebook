@@ -1,11 +1,11 @@
-package com.example.socket;
+package com.example.socket.obj;
 
-public enum MsgTranState {
+public enum State {
 	RECVREADY("0x01"), RECVOK("0x02"), RECVCOMPLE("0x03"), RECVTIMEOUT("0x10"), RECVCRCERROR(
 			"0x11"), RECVMD5ERROR("0x12"), RECVDATALINKERROR("0x13"), RECVUNKNOWNERROR("0x1f");
 	private String key;
 
-	private MsgTranState(String key) {
+	private State(String key) {
 		this.key = key;
 	}
 

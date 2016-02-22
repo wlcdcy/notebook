@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public class FileTranMsg implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private MsgType type;
 	private int sn;
 	private int invokeid;

@@ -285,7 +285,7 @@
 			<artifactId>oauth-server</artifactId>
 			<version>1.19</version>
 		</dependency>
-		
+
 		<!-- cpu info -->
 		<dependency>
 			<groupId>fr.inria.powerapi.sensor</groupId>
@@ -323,11 +323,18 @@
 			<artifactId>javacv</artifactId>
 			<version>1.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
 			<version>2.0.9</version>
+		</dependency>
+		
+		<!-- c++ 数据结构直接转换成java结构 -->
+		<dependency>
+			<groupId>org.javolution</groupId>
+			<artifactId>javolution-core-java</artifactId>
+			<version>6.0.0</version>
 		</dependency>
 		
 		<!-- <dependency> -->
