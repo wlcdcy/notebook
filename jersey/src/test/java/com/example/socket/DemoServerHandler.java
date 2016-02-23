@@ -26,14 +26,14 @@ public class DemoServerHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionIdle(IoSession session, IdleStatus status)
 			throws Exception {
-		// super.sessionIdle(session, status);
+		super.sessionIdle(session, status);
 		System.out.println("IDLE " + session.getIdleCount(status));
 	}
 
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
-		// super.exceptionCaught(session, cause);
+		super.exceptionCaught(session, cause);
 		cause.printStackTrace();
 	}
 
@@ -43,17 +43,34 @@ public class DemoServerHandler extends IoHandlerAdapter {
 	@Override
 	public void messageReceived(IoSession session, Object message)
 			throws Exception {
-		// super.messageReceived(session, message);
-		// String str = message.toString();
-		// if(str.trim().equalsIgnoreCase("")){
-		// session.close(true);
-		// return ;
-		// }
-		FileTransfer msg = (FileTransfer) message;
-		if (msg.type.equals(Type.MSG_REQUSET)) {
 
-			String fileName = msg.body.request.filename.get();
-			String md5Val = msg.body.request.md5Val.get();
+		MsgRequest mr = (MsgRequest) message;
+		parseHandle4J(session, mr);
+
+		// FileTransfer ft = (FileTransfer)message;
+		// parseHandle4C(session,ft);
+
+		System.out.println("Message written...");
+
+	}
+	
+
+	@Override
+	public void sessionCreated(IoSession session) throws Exception {
+		// TODO Auto-generated method stub
+		super.sessionCreated(session);
+		System.out.println("connect... ");
+	}
+
+	public void parseHandle4J(IoSession session, MsgRequest mr) {
+		session.write(mr);
+	}
+
+	public void parseHandle4C(IoSession session, FileTransfer ft) {
+		if (ft.type.equals(Type.MSG_REQUSET)) {
+
+			String fileName = ft.body.request.filename.get();
+			String md5Val = ft.body.request.md5Val.get();
 			logger.info("fileName:" + fileName);
 			logger.info("md5Val:" + md5Val);
 			// long offset = 0;
@@ -70,17 +87,17 @@ public class DemoServerHandler extends IoHandlerAdapter {
 			}
 			FileTransfer reply = new FileTransfer();
 			reply.type.set(Type.MSG_RESPONSE);
-			reply.sn.set(msg.sn.get());
-			reply.invokeid.set(msg.invokeid.get());
+			reply.sn.set(ft.sn.get());
+			reply.invokeid.set(ft.invokeid.get());
 			MessageResponse messageResponse = new MessageResponse();
 			messageResponse.offset.set(offset);
 			messageResponse.state.set(state);
 			reply.body.setByteBuffer(messageResponse.getByteBuffer(), 0);
 			session.write(reply);
-		} else if (msg.type.equals(Type.MSG_CONTENT)) {
-			short length = msg.body.content.len.get();
-			String content = msg.body.content.content.get();
-			int crc16 = msg.body.content.crc16Val.get();
+		} else if (ft.type.equals(Type.MSG_CONTENT)) {
+			short length = ft.body.content.len.get();
+			String content = ft.body.content.content.get();
+			int crc16 = ft.body.content.crc16Val.get();
 			logger.info("length:" + length);
 			logger.info("content:" + content);
 			logger.info("crc16:" + crc16);
@@ -90,19 +107,17 @@ public class DemoServerHandler extends IoHandlerAdapter {
 
 			FileTransfer reply = new FileTransfer();
 			reply.type.set(Type.MSG_RESPONSE);
-			reply.sn.set(msg.sn.get());
-			reply.invokeid.set(msg.invokeid.get());
+			reply.sn.set(ft.sn.get());
+			reply.invokeid.set(ft.invokeid.get());
 			MessageResponse messageResponse = new MessageResponse();
 			messageResponse.offset.set(offset);
 			messageResponse.state.set(state);
 			reply.body.setByteBuffer(messageResponse.getByteBuffer(), 0);
 			session.write(reply);
 
-		} else if (msg.type.equals(Type.MSG_COMPLETE)) {
+		} else if (ft.type.equals(Type.MSG_COMPLETE)) {
 			session.close(false);
 		}
-		System.out.println("Message written...");
-
 	}
 
 	public File fileIsExist(String fileName) {
@@ -113,7 +128,7 @@ public class DemoServerHandler extends IoHandlerAdapter {
 		return null;
 	}
 
-	public String getFileMd5Val(File file) {
+	public static String getFileMd5Val(File file) {
 		MessageDigest MD5 = null;
 		try {
 			MD5 = MessageDigest.getInstance("MD5");
