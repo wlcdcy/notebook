@@ -165,6 +165,26 @@ public class NETUtils {
 		}
 		return ctx;
 	}
+	
+	public static String httpGet(HttpGet get,boolean https) {
+		try {
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(https);
+			CloseableHttpResponse response = null;
+			response = httpclient.execute(get);
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public static String httpGet(String url) {
 		try {
@@ -251,6 +271,25 @@ public class NETUtils {
 					logger.info("invalid return type: " + clazz.getName());
 				}
 
+			} else {
+				logger.info(response.toString());
+			}
+		} catch (UnsupportedCharsetException e) {
+			e.printStackTrace();
+		} catch (ClientProtocolException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public static String httpPost(HttpPost post,boolean https ) {
+		try {
+			CloseableHttpClient httpclient = NETUtils.getHttpClient(https);
+			CloseableHttpResponse response = httpclient.execute(post);
+			if (response.getStatusLine().getStatusCode() < 300) {
+				return EntityUtils.toString(response.getEntity());
 			} else {
 				logger.info(response.toString());
 			}
@@ -392,7 +431,7 @@ public class NETUtils {
 		return null;
 	}
 
-	private static HttpGet createHttpGet(String req_url) {
+	public static HttpGet createHttpGet(String req_url) {
 		HttpGet httpRequest = new HttpGet(req_url);
 		httpRequest
 				.addHeader(HttpHeaders.USER_AGENT,
@@ -400,7 +439,7 @@ public class NETUtils {
 		return httpRequest;
 	}
 
-	private static HttpPost createPOSTWithJson(String req_url, String jsonStr) {
+	public static HttpPost createPOSTWithJson(String req_url, String jsonStr) {
 		HttpPost httpPost = new HttpPost(req_url);
 		httpPost.addHeader(HttpHeaders.USER_AGENT,
 				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
