@@ -13,6 +13,7 @@
 		<local.lib.path>${project.basedir}/src/main/webapp/WEB-INF/lib</local.lib.path>
 		<jdk.version>1.7</jdk.version>
 		<jersey.version>1.18</jersey.version>
+		<ignite.version>1.5.0.final</ignite.version>
 	</properties>
 
 	<dependencies>
@@ -286,6 +287,23 @@
 			<version>1.19</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.ignite</groupId>
+			<artifactId>ignite-core</artifactId>
+			<version>${ignite.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ignite</groupId>
+			<artifactId>ignite-indexing</artifactId>
+			<version>${ignite.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ignite</groupId>
+			<artifactId>ignite-spring</artifactId>
+			<version>${ignite.version}</version>
+		</dependency>
+
+
 		<!-- cpu info -->
 		<dependency>
 			<groupId>fr.inria.powerapi.sensor</groupId>
@@ -329,14 +347,14 @@
 			<artifactId>mina-core</artifactId>
 			<version>2.0.9</version>
 		</dependency>
-		
+
 		<!-- c++ 数据结构直接转换成java结构 -->
 		<dependency>
 			<groupId>org.javolution</groupId>
 			<artifactId>javolution-core-java</artifactId>
 			<version>6.0.0</version>
 		</dependency>
-		
+
 		<!-- <dependency> -->
 		<!-- <groupId>com.asprise.ocr</groupId> -->
 		<!-- <artifactId>java-ocr-api</artifactId> -->
