@@ -24,8 +24,11 @@ public class OpenCV {
 		IplImage edgesImg = edges(dilateImg);
 		cvSaveImage("F:/edgesImg.png", edgesImg);
 
-		IplImage lineImg = line(edgesImg);
-		cvSaveImage("F:/lineImg.png", lineImg);
+//		IplImage lineImg = line(edgesImg);
+//		cvSaveImage("F:/lineImg.png", lineImg);
+		
+		IplImage rotateImg = rotate(greyImg);
+		cvSaveImage("F:/rotateImg.png", rotateImg);
 	}
 
 	/**
@@ -116,5 +119,18 @@ public class OpenCV {
 					0);
 		}
 		return dst;
+	}
+	
+	/**旋转修正（倾斜）
+	 * @param src
+	 * @return
+	 */
+	public static IplImage rotate(IplImage src) {
+//		IplImage dst = IplImage.create(src.height(),src.width(),src.depth(), src.nChannels());
+//		cvTranspose(src, dst);
+//		cvFlip(dst,dst,0);
+//		return dst;
+		float[]m = new float[6];
+		CvMat line_storage = cvCreateMat(2,3,CV_32F,m);
 	}
 }
