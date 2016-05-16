@@ -5,6 +5,7 @@ import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 
 import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.Pointer;
 
 public class OpenCV {
 
@@ -27,7 +28,7 @@ public class OpenCV {
 //		IplImage lineImg = line(edgesImg);
 //		cvSaveImage("F:/lineImg.png", lineImg);
 		
-		IplImage rotateImg = rotate(greyImg);
+		IplImage rotateImg = rotate(greyImg,-4);
 		cvSaveImage("F:/rotateImg.png", rotateImg);
 	}
 
@@ -123,14 +124,21 @@ public class OpenCV {
 	
 	/**旋转修正（倾斜）
 	 * @param src
+	 * @param angle	旋转角度
 	 * @return
 	 */
-	public static IplImage rotate(IplImage src) {
-//		IplImage dst = IplImage.create(src.height(),src.width(),src.depth(), src.nChannels());
-//		cvTranspose(src, dst);
-//		cvFlip(dst,dst,0);
-//		return dst;
-		float[]m = new float[6];
-		CvMat line_storage = cvCreateMat(2,3,CV_32F,m);
+	public static IplImage rotate(IplImage src, double angle) {
+		angle = -4;
+		//int w = Double.valueOf(src.width()-src.height()*Math.sin(angle)).intValue();
+		//int h = Double.valueOf(src.height()-src.width()*Math.cos(angle)).intValue();
+		
+		IplImage dst = IplImage.create(src.width(),src.height(),src.depth(), src.nChannels());
+		CvPoint2D32f point = cvPoint2D32f(0, 0); //旋转点
+		Pointer data = point;
+		CvMat map_matrix = cvMat(2, 3, CV_32F, data);
+		cv2DRotationMatrix(point, angle, 1, map_matrix);
+		int flags=CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS;
+		cvWarpAffine(src, dst, map_matrix, flags, cvScalarAll(0));
+		return dst;
 	}
 }
