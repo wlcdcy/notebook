@@ -14,6 +14,7 @@
 		<jdk.version>1.7</jdk.version>
 		<jersey.version>1.18</jersey.version>
 		<ignite.version>1.5.0.final</ignite.version>
+		<aspose.lib.local.path>${project.basedir}/libs/Aspose-word-java-14.12.0-jdk16</aspose.lib.local.path>
 	</properties>
 
 	<dependencies>
@@ -354,6 +355,43 @@
 			<artifactId>javolution-core-java</artifactId>
 			<version>6.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml-schemas</artifactId>
+			<version>3.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-excelant</artifactId>
+			<version>3.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-scratchpad</artifactId>
+			<version>3.13</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>56.1</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.aspose</groupId> -->
+<!-- 			<artifactId>aspose-words</artifactId> -->
+<!-- 			<version>14.12.0</version> -->
+<!-- 			<classifier>jdk16</classifier> -->
+<!-- 			<systemPath>${aspose.lib.local.path}/aspose-words-14.12.0-jdk16.jar</systemPath> -->
+<!-- 		</dependency> -->
 
 		<!-- <dependency> -->
 		<!-- <groupId>com.asprise.ocr</groupId> -->
@@ -387,6 +425,8 @@
 		<!-- <artifactId>jersey-container-grizzly2-http</artifactId> -->
 		<!-- <version>2.22.1</version> -->
 		<!-- </dependency> -->
+
+
 
 	</dependencies>
 	<build>
