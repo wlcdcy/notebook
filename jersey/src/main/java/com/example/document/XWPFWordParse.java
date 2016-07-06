@@ -71,6 +71,25 @@ public class XWPFWordParse extends DocumentParse {
 			if (logger.isDebugEnabled()) {
 				logger.debug(e.getMessage(), e);
 			}
+		}finally{
+			if(fins!=null){
+				try {
+					fins.close();
+				} catch (IOException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug(e.getMessage(), e);
+					}
+				}
+			}
+			if(xdocument!=null){
+				try {
+					xdocument.close();
+				} catch (IOException e) {
+					if (logger.isDebugEnabled()) {
+						logger.debug(e.getMessage(), e);
+					}
+				}
+			}
 		}
 		return null;
 	}
@@ -120,26 +139,15 @@ public class XWPFWordParse extends DocumentParse {
 		for(XWPFHeader xheader:xheaders){
 			List<XWPFParagraph> xparagraphs  = xheader.getListParagraph();
 //			xheader.getBodyElements();
-			if(xparagraphs!=null && !xparagraphs.isEmpty()){
+			List<ThreeElement> threeElements = parseParagraphs(xdocument,xparagraphs,storage);
+			if(threeElements!=null && threeElements.size()>0){
 				SecondElement secondElement = new SecondElement();
-				secondElements.add(secondElement);
 				secondElement.setElementType("Paragraph");
 				secondElement.setColumnNum(columnNum);
-				
 				secondElement.setElementIndex(index_h);
-				
-				List<ThreeElement> threeElements = new ArrayList<ThreeElement>();
 				secondElement.setThreeElements(threeElements);
 				
-				int index_p=0;
-				for(XWPFParagraph xparagraph:xparagraphs){
-					ThreeElement threeElement =parseParagraph(xdocument,xparagraph,storage);
-					if(threeElement!=null){
-						threeElement.setElementIndex(index_p);
-						threeElements.add(threeElement);
-					}
-					index_p++;
-				}
+				secondElements.add(secondElement);
 			}
 			columnNum++;
 			index_h++;
@@ -147,7 +155,7 @@ public class XWPFWordParse extends DocumentParse {
 		return firstElement;
 	}
 	
-	/**
+	/** 段落解析，返回ThreeElement对象
 	 * @param xdocument
 	 * @param xparagraph
 	 * @param storage
@@ -168,6 +176,8 @@ public class XWPFWordParse extends DocumentParse {
 			String type=null;
 			String content="";
 			List<FourElement> fourElements =new ArrayList<FourElement>();
+			threeElement.setFourElements(fourElements);
+			
 			FourElement fourElement = new FourElement();
 			List<FiveElement>fiveElements = new ArrayList<FiveElement>();
 			fourElement.setFiveElements(fiveElements);
@@ -175,105 +185,227 @@ public class XWPFWordParse extends DocumentParse {
 			
 			for(XWPFRun xrun:xruns){
 				//过滤脚注|尾注
-				CTR ftn = xrun.getCTR();
-				XmlObject o = ftn.copy();
-				Node node = o.getDomNode().getLastChild();
-				String name = node.getLocalName();
-				// 判断脚注
-				if (StringUtils.equals(name, "footnoteReference") || StringUtils.equals(name, "endnoteReference")) {
+				boolean isFootnote = xrunIsFootnote(xrun);
+				if (isFootnote) {
 					if (fourElement.getElementType() != null) {
 						isbreak = true;
 					}
 					continue;
-				} 
-				
+				}
 				runNum++;
 				
 				String text = xrun.text().trim();
 				
-				
-				// 软换除是否需要断句?(目前没断句)
-				if (StringUtils.isNotBlank(text)) {
-					type = "TEXT";
-					//content = text;
-					if (isbreak) {
-						logger.info(fourElement.getContent());
-						//断句
-						fourElement = new FourElement();
-						fourElement.setIndex(index_r);
+				///////
+				if(StringUtils.isNotBlank(text)){
+					FiveElement fiveElement = parseRunOfText(xrun);
+					if(fiveElement!=null){
+						if(isbreak && fourElement.getElementType() != null){
+							fourElement = new FourElement();
+							fourElement.setIndex(index_r);
+							fiveElements = new ArrayList<FiveElement>();
+							fourElement.setFiveElements(fiveElements);
+							fourElements.add(fourElement);
+						}
 						
-						fourElements =  new ArrayList<FourElement>();
-						fourElement.setFiveElements(fiveElements);
-						fourElements.add(fourElement);
-						content = text;
-					} else {
-						content += text;
-						
-						FiveElement fiveElement = new FiveElement();
-						fiveElement.setIndex(runNum);
-						fiveElement.setContent(text);
-						fiveElement.setFontName(xrun.getFontName());
-						fiveElement.setFontsize(xrun.getFontSize());
 						fiveElements.add(fiveElement);
+						fourElement.setContent(fourElement.getContent()+fiveElement.getContent());
+						fourElement.setElementType("TEXT");
+						isbreak = fiveElement.isIsbreak();
 					}
-					fourElement.setElementType(type);
-					fourElement.setContent(content);
-					isbreak = breakSentence(removeSpace(content));
-				} else {
-					List<XWPFPicture> xpictures = xrun.getEmbeddedPictures();
-					if (xpictures != null && xpictures.size() > 0) {
-						// 一张图片一句
-						int index_i=0;//图片序列
-						isbreak = true;
-						for (XWPFPicture xpicture : xpictures) {
-							XWPFPictureData pictureData = xpicture.getPictureData();
-							type = "IMAGE";
-							FileOutputStream fos = null;
-							try {
-								File imageFile = new File(storage,String.format("%d_%d_%s", index_r, index_i++,pictureData.getFileName()));
-								fos = new FileOutputStream(imageFile);
-								fos.write(pictureData.getData());
-								content = imageFile.getPath();
-							} catch (IOException e) {
-								e.printStackTrace();
-							} finally {
-								try {
-									if (fos != null)
-										fos.close();
-								} catch (IOException e) {
-									e.printStackTrace();
-								}
-							}	
-							logger.info(fourElement.getContent());
-							if (fourElement.getElementType() != null) {
-								fourElements = new ArrayList<FourElement>();
+				}else{
+					List<FiveElement> fiveElements_ = parseRunOfImage(xrun,index_r,storage);
+					if(fiveElements_!=null && !fiveElements_.isEmpty()){
+						for(FiveElement fiveElement_:fiveElements_){
+							if(isbreak && fourElement.getElementType() != null){
 								fourElement = new FourElement();
 								fourElement.setIndex(index_r);
-								
 								fiveElements = new ArrayList<FiveElement>();
 								fourElement.setFiveElements(fiveElements);
 								fourElements.add(fourElement);
 							}
-							fourElement.setElementType(type);
-							content = text;
-							fourElement.setContent(content);
+							fiveElements.add(fiveElement_);
+							fourElement.setContent(fiveElement_.getContent());
+							fourElement.setElementType("IMAGE");
 						}
-					} else {
-						isbreak = true;
-						continue;
+					}else{
+						isbreak=true;
 					}
 				}
+				/////////
+				
+				// 软换除是否需要断句?(目前没断句)
+//				if (StringUtils.isNotBlank(text)) {
+//					type = "TEXT";
+//					if (isbreak) {
+//						logger.info(fourElement.getContent());
+//						//断句
+//						fourElement = new FourElement();
+//						fourElement.setIndex(index_r);
+//						
+//						fourElement.setFiveElements(fiveElements);
+//						fourElements.add(fourElement);
+//						content = text;
+//					} else {
+//						content += text;
+//						
+//						FiveElement fiveElement = new FiveElement();
+//						fiveElement.setIndex(runNum);
+//						fiveElement.setContent(text);
+//						fiveElement.setFontName(xrun.getFontName());
+//						fiveElement.setFontSize(xrun.getFontSize());
+//						fiveElements.add(fiveElement);
+//					}
+//					fourElement.setElementType(type);
+//					fourElement.setContent(content);
+//					isbreak = breakSentence(removeSpace(content));
+//				} else {
+//					List<XWPFPicture> xpictures = xrun.getEmbeddedPictures();
+//					if (xpictures != null && xpictures.size() > 0) {
+//						// 一张图片一句
+//						int index_i=0;//图片序列
+//						isbreak = true;
+//						for (XWPFPicture xpicture : xpictures) {
+//							XWPFPictureData pictureData = xpicture.getPictureData();
+//							type = "IMAGE";
+//							FileOutputStream fos = null;
+//							try {
+//								File imageFile = new File(storage,String.format("%d_%d_%s", index_r, index_i++,pictureData.getFileName()));
+//								fos = new FileOutputStream(imageFile);
+//								fos.write(pictureData.getData());
+//								content = imageFile.getPath();
+//							} catch (IOException e) {
+//								e.printStackTrace();
+//							} finally {
+//								try {
+//									if (fos != null)
+//										fos.close();
+//								} catch (IOException e) {
+//									e.printStackTrace();
+//								}
+//							}	
+//							logger.info(fourElement.getContent());
+//							if (fourElement.getElementType() != null) {
+//								//fourElements = new ArrayList<FourElement>();
+//								fourElement = new FourElement();
+//								fourElement.setIndex(index_r);
+//								
+//								fiveElements = new ArrayList<FiveElement>();
+//								fourElement.setFiveElements(fiveElements);
+//								fourElements.add(fourElement);
+//							}
+//							fourElement.setElementType(type);
+//							content = text;
+//							fourElement.setContent(content);
+//						}
+//					} else {
+//						isbreak = true;
+//						continue;
+//					}
+//				}
+				
 //				ContentElement contentElement = new ContentElement();
 //				contentElement.setContentSerial(runNum - 1);
 //				contentElement.setContentType(contentType);
 //				contentElement.setContentText(contentText);
 //				contents.add(contentElement);
 			}
+			logger.info(fourElement.getContent());
 		}
 		
 		//文本框;
 		
 		//内嵌图片
 		return threeElement;
+	}
+	
+	/**
+	 * @param xdocument
+	 * @param xparagraphs
+	 * @param storage
+	 * @return
+	 */
+	private List<ThreeElement> parseParagraphs(XWPFDocument xdocument,List<XWPFParagraph> xparagraphs,String storage){
+		if(xparagraphs!=null && !xparagraphs.isEmpty()){	
+			List<ThreeElement> threeElements = new ArrayList<ThreeElement>();
+			int index_p=0;
+			for(XWPFParagraph xparagraph:xparagraphs){
+				ThreeElement threeElement =parseParagraph(xdocument,xparagraph,storage);
+				if(threeElement!=null){
+					threeElement.setElementIndex(index_p);
+					threeElements.add(threeElement);
+				}
+				index_p++;
+			}
+			return threeElements;
+		}
+		return null;
+	}
+	
+	/**是否为脚趾|尾注
+	 * @param xrun
+	 * @return
+	 */
+	private boolean  xrunIsFootnote(XWPFRun xrun){
+		CTR ftn = xrun.getCTR();
+		XmlObject o = ftn.copy();
+		Node node = o.getDomNode().getLastChild();
+		String name = node.getLocalName();
+		if (StringUtils.equals(name, "footnoteReference") || StringUtils.equals(name, "endnoteReference")) {
+			return true;
+		} 
+		return false;
+	}
+	
+	private FiveElement parseRunOfText(XWPFRun xrun){
+		String text = xrun.text().trim();
+		// 软换除是否需要断句?(目前没断句)
+		if (StringUtils.isNotBlank(text)) {	
+			FiveElement fiveElement = new FiveElement();
+			fiveElement.setContent(text);
+			fiveElement.setFontName(xrun.getFontName());
+			fiveElement.setFontSize(xrun.getFontSize());
+			boolean isbreak = breakSentence(removeSpace(text));
+			fiveElement.setIsbreak(isbreak);
+			return fiveElement;
+		} 
+		return null;
+	}
+	
+	private List<FiveElement> parseRunOfImage(XWPFRun xrun,int index_r,String storage){
+		List<XWPFPicture> xpictures = xrun.getEmbeddedPictures();
+		if (xpictures != null && xpictures.size() > 0) {
+			List<FiveElement> fiveElements = new ArrayList<FiveElement>();
+			// 一张图片一句
+			int index_i=0;//图片序列
+			for (XWPFPicture xpicture : xpictures) {
+				XWPFPictureData pictureData = xpicture.getPictureData();
+				FileOutputStream fos = null;
+				String imagePath="";
+				try {
+					File imageFile = new File(storage,String.format("%d_%d_%s", index_r, index_i++,pictureData.getFileName()));
+					fos = new FileOutputStream(imageFile);
+					fos.write(pictureData.getData());
+					imagePath = imageFile.getPath();
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if (fos != null)
+							fos.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}	
+				
+				FiveElement fiveElement= new FiveElement();
+				fiveElement.setContent(imagePath);
+				fiveElement.setIndex(index_i);
+				fiveElement.setIsbreak(true);
+				fiveElements.add(fiveElement);
+			}
+			return fiveElements;
+		} 
+		return null;
 	}
 }
