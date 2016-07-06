@@ -169,12 +169,10 @@ public class XWPFWordParse extends DocumentParse {
 		List<XWPFRun> xruns = xparagraph.getRuns();
 		if(xruns!=null && !xruns.isEmpty()){
 			threeElement = new ThreeElement();
-			int runNum=0;
 			int index_r =0;
 			
 			boolean isbreak=false;
-			String type=null;
-			String content="";
+
 			List<FourElement> fourElements =new ArrayList<FourElement>();
 			threeElement.setFourElements(fourElements);
 			
@@ -185,22 +183,22 @@ public class XWPFWordParse extends DocumentParse {
 			
 			for(XWPFRun xrun:xruns){
 				//过滤脚注|尾注
-				boolean isFootnote = xrunIsFootnote(xrun);
+				boolean isFootnote = checkFootnote(xrun);
 				if (isFootnote) {
 					if (fourElement.getElementType() != null) {
 						isbreak = true;
 					}
 					continue;
 				}
-				runNum++;
+				//runNum++;
 				
 				String text = xrun.text().trim();
 				
 				///////
 				if(StringUtils.isNotBlank(text)){
-					FiveElement fiveElement = parseRunOfText(xrun);
+					FiveElement fiveElement = parseTextFromXWPFRun(xrun);
 					if(fiveElement!=null){
-						if(isbreak && fourElement.getElementType() != null){
+						if(isbreak && StringUtils.isNotEmpty(fourElement.getElementType())){
 							fourElement = new FourElement();
 							fourElement.setIndex(index_r);
 							fiveElements = new ArrayList<FiveElement>();
@@ -214,10 +212,10 @@ public class XWPFWordParse extends DocumentParse {
 						isbreak = fiveElement.isIsbreak();
 					}
 				}else{
-					List<FiveElement> fiveElements_ = parseRunOfImage(xrun,index_r,storage);
+					List<FiveElement> fiveElements_ = parseImageFromXWPFRun(xrun, index_r, storage);
 					if(fiveElements_!=null && !fiveElements_.isEmpty()){
 						for(FiveElement fiveElement_:fiveElements_){
-							if(isbreak && fourElement.getElementType() != null){
+							if(isbreak && StringUtils.isNotEmpty(fourElement.getElementType())){
 								fourElement = new FourElement();
 								fourElement.setIndex(index_r);
 								fiveElements = new ArrayList<FiveElement>();
@@ -232,83 +230,7 @@ public class XWPFWordParse extends DocumentParse {
 						isbreak=true;
 					}
 				}
-				/////////
-				
-				// 软换除是否需要断句?(目前没断句)
-//				if (StringUtils.isNotBlank(text)) {
-//					type = "TEXT";
-//					if (isbreak) {
-//						logger.info(fourElement.getContent());
-//						//断句
-//						fourElement = new FourElement();
-//						fourElement.setIndex(index_r);
-//						
-//						fourElement.setFiveElements(fiveElements);
-//						fourElements.add(fourElement);
-//						content = text;
-//					} else {
-//						content += text;
-//						
-//						FiveElement fiveElement = new FiveElement();
-//						fiveElement.setIndex(runNum);
-//						fiveElement.setContent(text);
-//						fiveElement.setFontName(xrun.getFontName());
-//						fiveElement.setFontSize(xrun.getFontSize());
-//						fiveElements.add(fiveElement);
-//					}
-//					fourElement.setElementType(type);
-//					fourElement.setContent(content);
-//					isbreak = breakSentence(removeSpace(content));
-//				} else {
-//					List<XWPFPicture> xpictures = xrun.getEmbeddedPictures();
-//					if (xpictures != null && xpictures.size() > 0) {
-//						// 一张图片一句
-//						int index_i=0;//图片序列
-//						isbreak = true;
-//						for (XWPFPicture xpicture : xpictures) {
-//							XWPFPictureData pictureData = xpicture.getPictureData();
-//							type = "IMAGE";
-//							FileOutputStream fos = null;
-//							try {
-//								File imageFile = new File(storage,String.format("%d_%d_%s", index_r, index_i++,pictureData.getFileName()));
-//								fos = new FileOutputStream(imageFile);
-//								fos.write(pictureData.getData());
-//								content = imageFile.getPath();
-//							} catch (IOException e) {
-//								e.printStackTrace();
-//							} finally {
-//								try {
-//									if (fos != null)
-//										fos.close();
-//								} catch (IOException e) {
-//									e.printStackTrace();
-//								}
-//							}	
-//							logger.info(fourElement.getContent());
-//							if (fourElement.getElementType() != null) {
-//								//fourElements = new ArrayList<FourElement>();
-//								fourElement = new FourElement();
-//								fourElement.setIndex(index_r);
-//								
-//								fiveElements = new ArrayList<FiveElement>();
-//								fourElement.setFiveElements(fiveElements);
-//								fourElements.add(fourElement);
-//							}
-//							fourElement.setElementType(type);
-//							content = text;
-//							fourElement.setContent(content);
-//						}
-//					} else {
-//						isbreak = true;
-//						continue;
-//					}
-//				}
-				
-//				ContentElement contentElement = new ContentElement();
-//				contentElement.setContentSerial(runNum - 1);
-//				contentElement.setContentType(contentType);
-//				contentElement.setContentText(contentText);
-//				contents.add(contentElement);
+				index_r++;
 			}
 			logger.info(fourElement.getContent());
 		}
@@ -346,7 +268,7 @@ public class XWPFWordParse extends DocumentParse {
 	 * @param xrun
 	 * @return
 	 */
-	private boolean  xrunIsFootnote(XWPFRun xrun){
+	private boolean  checkFootnote(XWPFRun xrun){
 		CTR ftn = xrun.getCTR();
 		XmlObject o = ftn.copy();
 		Node node = o.getDomNode().getLastChild();
@@ -357,7 +279,7 @@ public class XWPFWordParse extends DocumentParse {
 		return false;
 	}
 	
-	private FiveElement parseRunOfText(XWPFRun xrun){
+	private FiveElement parseTextFromXWPFRun(XWPFRun xrun){
 		String text = xrun.text().trim();
 		// 软换除是否需要断句?(目前没断句)
 		if (StringUtils.isNotBlank(text)) {	
@@ -372,7 +294,7 @@ public class XWPFWordParse extends DocumentParse {
 		return null;
 	}
 	
-	private List<FiveElement> parseRunOfImage(XWPFRun xrun,int index_r,String storage){
+	private List<FiveElement> parseImageFromXWPFRun(XWPFRun xrun,int index_r,String storage){
 		List<XWPFPicture> xpictures = xrun.getEmbeddedPictures();
 		if (xpictures != null && xpictures.size() > 0) {
 			List<FiveElement> fiveElements = new ArrayList<FiveElement>();
