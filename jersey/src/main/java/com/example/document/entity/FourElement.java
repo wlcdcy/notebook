@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class FourElement {
 	int index;
-	String content;
+	String content="";
 	/**
 	 * 句子内容类型（文本，图片，超链接）
 	 */

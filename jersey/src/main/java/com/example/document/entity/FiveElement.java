@@ -8,7 +8,11 @@ public class FiveElement {
 	int index;
 	String content;
 	String fontName;
-	int fontsize;
+	int fontSize;
+	/**
+	 * 断句标志
+	 */
+	boolean isbreak;
 	public int getIndex() {
 		return index;
 	}
@@ -27,12 +31,17 @@ public class FiveElement {
 	public void setFontName(String fontName) {
 		this.fontName = fontName;
 	}
-	public int getFontsize() {
-		return fontsize;
+	public int getFontSize() {
+		return fontSize;
 	}
-	public void setFontsize(int fontsize) {
-		this.fontsize = fontsize;
+	public void setFontSize(int fontSize) {
+		this.fontSize = fontSize;
 	}
-	
+	public boolean isIsbreak() {
+		return isbreak;
+	}
+	public void setIsbreak(boolean isbreak) {
+		this.isbreak = isbreak;
+	}
 	
 }
