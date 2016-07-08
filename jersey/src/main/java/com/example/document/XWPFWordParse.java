@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFFooter;
+import org.apache.poi.xwpf.usermodel.XWPFFootnote;
 import org.apache.poi.xwpf.usermodel.XWPFHeader;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFPicture;
@@ -64,7 +66,10 @@ public class XWPFWordParse extends DocumentParse {
 			TopElement topElement = new TopElement();
 			FirstElement  headerElement = parseHeader(xdocument,file.getParent());
 			topElement.setHeaderElement(headerElement);
-			
+			FirstElement  footerElement = parseFooter(xdocument,file.getParent());
+			topElement.setHeaderElement(footerElement);
+			FirstElement  footnoteElement = parseFootnote(xdocument,file.getParent());
+			topElement.setHeaderElement(footnoteElement);
 			
 			return topElement;
 		} catch (IOException e) {
@@ -125,6 +130,11 @@ public class XWPFWordParse extends DocumentParse {
 	}
 
 	
+	/**解析页眉
+	 * @param xdocument
+	 * @param storage
+	 * @return
+	 */
 	private FirstElement parseHeader(XWPFDocument xdocument, String storage){
 		List<XWPFHeader> xheaders =xdocument.getHeaderList();
 		
@@ -138,7 +148,7 @@ public class XWPFWordParse extends DocumentParse {
 		int columnNum=1;
 		for(XWPFHeader xheader:xheaders){
 			List<XWPFParagraph> xparagraphs  = xheader.getListParagraph();
-//			xheader.getBodyElements();
+			
 			List<ThreeElement> threeElements = parseParagraphs(xdocument,xparagraphs,storage);
 			if(threeElements!=null && threeElements.size()>0){
 				SecondElement secondElement = new SecondElement();
@@ -153,6 +163,95 @@ public class XWPFWordParse extends DocumentParse {
 			index_h++;
 		}
 		return firstElement;
+	}
+	
+	/**解析页脚
+	 * @param xdocument
+	 * @param storage
+	 * @return
+	 */
+	private FirstElement parseFooter(XWPFDocument xdocument, String storage){
+		List<XWPFFooter> xfooters =xdocument.getFooterList();
+		
+		FirstElement firstElement = new FirstElement();
+		firstElement.setElementType("FOOTER");
+		
+		List<SecondElement> secondElements = new ArrayList<SecondElement>();
+		firstElement.setSecondElements(secondElements);
+		
+		int index_h=0;
+		int columnNum=1;
+		for(XWPFFooter xfooter:xfooters){
+			List<XWPFParagraph> xparagraphs  = xfooter.getParagraphs();
+			
+			List<ThreeElement> threeElements = parseParagraphs(xdocument,xparagraphs,storage);
+			if(threeElements!=null && threeElements.size()>0){
+				SecondElement secondElement = new SecondElement();
+				secondElement.setElementType("Paragraph");
+				secondElement.setColumnNum(columnNum);
+				secondElement.setElementIndex(index_h);
+				secondElement.setThreeElements(threeElements);
+				
+				secondElements.add(secondElement);
+			}
+			columnNum++;
+			index_h++;
+		}
+		return firstElement;
+	}
+	
+	/**解析脚注
+	 * @param xdocument
+	 * @param storage
+	 * @return
+	 */
+	private FirstElement parseFootnote(XWPFDocument xdocument, String storage){
+		List<XWPFFootnote> xfootnotes =xdocument.getFootnotes();
+		
+		FirstElement firstElement = new FirstElement();
+		firstElement.setElementType("FOOTNOTE");
+		
+		List<SecondElement> secondElements = new ArrayList<SecondElement>();
+		firstElement.setSecondElements(secondElements);
+		
+		int index_h=0;
+		int columnNum=1;
+		for(XWPFFootnote xfootnote:xfootnotes){
+			List<XWPFParagraph> xparagraphs  = xfootnote.getParagraphs();
+			
+			List<ThreeElement> threeElements = parseParagraphs(xdocument,xparagraphs,storage);
+			if(threeElements!=null && threeElements.size()>0){
+				SecondElement secondElement = new SecondElement();
+				secondElement.setElementType("Paragraph");
+				secondElement.setColumnNum(columnNum);
+				secondElement.setElementIndex(index_h);
+				secondElement.setThreeElements(threeElements);
+				
+				secondElements.add(secondElement);
+			}
+			columnNum++;
+			index_h++;
+		}
+		return firstElement;
+	}
+	
+	/**解析尾注
+	 * @param xdocument
+	 * @param storage
+	 * @return
+	 */
+	private SecondElement parseEndnote(XWPFDocument xdocument,int id, String storage){
+		SecondElement secondElement=null;
+		XWPFFootnote endnote =xdocument.getEndnoteByID(id);
+		List<XWPFParagraph> xparagraphs  = endnote.getParagraphs();
+		List<ThreeElement> threeElements = parseParagraphs(xdocument,xparagraphs,storage);
+		if(threeElements!=null && threeElements.size()>0){
+			secondElement = new SecondElement();
+			secondElement.setElementType("Paragraph");
+			secondElement.setThreeElements(threeElements);
+			//secondElements.add(secondElement);
+		}
+		return secondElement;
 	}
 	
 	/** 段落解析，返回ThreeElement对象
