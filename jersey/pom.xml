@@ -371,9 +371,9 @@
 			<version>3.13</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.poi</groupId>
-		    <artifactId>ooxml-schemas</artifactId>
-		    <version>1.3</version>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>ooxml-schemas</artifactId>
+			<version>1.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.poi</groupId>
@@ -390,13 +390,14 @@
 			<artifactId>icu4j</artifactId>
 			<version>56.1</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.aspose</groupId> -->
-<!-- 			<artifactId>aspose-words</artifactId> -->
-<!-- 			<version>14.12.0</version> -->
-<!-- 			<classifier>jdk16</classifier> -->
-<!-- 			<systemPath>${aspose.lib.local.path}/aspose-words-14.12.0-jdk16.jar</systemPath> -->
-<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.aspose</groupId>
+			<artifactId>aspose-words</artifactId>
+			<version>14.12.0</version>
+			<classifier>jdk16</classifier>
+			<scope>system</scope>
+			<systemPath>${aspose.lib.local.path}/aspose-words-14.12.0-jdk16.jar</systemPath>
+		</dependency>
 
 		<!-- <dependency> -->
 		<!-- <groupId>com.asprise.ocr</groupId> -->
