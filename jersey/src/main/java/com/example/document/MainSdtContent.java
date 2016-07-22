@@ -11,14 +11,10 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFSDT;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.openxmlformats.schemas.drawingml.x2006.wordprocessingDrawing.CTInline;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTControl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDecimalNumber;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTDrawing;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTLock;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTOnOff;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPicture;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSdtCell;
@@ -32,9 +28,9 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTc;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTText;
 
 //只处理了文本(不包括公式) 只处理了正文
-public class XWPFMain {
+public class MainSdtContent {
 	public static void main(String[] args) throws Exception {
-		XWPFMain t = new XWPFMain();
+		MainSdtContent t = new MainSdtContent();
 		t.printAllSdtContent("d:/hello/test.docx");
 	}
 
@@ -55,7 +51,7 @@ public class XWPFMain {
 		printParaListContent(paraList);
 		// 打印表格内内容控件
 		List<XWPFTable> tblList = xdoc.getTables();
-		for (int i = 0, len = tblList.size(); i < 0; i++) {
+		for (int i = 0, len = tblList.size(); i < len; i++) {
 			XWPFTable table = tblList.get(i);
 			for (int j = 0, rcount = table.getNumberOfRows(); j < rcount; j++) {
 				XWPFTableRow row = table.getRow(j);
@@ -70,6 +66,7 @@ public class XWPFMain {
 				}
 			}
 		}
+		xdoc.close();
 	}
 
 	//无法获取更多的内容(如文本类型,是否可编辑)
@@ -87,20 +84,6 @@ public class XWPFMain {
 			return;
 		}
 		for (XWPFParagraph para : paraList) {
-//			para.getCTP().getPPr();
-//			List<CTR> ctrList = para.getCTP().getRList();
-//			if (ctrList == null || ctrList.size() == 0) {
-//				continue;
-//			}
-//			for (CTR sdtRun : ctrList) {
-//				sdtRun.getBrList();
-//				List<CTDrawing> drawingList = sdtRun.getDrawingList();
-//				for(CTDrawing drawing:drawingList){
-//					drawing.getAnchorList();
-//					List<CTInline> inlineList= drawing.getInlineList();
-//				}
-//			}
-			
 			List<CTSdtRun> sdtList = para.getCTP().getSdtList();
 			if (sdtList == null || sdtList.size() == 0) {
 				continue;
@@ -111,8 +94,6 @@ public class XWPFMain {
 				CTSdtContentRun sdtContent = sdtRun.getSdtContent();
 				printSdtContent(sdtContent);
 			}
-			
-			
 		}
 	}
 
