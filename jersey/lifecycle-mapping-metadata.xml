@@ -28,5 +28,19 @@
 				<ignore />
 			</action>
 		</pluginExecution>
+
+		<pluginExecution>
+			<pluginExecutionFilter>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-codegen-plugin</artifactId>
+				<goals>
+					<goal>wsdl2java</goal>
+				</goals>
+				<versionRange>[0.0,)</versionRange>
+			</pluginExecutionFilter>
+			<action>
+				<ignore />
+			</action>
+		</pluginExecution>
 	</pluginExecutions>
 </lifecycleMappingMetadata>
