@@ -36,16 +36,17 @@ public class HDFSHandler {
     ResultSetHandler<FileInfo> fileInfo = new BeanHandler(FileInfo.class);
     QueryRunner run = new QueryRunner();
     IStore hdfsStore;
-    static Properties prop =null;
+    static Properties prop = null;
+
     public HDFSHandler() {
         super();
-        if(prop!=null){
+        if (prop != null) {
             prop = new Properties();
             prop.setProperty("hdfs.url", GeneralSet.DFSURI);
             prop.setProperty("hdfs.path", GeneralSet.DFSROOTPATH);
             prop.setProperty("dfs.block.size", String.valueOf(GeneralSet.DFSBLOCKSIZE));
         }
-        hdfsStore = StoreFactory.newInstance().createStore(HDFSStoreProvider.class.getName(),prop);
+        hdfsStore = StoreFactory.newInstance().createStore(HDFSStoreProvider.class.getName(), prop);
     }
 
     @SuppressWarnings("unchecked")
@@ -101,17 +102,15 @@ public class HDFSHandler {
     }
 
     private String queryFileSql(String filename, String fileMime, int offset) {
-        if (StringUtils.isBlank(fileMime)) {
-            fileMime = "mp4";
-        }
+        String fileMimeValue = StringUtils.isBlank(fileMime) ? "mp4" : fileMime;
         if (StringUtils.isNotBlank(filename)) {
             return String.format(
                     "SELECT DISTINCT file_storeid as fileStoreId, file_name as fileName ,file_size as fileSize FROM t_fm_fileinfo where file_mime='%s' and file_name like %s ORDER BY file_id LIMIT %d,1000",
-                    fileMime, "'%" + filename + "%'", offset);
+                    fileMimeValue, "'%" + filename + "%'", offset);
         } else {
             return String.format(
                     "SELECT DISTINCT file_storeid as fileStoreId, file_name as fileName ,file_size as fileSize FROM t_fm_fileinfo where file_mime='%s' ORDER BY file_id LIMIT %d,1000",
-                    fileMime, offset);
+                    fileMimeValue, offset);
         }
     }
 
@@ -162,7 +161,6 @@ public class HDFSHandler {
     public InputStream downFile(long fileStoreId) {
         StoreInfo fileStore = getFileStoreInfo(fileStoreId);
         String storePath = fileStore.getStorePath();
-        // storePath = "mipan/000220f5-e419-458f-a4a5-fac26159f9c4.mp4";
         try {
             storePath = hdfsStore.storePath() + storePath;
             FileStoreInfo storeInfo = hdfsStore.getStoreFileInfo(storePath);
@@ -229,13 +227,12 @@ public class HDFSHandler {
         boolean isremove = true;
         if (fileStore != null) {
             String storePath = fileStore.getStorePath();
-            // storePath = "mipan/00003f6b-5785-4690-a950-ddb5eaad07ff.JPG";
             try {
                 storePath = hdfsStore.storePath() + storePath;
                 isremove = hdfsStore.delete(storePath, true);
             } catch (Exception e) {
                 isremove = false;
-                LOG.warn(e.getMessage(),e);
+                LOG.warn(e.getMessage(), e);
             }
         }
         return isremove;
