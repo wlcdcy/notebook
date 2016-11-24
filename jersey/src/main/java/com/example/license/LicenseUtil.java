@@ -31,86 +31,76 @@ import com.example.exception.JsonStr2ObjException;
  *
  */
 public class LicenseUtil {
-	private static ObjectMapper mapper = new ObjectMapper();
+    private static ObjectMapper mapper = new ObjectMapper();
 
-	public static String generateSecret(String key, LicenseData data) {
-		return key + DateSerializer.dateFormat(data.getEndTime());
-	}
+    public static String generateSecret(String key, LicenseData data) {
+        return key + DateSerializer.dateFormat(data.getEndTime());
+    }
 
-	public static <T> T convertToObjcet(String license, Class<T> clazz)
-			throws JsonStr2ObjException {
-		try {
-			return mapper.readValue(license, clazz);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new JsonStr2ObjException(e);
-		}
-	}
+    public static <T> T convertToObjcet(String license, Class<T> clazz) throws JsonStr2ObjException {
+        try {
+            return mapper.readValue(license, clazz);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new JsonStr2ObjException(e);
+        }
+    }
 
-	public static String convertToString(Object data)
-			throws JsonObj2StrException {
-		try {
-			return mapper.writeValueAsString(data);
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new JsonObj2StrException(e);
-		}
-	}
+    public static String convertToString(Object data) throws JsonObj2StrException {
+        try {
+            return mapper.writeValueAsString(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new JsonObj2StrException(e);
+        }
+    }
 
-	public static String generateLicense(String secret, LicenseData data,
-			PrivateKey pri_key) throws Exception {
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("data", DESUtil.encrypt(convertToString(data), secret));
-		map.put("secret", secret);
-		try {
-			String source = convertToString(map);
-			String license = RSAUtil2.encrypt(source, pri_key);
-			return license;
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static String generateLicense(String secret, LicenseData data, PrivateKey pri_key) throws Exception {
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("data", DESUtil.encrypt(convertToString(data), secret));
+        map.put("secret", secret);
+        try {
+            String source = convertToString(map);
+            String license = RSAUtil2.encrypt(source, pri_key);
+            return license;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	@SuppressWarnings("unchecked")
-	public static LicenseData parseLicense(String secret, String license,
-			PublicKey pub_key) {
-		try {
-			Map<String, String> _obj = convertToObjcet(
-					RSAUtil2.decrypt(license, pub_key), Map.class);
-			LicenseData data = (LicenseData) convertToObjcet(
-					DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
-					LicenseData.class);
-			if (StringUtils.equals(generateSecret(secret, data),
-					_obj.get("secret"))) {
-				return data;
-			}
-		} catch (JsonStr2ObjException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    @SuppressWarnings("unchecked")
+    public static LicenseData parseLicense(String secret, String license, PublicKey pub_key) {
+        try {
+            Map<String, String> _obj = convertToObjcet(RSAUtil2.decrypt(license, pub_key), Map.class);
+            LicenseData data = (LicenseData) convertToObjcet(DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
+                    LicenseData.class);
+            if (StringUtils.equals(generateSecret(secret, data), _obj.get("secret"))) {
+                return data;
+            }
+        } catch (JsonStr2ObjException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-	@SuppressWarnings("unchecked")
-	public static LicenseData parseLicense(String secret, String license) {
-		try {
-			PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey("");
-			Map<String, String> _obj = convertToObjcet(
-					RSAUtil2.decrypt(license, pub_key), Map.class);
-			LicenseData data = (LicenseData) convertToObjcet(
-					DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
-					LicenseData.class);
-			if (StringUtils.equals(generateSecret(secret, data),
-					_obj.get("secret"))) {
-				return data;
-			}
-		} catch (JsonStr2ObjException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    @SuppressWarnings("unchecked")
+    public static LicenseData parseLicense(String secret, String license) {
+        try {
+            PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey("");
+            Map<String, String> _obj = convertToObjcet(RSAUtil2.decrypt(license, pub_key), Map.class);
+            LicenseData data = (LicenseData) convertToObjcet(DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
+                    LicenseData.class);
+            if (StringUtils.equals(generateSecret(secret, data), _obj.get("secret"))) {
+                return data;
+            }
+        } catch (JsonStr2ObjException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }

@@ -59,7 +59,7 @@
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>com.example.resources com.weixin.qy.rests</param-value>
+			<param-value>com.example.resources com.weixin.qy.rests com.ovturn.hdfs.resources</param-value>
 		</init-param>
 
 		<init-param>

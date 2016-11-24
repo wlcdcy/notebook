@@ -12,17 +12,16 @@ import org.codehaus.jackson.map.JsonDeserializer;
 
 public class DateDeserializer extends JsonDeserializer<Date> {
 
-	@Override
-	public Date deserialize(JsonParser jp, DeserializationContext ctxt)
-			throws IOException, JsonProcessingException {
-		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-		String value = jp.getText();
-		try {
-			return format.parse(value);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    @Override
+    public Date deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+        String value = jp.getText();
+        try {
+            return format.parse(value);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

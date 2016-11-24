@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.SocketException;
 import java.nio.charset.UnsupportedCharsetException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -23,6 +22,7 @@ import javax.net.ssl.X509TrustManager;
 import net.sf.json.JSONObject;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.PrintCommandListener;
 import org.apache.commons.net.nntp.NNTPClient;
@@ -30,9 +30,9 @@ import org.apache.commons.net.nntp.NewsgroupInfo;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -61,550 +61,565 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NETUtils {
-	public static Logger logger = LoggerFactory.getLogger(NETUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(NETUtils.class);
+    public static final int HTTPSTATUOK = 200;
+    public static final String USER_AGENT_VALUE = "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803";
+    public static final String HTTPPROTOCOL = "http";
+    public static final String HTTPSPROTOCOL = "https";
 
-	/**
-	 * 获取同时支持http和https的HttpClient对象
-	 * 
-	 * @param ssl
-	 *            true支持https
-	 * @return
-	 */
-	public static CloseableHttpClient getHttpClient(boolean ssl) {
-		if (!ssl) {
-			return HttpClients.createDefault();
-		}
-		SSLContext ctx = getSslContext();
+    private NETUtils() {
 
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
-		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory
-				.getSocketFactory();
+    }
 
-		Registry<ConnectionSocketFactory> r = RegistryBuilder
-				.<ConnectionSocketFactory> create().register("http", plainsf)
-				.register("https", sslsf).build();
+    /**
+     * 获取同时支持http和https的HttpClient对象
+     * 
+     * @param ssl
+     *            true支持https
+     * @return
+     */
+    public static CloseableHttpClient getHttpClient(boolean ssl) {
+        if (!ssl) {
+            return HttpClients.createDefault();
+        }
+        SSLContext ctx = getSslContext();
 
-		HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
-				r);
-		CloseableHttpClient httpclinet = HttpClients.custom()
-				.setConnectionManager(cm).build();
-		return httpclinet;
-	}
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
+        ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.getSocketFactory();
 
-	public static CloseableHttpClient getHttpsClient() {
-		SSLContext ctx = getSslContext();
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
-		ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.INSTANCE;
-		Registry<ConnectionSocketFactory> r = RegistryBuilder
-				.<ConnectionSocketFactory> create().register("http", plainsf)
-				.register("https", sslsf).build();
+        Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory> create()
+                .register("HTTPPROTOCOL", plainsf).register("HTTPSPROTOCOL", sslsf).build();
 
-		HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
-				r);
-		CloseableHttpClient httpclinet = HttpClients.custom()
-				.setConnectionManager(cm).build();
-		return httpclinet;
-	}
+        HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(r);
+        return HttpClients.custom().setConnectionManager(cm).build();
+    }
 
-	/**
-	 * @param keystore
-	 *            default【 "d:/hiwork.keystore"】;
-	 * @return
-	 */
-	public static CloseableHttpClient getHttpsClient(String keystore) {
-		// 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式;
-		// 1、需要从浏览器导出证书 xxx.cer；
-		// 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
-		try {
-			SSLContext sslcontext = SSLContexts
-					.custom()
-					.loadTrustMaterial(new File(keystore),
-							"111111".toCharArray(),
-							new TrustSelfSignedStrategy()).build();
-			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
-					sslcontext);
+    public static CloseableHttpClient getHttpsClient() {
+        SSLContext ctx = getSslContext();
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(ctx);
+        ConnectionSocketFactory plainsf = PlainConnectionSocketFactory.INSTANCE;
+        Registry<ConnectionSocketFactory> r = RegistryBuilder.<ConnectionSocketFactory> create()
+                .register("HTTPPROTOCOL", plainsf).register("HTTPSPROTOCOL", sslsf).build();
 
-			return HttpClients.custom().setSSLSocketFactory(sslsf).build();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyStoreException e) {
-			e.printStackTrace();
-		} catch (CertificateException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+        HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(r);
+        return HttpClients.custom().setConnectionManager(cm).build();
+    }
 
-	private static SSLContext getSslContext() {
-		SSLContext ctx = null;
-		try {
-			ctx = SSLContext.getInstance("TLS");
-			X509TrustManager tm = new X509TrustManager() {
-				public void checkClientTrusted(X509Certificate[] xcs,
-						String string) throws CertificateException {
-				}
+    /**
+     * @param keystore
+     *            default【 "d:/hiwork.keystore"】;
+     * @return
+     */
+    public static CloseableHttpClient getHttpsClient(String keystore) {
+        /*
+         * 自定义证书（自己生成证书或非信任机构颁发证书），需要手动导入时，使用下面的方式加载正式; 1、需要从浏览器导出证书 xxx.cer；
+         * 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
+         */
+        try {
+            SSLContext sslcontext = null;
+            try {
+                sslcontext = SSLContexts.custom()
+                        .loadTrustMaterial(new File(keystore), "111111".toCharArray(), new TrustSelfSignedStrategy())
+                        .build();
+            } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | IOException e) {
+                LOG.error(e.getMessage(), e);
+            }
+            SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
 
-				public void checkServerTrusted(X509Certificate[] xcs,
-						String string) throws CertificateException {
-				}
+            return HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        } catch (KeyManagementException e) {
+            LOG.error(e.getMessage(), e);
 
-				public X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
-			};
-			ctx.init(null, new TrustManager[] { tm }, null);
+        }
+        return null;
+    }
 
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		return ctx;
-	}
-	
-	public static String httpGet(HttpGet get,boolean https) {
-		try {
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(https);
-			CloseableHttpResponse response = null;
-			response = httpclient.execute(get);
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    private static SSLContext getSslContext() {
+        SSLContext ctx = null;
+        try {
+            ctx = SSLContext.getInstance("TLS");
+            X509TrustManager tm = new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+                    return;
+                }
 
-	public static String httpGet(String url) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null;
-			response = httpclient.execute(createHttpGet(url));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+                @Override
+                public void checkServerTrusted(X509Certificate[] xcs, String string) throws CertificateException {
+                    return;
+                }
 
-	/**
-	 * @param url
-	 * @return String|InputStream
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T httpGet2(String url) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null;
-			response = httpclient.execute(createHttpGet(url));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				HttpEntity entity = response.getEntity();
-				String contenType = response.getFirstHeader("Content-Type")
-						.getValue();// EntityUtils.getContentMimeType(entity);
-				if (StringUtils.startsWith(contenType,
-						ContentType.APPLICATION_JSON.getMimeType())) {
-					return (T) EntityUtils.toString(entity);
-				} else {
-					return (T) entity.getContent();
-				}
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return (X509Certificate[]) ArrayUtils.EMPTY_OBJECT_ARRAY;
+                }
+            };
+            ctx.init(null, new TrustManager[] { tm }, null);
 
-	public static CloseableHttpResponse httpGetStream(String url) {
-		boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-		CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-		try {
-			return httpclient.execute(createHttpGet(url));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+        } catch (KeyManagementException | NoSuchAlgorithmException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return ctx;
+    }
 
-	@SuppressWarnings("unchecked")
-	public static <T> T httpGet(String url, Class<T> clazz) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null;
-			response = httpclient.execute(createHttpGet(url));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				HttpEntity entity = response.getEntity();
-				if (clazz.equals(String.class)) {
-					return (T) EntityUtils.toString(entity);
-				} else if (clazz.equals(byte[].class)) {
-					return (T) EntityUtils.toByteArray(entity);
-				} else if (clazz.equals(InputStream.class)) {
-					return (T) entity.getContent();
-				} else {
-					logger.info("invalid return type: " + clazz.getName());
-				}
+    public static String httpGet(HttpGet get, boolean isSSL) {
+        CloseableHttpClient httpclient = null;
+        try {
+            httpclient = NETUtils.getHttpClient(isSSL);
+            HttpResponse response = httpclient.execute(get);
+            return parseResponse(response,String.class);
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.debug(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T> T parseResponse(HttpResponse response,Class<T> clazz) {
+        try {
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                HttpEntity entity = response.getEntity();
+                if (clazz.equals(String.class)) {
+                    return (T) EntityUtils.toString(entity);
+                }
+                if (clazz.equals(byte[].class)) {
+                    return (T) EntityUtils.toByteArray(entity);
+                }
+                if (clazz.equals(InputStream.class)) {
+                    return (T) entity.getContent();
+                }
+                LOG.info("invalid return type: " + clazz.getName());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (IOException e) {
+            LOG.warn(e.getMessage(), e);
+        }
+        return null;
+    }
 
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	public static String httpPost(HttpPost post,boolean https ) {
-		try {
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(https);
-			CloseableHttpResponse response = httpclient.execute(post);
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static String httpGet(String url) {
+        boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+        HttpGet hget = createHttpGet(url);
+        return httpGet(hget, ssl);
+    }
 
-	public static String httpPostWithJson(String url, String jsonString) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+    /**
+     * @param url
+     * @return String|InputStream
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T httpGet2(String url) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = null;
+            response = httpclient.execute(createHttpGet(url));
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                HttpEntity entity = response.getEntity();
+                String contenType = response.getFirstHeader("Content-Type").getValue();
+                if (StringUtils.startsWith(contenType, ContentType.APPLICATION_JSON.getMimeType())) {
+                    return (T) EntityUtils.toString(entity);
+                } else {
+                    return (T) entity.getContent();
+                }
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.warn(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = httpclient
-					.execute(createPOSTWithJson(url, jsonString));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static CloseableHttpResponse httpGetStream(String url) {
+        boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+        CloseableHttpClient httpclient = null;
+        try {
+            httpclient = NETUtils.getHttpClient(ssl);
+            return httpclient.execute(createHttpGet(url));
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-	public static String httpPostWithForm(String url, String params) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = httpclient
-					.execute(createPOSTWithForm(url, params));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static <T> T httpGet(String url, Class<T> clazz) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = null;
+            response = httpclient.execute(createHttpGet(url));
+            return parseResponse(response,clazz);
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.info(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-	public static String httpPostWithMultipart(String url,
-			Map<String, Object> params) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+    public static String httpPost(HttpPost post, boolean https) {
+        CloseableHttpClient httpclient = null;
+        try {
+            httpclient = NETUtils.getHttpClient(https);
+            CloseableHttpResponse response = httpclient.execute(post);
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = httpclient
-					.execute(createPOSTWithMultipart(url, params));
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static String httpPostWithJson(String url, String jsonString) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
 
-	public static String request(String method, String url, String params) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = httpclient.execute(createPOSTWithJson(url, jsonString));
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null;
+    public static String httpPostWithForm(String url, String params) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = httpclient.execute(createPOSTWithForm(url, params));
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-				response = httpclient.execute(createHttpGet(url));
-			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(createPOSTWithForm(url, params));
-			} else {
-				return null;
-			}
+    public static String httpPostWithMultipart(String url, Map<String, Object> params) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = httpclient.execute(createPOSTWithMultipart(url, params));
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+    public static String request(String method, String url, String params) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = null;
 
-	public static String request(String method, String url,
-			Map<String, Object> params) {
-		try {
-			boolean ssl = StringUtils.startsWith(url, "https") ? true : false;
+            if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
+                response = httpclient.execute(createHttpGet(url));
+            } else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
+                response = httpclient.execute(createPOSTWithForm(url, params));
+            } else {
+                return null;
+            }
 
-			CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-			CloseableHttpResponse response = null;
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-			if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-				response = httpclient.execute(createHttpGet(url));
-			} else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-				response = httpclient.execute(createPOSTWithMultipart(url,
-						params));
-			} else {
-				return null;
-			}
+    public static String request(String method, String url, Map<String, Object> params) {
+        CloseableHttpClient httpclient = null;
+        try {
+            boolean ssl = StringUtils.startsWith(url, HTTPSPROTOCOL) ? true : false;
 
-			if (response.getStatusLine().getStatusCode() < 300) {
-				return EntityUtils.toString(response.getEntity());
-			} else {
-				logger.info(response.toString());
-			}
-		} catch (UnsupportedCharsetException e) {
-			e.printStackTrace();
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
+            httpclient = NETUtils.getHttpClient(ssl);
+            CloseableHttpResponse response = null;
 
-	public static HttpGet createHttpGet(String req_url) {
-		HttpGet httpRequest = new HttpGet(req_url);
-		httpRequest
-				.addHeader(HttpHeaders.USER_AGENT,
-						"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
-		return httpRequest;
-	}
+            if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
+                response = httpclient.execute(createHttpGet(url));
+            } else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
+                response = httpclient.execute(createPOSTWithMultipart(url, params));
+            } else {
+                return null;
+            }
 
-	public static HttpPost createPOSTWithJson(String req_url, String jsonStr) {
-		HttpPost httpPost = new HttpPost(req_url);
-		httpPost.addHeader(HttpHeaders.USER_AGENT,
-				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
-		httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
-		StringEntity entity = new StringEntity(jsonStr,
-				ContentType.APPLICATION_JSON);
-		httpPost.setEntity(entity);
-		return httpPost;
-	}
+            if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
+                return EntityUtils.toString(response.getEntity());
+            } else {
+                LOG.info(response.toString());
+            }
+        } catch (UnsupportedCharsetException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            if (httpclient != null) {
+                try {
+                    httpclient.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
 
-	private static HttpPost createPOSTWithForm(String req_url, String params) {
-		HttpPost httpPost = new HttpPost(req_url);
-		httpPost.addHeader(HttpHeaders.USER_AGENT,
-				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
-		httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
-		List<NameValuePair> formparams = URLEncodedUtils.parse(params,
-				Consts.UTF_8, '&');
-		UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams,
-				Consts.UTF_8);
-		httpPost.setEntity(entity);
-		return httpPost;
-	}
+    public static HttpGet createHttpGet(String reqUrl) {
+        HttpGet httpRequest = new HttpGet(reqUrl);
+        httpRequest.addHeader(HttpHeaders.USER_AGENT, USER_AGENT_VALUE);
+        return httpRequest;
+    }
 
-	private static HttpPost createPOSTWithMultipart(String req_url,
-			Map<String, Object> params) {
-		HttpPost httpPost = new HttpPost(req_url);
-		httpPost.addHeader(HttpHeaders.USER_AGENT,
-				"Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
-		MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
-		Iterator<String> keys = params.keySet().iterator();
-		while (keys.hasNext()) {
-			String key = keys.next();
-			Object value = params.get(key);
-			if (value instanceof String) {
-				// 使用part代替body解决乱码问题[entityBuilder.addTextBody(key, (String)
-				// value,ContentType.TEXT_PLAIN);]
-				ContentType contentType = ContentType.create(
-						ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8);
-				StringBody stringBody = new StringBody((String) value,
-						contentType);
-				entityBuilder.addPart(key, stringBody);
-				continue;
-			}
-			if (value instanceof File) {
-				ContentType contentType = ContentType
-						.create(ContentType.APPLICATION_OCTET_STREAM
-								.getMimeType());
-				FileBody fileBody = new FileBody((File) value, contentType);
-				entityBuilder.addPart(key, fileBody);
-				continue;
-			}
-			if (value instanceof InputStream) {
-				InputStreamBody inputBody = new InputStreamBody(
-						(InputStream) value, "img.png");
-				entityBuilder.addPart(key, inputBody);
-				continue;
-			}
-			if (value instanceof byte[]) {
-				ByteArrayBody byteBody = new ByteArrayBody((byte[]) value,
-						"img.png");
-				entityBuilder.addPart(key, byteBody);
-				continue;
-			}
-			logger.info(String
-					.format("not found object type for %s param", key));
-		}
-		httpPost.setEntity(entityBuilder.build());
-		return httpPost;
-	}
+    public static HttpPost createPOSTWithJson(String reqUrl, String jsonStr) {
+        HttpPost httpPost = new HttpPost(reqUrl);
+        httpPost.addHeader(HttpHeaders.USER_AGENT, USER_AGENT_VALUE);
+        httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
+        StringEntity entity = new StringEntity(jsonStr, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(entity);
+        return httpPost;
+    }
 
-	// ############################test##################################
-	public static void testJenkins() {
+    private static HttpPost createPOSTWithForm(String reqUrl, String params) {
+        HttpPost httpPost = new HttpPost(reqUrl);
+        httpPost.addHeader(HttpHeaders.USER_AGENT, USER_AGENT_VALUE);
+        httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
+        List<NameValuePair> formparams = URLEncodedUtils.parse(params, Consts.UTF_8, '&');
+        UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
+        httpPost.setEntity(entity);
+        return httpPost;
+    }
 
-		String webHooks = "https://api.hiwork.cc/api/sendmsg";
-		String token = "204913c1-9669-4f71-8afa-35445bb721e1";
-		CloseableHttpClient client = getHttpsClient("d:/hiwork.ks");
-		HttpPost post = new HttpPost(webHooks);
-		try {
-			JSONObject json = new JSONObject();
-			json.put("token", token);
-			json.put("data", "hello hiwork");
-			StringEntity postData = new StringEntity(json.toString());
-			post.setEntity(postData);
-			post.setHeader("content-type", "application/json");
-			CloseableHttpResponse response = client.execute(post);
-			int responseCode = response.getStatusLine().getStatusCode();
+    private static HttpPost createPOSTWithMultipart(String reqUrl, Map<String, Object> params) {
+        HttpPost httpPost = new HttpPost(reqUrl);
+        httpPost.addHeader(HttpHeaders.USER_AGENT, USER_AGENT_VALUE);
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        Iterator<String> keys = params.keySet().iterator();
+        while (keys.hasNext()) {
+            String key = keys.next();
+            Object value = params.get(key);
+            if (value instanceof String) {
+                /*
+                 * 使用part代替body解决乱码问题[entityBuilder.addTextBody(key, (String)
+                 * value,ContentType.TEXT_PLAIN);]
+                 */
+                ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8);
+                StringBody stringBody = new StringBody((String) value, contentType);
+                entityBuilder.addPart(key, stringBody);
+            }
+            if (value instanceof File) {
+                ContentType contentType = ContentType.create(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
+                FileBody fileBody = new FileBody((File) value, contentType);
+                entityBuilder.addPart(key, fileBody);
+            }
+            if (value instanceof InputStream) {
+                InputStreamBody inputBody = new InputStreamBody((InputStream) value, "img.png");
+                entityBuilder.addPart(key, inputBody);
+            }
+            if (value instanceof byte[]) {
+                ByteArrayBody byteBody = new ByteArrayBody((byte[]) value, "img.png");
+                entityBuilder.addPart(key, byteBody);
+            }
+            LOG.info(String.format("not found object type for %s param", key));
+        }
+        httpPost.setEntity(entityBuilder.build());
+        return httpPost;
+    }
 
-			if (responseCode != HttpStatus.SC_OK) {
-				logger.info("HiWork post may have failed. Response: "
-						+ IOUtils.toString(response.getEntity().getContent(),
-								"UTF-8"));
-			} else {
-				logger.info("Posting succeeded, Response data:"
-						+ IOUtils.toString(response.getEntity().getContent(),
-								"UTF-8"));
-			}
-		} catch (Exception e) {
-			logger.info("Error posting to hiwork", e);
-		} finally {
-			post.releaseConnection();
-		}
-	}
+    // ############################test##################################
+    public static void testJenkins() {
 
-	@SuppressWarnings("resource")
-	public static void main1(String[] args) throws SocketException, IOException {
+        String webHooks = "https://api.hiwork.cc/api/sendmsg";
+        String token = "204913c1-9669-4f71-8afa-35445bb721e1";
+        CloseableHttpClient client = getHttpsClient("d:/hiwork.ks");
+        HttpPost post = new HttpPost(webHooks);
+        try {
+            JSONObject json = new JSONObject();
+            json.put("token", token);
+            json.put("data", "hello hiwork");
+            StringEntity postData = new StringEntity(json.toString());
+            post.setEntity(postData);
+            post.setHeader("content-type", "application/json");
+            CloseableHttpResponse response = client.execute(post);
+            int responseCode = response.getStatusLine().getStatusCode();
 
-		if (args.length != 2 && args.length != 3 && args.length != 5) {
-			System.out
-					.println("Usage: MessageThreading <hostname> <groupname> [<article specifier> [<user> <password>]]");
-			return;
-		}
+            if (responseCode != HttpStatus.SC_OK) {
+                LOG.info("HiWork post may have failed. Response: "
+                        + IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+            } else {
+                LOG.info("Posting succeeded, Response data:"
+                        + IOUtils.toString(response.getEntity().getContent(), "UTF-8"));
+            }
+        } catch (Exception e) {
+            LOG.info("Error posting to hiwork", e);
+        } finally {
+            post.releaseConnection();
+        }
+    }
 
-		String hostname = args[0];
-		String newsgroup = args[1];
-		// Article specifier can be numeric or Id in form <m.n.o.x@host>
-		String articleSpec = args.length >= 3 ? args[2] : null;
+    public static void userNNTPClient(String[] args) throws IOException {
+        int twoParam = 2;
+        int threeParam = 3;
+        int fiveParam = 5;
 
-		NNTPClient client = new NNTPClient();
-		client.addProtocolCommandListener(new PrintCommandListener(
-				new PrintWriter(System.out), true));
-		client.connect(hostname);
+        if (args.length != twoParam && args.length != threeParam && args.length != fiveParam) {
+            LOG.info("Usage: MessageThreading <hostname> <groupname> [<article specifier> [<user> <password>]]");
+            return;
+        }
 
-		if (args.length == 5) { // Optional auth
-			String user = args[3];
-			String password = args[4];
-			if (!client.authenticate(user, password)) {
-				System.out.println("Authentication failed for user " + user
-						+ "!");
-				System.exit(1);
-			}
-		}
+        String hostname = args[0];
+        String newsgroup = args[1];
 
-		NewsgroupInfo group = new NewsgroupInfo();
-		client.selectNewsgroup(newsgroup, group);
+        /* Article specifier can be numeric or Id in form <m.n.o.x@host> */
+        String articleSpec = args.length >= threeParam ? args[2] : null;
 
-		BufferedReader br;
-		String line;
-		if (articleSpec != null) {
-			br = (BufferedReader) client.retrieveArticleHeader(articleSpec);
-		} else {
-			long articleNum = group.getLastArticleLong();
-			br = client.retrieveArticleHeader(articleNum);
-		}
-		if (br != null) {
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
-			br.close();
-		}
-		if (articleSpec != null) {
-			br = (BufferedReader) client.retrieveArticleBody(articleSpec);
-		} else {
-			long articleNum = group.getLastArticleLong();
-			br = client.retrieveArticleBody(articleNum);
-		}
-		if (br != null) {
-			while ((line = br.readLine()) != null) {
-				System.out.println(line);
-			}
-			br.close();
-		}
-	}
+        NNTPClient client = new NNTPClient();
+        client.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
+        client.connect(hostname);
+        /* Optional auth */
+        if (args.length == fiveParam) {
+            String user = args[3];
+            String password = args[4];
+            if (!client.authenticate(user, password)) {
+                LOG.info("Authentication failed for user " + user + "!");
+                return;
+            }
+        }
 
-	public static void main(String[] args) {
-		testJenkins();
-	}
+        NewsgroupInfo group = new NewsgroupInfo();
+        client.selectNewsgroup(newsgroup, group);
+
+        BufferedReader br = null;
+        String line;
+        try {
+            if (articleSpec != null) {
+                br = (BufferedReader) client.retrieveArticleHeader(articleSpec);
+            } else {
+                long articleNum = group.getLastArticleLong();
+                br = client.retrieveArticleHeader(articleNum);
+            }
+            if (br != null) {
+                while ((line = br.readLine()) != null) {
+                    LOG.info(line);
+                }
+                br.close();
+            }
+            if (articleSpec != null) {
+                br = (BufferedReader) client.retrieveArticleBody(articleSpec);
+            } else {
+                long articleNum = group.getLastArticleLong();
+                br = client.retrieveArticleBody(articleNum);
+            }
+            if (br != null) {
+                while ((line = br.readLine()) != null) {
+                    LOG.info(line);
+                }
+                br.close();
+            }
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        testJenkins();
+    }
 
 }

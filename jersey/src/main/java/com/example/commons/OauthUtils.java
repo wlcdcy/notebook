@@ -25,66 +25,62 @@ import com.google.api.client.util.store.DataStore;
  */
 public class OauthUtils {
 
-	public static HttpResponse executeGet(HttpTransport transport,
-			JsonFactory json_factory, String access_token, GenericUrl url)
-			throws IOException {
-		Credential credential = new Credential(
-				BearerToken.authorizationHeaderAccessMethod())
-				.setAccessToken(access_token);
-		HttpRequestFactory req_factory = transport
-				.createRequestFactory(credential);
-		return req_factory.buildGetRequest(url).execute();
-	}
+    public static HttpResponse executeGet(HttpTransport transport, JsonFactory json_factory, String access_token,
+            GenericUrl url) throws IOException {
+        Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod())
+                .setAccessToken(access_token);
+        HttpRequestFactory req_factory = transport.createRequestFactory(credential);
+        return req_factory.buildGetRequest(url).execute();
+    }
 
-	@SuppressWarnings({ "null", "unused" })
-	public void useAuthorizationCodeFlow() {
-		AuthorizationCodeFlow dd = null;
-		try {
-			Credential credential = dd.loadCredential("userid");
-			// if(credential==null){
-			// // ---
-			// }
-			AuthorizationCodeTokenRequest token_request = dd
-					.newTokenRequest("code");
-			TokenResponse token_response = token_request.execute();
-			dd.createAndStoreCredential(token_response, "userid");
+    @SuppressWarnings({ "null", "unused" })
+    public void useAuthorizationCodeFlow() {
+        AuthorizationCodeFlow dd = null;
+        try {
+            Credential credential = dd.loadCredential("userid");
+            // if(credential==null){
+            // // ---
+            // }
+            AuthorizationCodeTokenRequest token_request = dd.newTokenRequest("code");
+            TokenResponse token_response = token_request.execute();
+            dd.createAndStoreCredential(token_response, "userid");
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	@SuppressWarnings({ "null", "unused", "rawtypes" })
-	public void unuseAuthorizationCodeFlow() {
-		DataStore ds = null;
-		try {
-			Credential credential = (Credential) ds.get("userid");
+    @SuppressWarnings({ "null", "unused", "rawtypes" })
+    public void unuseAuthorizationCodeFlow() {
+        DataStore ds = null;
+        try {
+            Credential credential = (Credential) ds.get("userid");
 
-			// direct the browser to authorization page
-			AuthorizationCodeRequestUrl code_req = null;
+            // direct the browser to authorization page
+            AuthorizationCodeRequestUrl code_req = null;
 
-			// process the authorization response and parse the authorization
-			// code;
-			AuthorizationCodeResponseUrl code_resp = null;
+            // process the authorization response and parse the authorization
+            // code;
+            AuthorizationCodeResponseUrl code_resp = null;
 
-			// request an access token and possible a refresh token
-			AuthorizationCodeTokenRequest token_req = null;
+            // request an access token and possible a refresh token
+            AuthorizationCodeTokenRequest token_req = null;
 
-			// create new credential and store it using DataStore.set(String,V)
-			new Credential(BearerToken.authorizationHeaderAccessMethod());
+            // create new credential and store it using DataStore.set(String,V)
+            new Credential(BearerToken.authorizationHeaderAccessMethod());
 
-			// using credential access protected resources;expired access tokens
-			// are automatically refreshed using the refresh token
+            // using credential access protected resources;expired access tokens
+            // are automatically refreshed using the refresh token
 
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	@SuppressWarnings("unused")
-	public static void main(String[] args) {
-		GenericUrl req_url = new GenericUrl(Consts.UTF_8.name());
+    @SuppressWarnings("unused")
+    public static void main(String[] args) {
+        GenericUrl req_url = new GenericUrl(Consts.UTF_8.name());
 
-	}
+    }
 
 }

@@ -21,70 +21,67 @@ import com.sun.syndication.io.SyndFeedInput;
 
 public class RssProvider implements RssManage {
 
-	private SyndFeed feed = null;
-	private String resource = null;
+    private SyndFeed feed = null;
+    private String resource = null;
 
-	private RssProvider(String resource, SyndFeed feed) {
-		super();
-		this.feed = feed;
-		this.resource = resource;
-	}
+    private RssProvider(String resource, SyndFeed feed) {
+        super();
+        this.feed = feed;
+        this.resource = resource;
+    }
 
-	public static RssManage builder(String resource) throws IOException,
-			IllegalArgumentException, FeedException {
-		ResourceRequest request = ResourceRequestFactory
-				.getResourceRequest(resource);
-		InputStream in = request.getInputStream();
-		SyndFeed feed = builder(in);
-		return new RssProvider(resource, feed);
-	}
+    public static RssManage builder(String resource) throws IOException, IllegalArgumentException, FeedException {
+        ResourceRequest request = ResourceRequestFactory.getResourceRequest(resource);
+        InputStream in = request.getInputStream();
+        SyndFeed feed = builder(in);
+        return new RssProvider(resource, feed);
+    }
 
-	private static SyndFeed builder(InputStream in)
-			throws IllegalArgumentException, FeedException {
-		SyndFeedInput input = new SyndFeedInput();
-		InputSource is = new InputSource(in);
-		return input.build(is);
-	}
+    private static SyndFeed builder(InputStream in) throws IllegalArgumentException, FeedException {
+        SyndFeedInput input = new SyndFeedInput();
+        InputSource is = new InputSource(in);
+        return input.build(is);
+    }
 
-	public String getChannelTitle() {
-		return this.feed.getTitle();
-	}
+    public String getChannelTitle() {
+        return this.feed.getTitle();
+    }
 
-	public String getChannelDescribe() {
-		return this.feed.getDescription();
-	}
+    public String getChannelDescribe() {
+        return this.feed.getDescription();
+    }
 
-	public Date getChannelPubishDate() {
-		return this.feed.getPublishedDate();
-	}
+    public Date getChannelPubishDate() {
+        return this.feed.getPublishedDate();
+    }
 
-	public String getChannelPubishDate(String dateFormat) {
-		return DateFormatUtils.format(this.feed.getPublishedDate(), dateFormat);
-	}
+    public String getChannelPubishDate(String dateFormat) {
+        return DateFormatUtils.format(this.feed.getPublishedDate(), dateFormat);
+    }
 
-	public String getChannelLink() {
-		return this.feed.getLink();
-	}
+    public String getChannelLink() {
+        return this.feed.getLink();
+    }
 
-	public String getResource() {
-		return resource;
-	}
+    public String getResource() {
+        return resource;
+    }
 
-	public Channel getChannel() {
-		return (Channel) this.feed.originalWireFeed();
-	}
+    public Channel getChannel() {
+        return (Channel) this.feed.originalWireFeed();
+    }
 
-	public Image getImage() {
-		Image image = new Image();
-		SyndImage simage = this.feed.getImage();
-		image.setDescription(simage.getDescription());
-		return image;
-	}
+    public Image getImage() {
+        Image image = new Image();
+        SyndImage simage = this.feed.getImage();
+        image.setDescription(simage.getDescription());
+        return image;
+    }
 
-	public List<Item> getItems() {
-		List<Item> items = new ArrayList<Item>();
+    public List<Item> getItems() {
+        List<Item> items = new ArrayList<Item>();
 
-		return items;
-	}
+        return items;
+    }
 
 }

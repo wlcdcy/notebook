@@ -12,22 +12,22 @@ import com.sun.jersey.spi.resource.Singleton;
 @Path("/auth")
 @Singleton
 public class AuthResource {
-	@Context
-	SecurityContext securityContext;
+    @Context
+    SecurityContext securityContext;
 
-	@GET
-	public String getUserPrincipal() {
-		return securityContext.getUserPrincipal().getName();
-	}
+    @GET
+    public String getUserPrincipal() {
+        return securityContext.getUserPrincipal().getName();
+    }
 
-	public String d(@Context SecurityContext sc) {
-		return "";
-	}
+    public String d(@Context SecurityContext sc) {
+        return "";
+    }
 
-	@Path("/sayhello")
-	@GET
-	@Produces(MediaType.APPLICATION_JSON)
-	public String sayHello(@Context SecurityContext sc) {
-		return "hello";
-	}
+    @Path("/sayhello")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public String sayHello(@Context SecurityContext sc) {
+        return "hello";
+    }
 }

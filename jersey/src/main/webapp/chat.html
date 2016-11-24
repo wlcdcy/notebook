@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+<meta name="viewport"
+	content="width=device-width,height=device-height,initial-scale=1.0">
+<title></title>
+
+<!-- jquery CDN -->
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<!-- Bootstrap CDN -->
+<!-- Latest compiled and minified CSS -->
+<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+<!-- Optional theme -->
+<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" rel="stylesheet">
+<!-- Latest compiled and minified JavaScript -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<style type="text/css">
+<!
+[
+CDATA
+[
+
+/* input#chat */
+/* { */
+/* width:80% */
+/* } */
+
+/* #console-container { */
+/* 	width: 400px; */
+/* } */
+#console
+{
+border:
+1px
+solid
+#CCCCCC;
+border-right-color:
+#999999;
+border-bottom-color:
+#999999;
+/* 	height: 170px; */
+overflow-y:
+scroll;
+padding:
+5px;
+/* 	width: 100%; */
+}
+#console p {
+	padding: 0;
+	margin: 0;
+}
+]]>
+</style>
+<script type="application/javascript">
+	
+        "use strict";
+
+        var Chat = {};
+
+        Chat.socket = null;
+
+        Chat.connect = (function(host) {
+            if ('WebSocket' in window) {
+                Chat.socket = new WebSocket(host,'echo-protocol');
+            } else if ('MozWebSocket' in window) {
+                Chat.socket = new MozWebSocket(host,'echo-protocol');
+            } else {
+                Console.log('Error: WebSocket is not supported by this browser.');
+                return;
+            }
+
+            Chat.socket.onopen = function () {
+                Console.log('Info: WebSocket connection opened.');
+                document.getElementById('chat').onkeydown = function(event) {
+                    if (event.keyCode == 13) {
+                        Chat.sendMessage();
+                    }
+                };
+                document.getElementById('bt_send').onclick = function(event) {
+                    Chat.sendMessage();
+                };
+            };
+
+            Chat.socket.onclose = function () {
+                document.getElementById('chat').onkeydown = null;
+                Console.log('Info: WebSocket closed.');
+            };
+
+            Chat.socket.onmessage = function (message) {
+                Console.log(message.data);
+            };
+        });
+
+        Chat.initialize = function() {
+            Chat.connect('ws://192.168.1.227/bar/websocket/');
+        };
+
+        Chat.sendMessage = (function() {
+            var message = document.getElementById('chat').value;
+            if (message != '') {
+                Chat.socket.send(message);
+                document.getElementById('chat').value = '';
+            }
+        });
+
+        var Console = {};
+
+        Console.log = (function(message) {
+            var console = document.getElementById('console');
+            var content = document.getElementById('content');
+            var p = document.createElement('p');
+            p.style.wordWrap = 'break-word';
+            p.innerHTML = message;
+            console.appendChild(p);
+//             while (console.childNodes.length > 25) {
+//                 console.removeChild(console.firstChild);
+//             }
+//             console.scrollTop = console.scrollHeight;
+            content.scrollTop = 100+content.scrollHeight;
+        });
+
+        Chat.initialize();
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Remove elements with "noscript" class - <noscript> is not allowed in XHTML
+            var noscripts = document.getElementsByClassName("noscript");
+            for (var i = 0; i < noscripts.length; i++) {
+                noscripts[i].parentNode.removeChild(noscripts[i]);
+            }
+        }, false);   
+       
+</script>
+</head>
+<body>
+	<div class="noscript">
+		<h2 style="color: #ff0000">Seems your browser doesn't support
+			Javascript! Websockets rely on Javascript being enabled. Please
+			enable Javascript and reload this page!</h2>
+	</div>
+	<div class="container-fluid">
+
+		<div class="row">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div class="input-group">
+					<input type="text" class="form-control"
+						placeholder="type and press enter to chat" id="chat"><span
+						class="input-group-btn">
+						<button class="btn btn-default" type="button" id="bt_send">Send!</button>
+					</span>
+				</div>
+			</div>
+			<div class="col-lg-3"></div>
+		</div>
+
+		<div class="row">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div>
+					<pre style="height: 350px;" onload="document.body.scrollTop=100"
+						id="content">
+	        			<div id="console" ></div>
+	        		</pre>
+	        		
+				</div>
+			</div>
+			<div class="col-lg-3"></div>
+		</div>
+	</div>
+</body>
+</html>

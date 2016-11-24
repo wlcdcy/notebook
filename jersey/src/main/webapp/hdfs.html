@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>违规文件</title>
+<meta name="viewport"
+	content="width=device-width,height=device-height,initial-scale=1.0">
+<title></title>
+
+<!-- jquery CDN -->
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<!-- Bootstrap CDN -->
+<!-- Latest compiled and minified CSS -->
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css"
+	rel="stylesheet">
+<link rel="stylesheet"
+	href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/bootstrap-table.min.css">
+
+
+<!-- Optional theme -->
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
+	rel="stylesheet">
+<!-- Latest compiled and minified JavaScript -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+
+<!-- Latest compiled and minified JavaScript -->
+<script
+	src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/bootstrap-table.min.js"></script>
+<!-- Latest compiled and minified Locales -->
+<script
+	src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.0/locale/bootstrap-table-zh-CN.min.js"></script>
+
+<script type="text/javascript">
+	$(function() {
+		$('#ok').click(function() {
+			$('#table').bootstrapTable('refresh');
+		});
+
+		$('#delall').click(
+				function() {
+					var ids = $.map(
+							$('#table').bootstrapTable('getSelections'),
+							function(row) {
+								return row.fileStoreId;
+							});
+
+					var data = JSON.stringify(ids);
+					deleteAllFile(data);
+
+					$('#table').bootstrapTable('remove', {
+						field : 'fileStoreId',
+						values : ids
+					});
+				});
+	});
+
+	function queryParams() {
+		var params = {};
+		$('#toolbar').find('input[name]').each(function() {
+			params[$(this).attr('name')] = $(this).val();
+		});
+		return params;
+	}
+
+	function responseHandler(res) {
+		return res.rows;
+	}
+
+	function downFile(value) {
+		var id = $('#table').bootstrapTable('getSelections');
+		console.log(value);
+	}
+
+	function deleteFile(value) {
+		$.ajax({
+			async : true,
+			url : 'file/delete/' + value,
+			type : 'GET',
+			beforeSend : function(xhr) {
+				console.log(xhr);
+				console.log('send...');
+			},
+			success : function(data, textStatus) {
+				console.log(data);
+				console.log(textStatus);
+			},
+			error : function(xhr, textStatus) {
+				console.log(xhr);
+				console.log(textStatus);
+			},
+			complete : function() {
+				console.log('end...');
+			}
+		});
+		$('#table').bootstrapTable('removeByUniqueId', value);
+	}
+
+	function deleteAllFile(data) {
+		$.ajax({
+			async : true,
+			url : 'file/delete',
+			type : 'POST',
+			data : data,
+			dataType : 'json',
+			contentType : 'application/json',
+			beforeSend : function(xhr) {
+				console.log(xhr);
+				console.log('send...');
+			},
+			success : function(data, textStatus) {
+				console.log(data);
+				console.log(textStatus);
+			},
+			error : function(xhr, textStatus) {
+				console.log(xhr);
+				console.log(textStatus);
+			},
+			complete : function() {
+				console.log('end...');
+			}
+		});
+	}
+
+	function formatterAction(value, row, index) {
+		var down = '<button type="button" class="btn btn-default btn-xs" onclick="downFile(\''
+				+ row.fileStoreId + '\')">下载</button> ';
+		var del = '<button type="button" class="btn btn-default btn-xs" onclick="deleteFile(\''
+				+ row.fileStoreId + '\')">删除</button>';
+		return down + del;
+	}
+</script>
+</head>
+<body>
+	<div class="container-fluid">
+		<div id="toolbar">
+			<div class="form-inline" role="form">
+				<div class="form-group">
+					<button id='delall' type="button" class="btn btn-default">全部删除</button>
+				</div>
+				<div class="form-group">
+					<span>页码: </span> <input name="page" class="form-control w70"
+						type="number" value="1">
+				</div>
+				<div class="form-group">
+					<span>文件类型: </span><input name="fmime" class="form-control"
+						type="text" value='mp4' placeholder="MP4">
+				</div>
+				<div class="form-group">
+					<span>文件名: </span><input name="fname" class="form-control"
+						type="text" value='女' placeholder="文件名搜索">
+				</div>
+				<button id="ok" type="submit" class="btn btn-default">OK</button>
+			</div>
+		</div>
+		<table id="table" data-toggle="table" data-toolbar="#toolbar"
+			data-pagination="true" data-unique-id="fileStoreId"
+			data-query-params="queryParams" data-show-refresh="true"
+			data-show-toggle="true" data-show-columns="true"
+			data-url='file/list/'>
+			<thead>
+				<tr>
+					<th data-field="state" data-checkbox="true"></th>
+					<th data-field="fileStoreId">存储ID</th>
+					<th data-field="fileSize" data-sortable="true">文件大小</th>
+					<th data-field="fileName">文件名</th>
+					<th data-field="fileStoreId" data-formatter="formatterAction"></th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+</body>
+</html>

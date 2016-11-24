@@ -9,26 +9,26 @@ import com.sun.syndication.feed.rss.Item;
 
 public interface RssManage {
 
-	public Channel getChannel();
+    public Channel getChannel();
 
-	public Image getImage();
+    public Image getImage();
 
-	public List<Item> getItems();
+    public List<Item> getItems();
 
-	public String getChannelTitle();
+    public String getChannelTitle();
 
-	public String getChannelDescribe();
+    public String getChannelDescribe();
 
-	public Date getChannelPubishDate();
+    public Date getChannelPubishDate();
 
-	public String getChannelPubishDate(String dateFormat);
+    public String getChannelPubishDate(String dateFormat);
 
-	public String getChannelLink();
+    public String getChannelLink();
 
-	// public String getItemTitle();
-	// public String getItemDescribe();
-	// public Date getItemPubishDate();
-	// public String getItemPubishDate(String dateFormat);
-	// public String getItemLink();
+    // public String getItemTitle();
+    // public String getItemDescribe();
+    // public Date getItemPubishDate();
+    // public String getItemPubishDate(String dateFormat);
+    // public String getItemLink();
 
 }

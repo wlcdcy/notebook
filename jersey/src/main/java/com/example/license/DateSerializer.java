@@ -11,18 +11,17 @@ import org.codehaus.jackson.map.SerializerProvider;
 
 public class DateSerializer extends JsonSerializer<Date> {
 
-	@Override
-	public void serialize(Date value, JsonGenerator jgen,
-			SerializerProvider provider) throws IOException,
-			JsonProcessingException {
+    @Override
+    public void serialize(Date value, JsonGenerator jgen, SerializerProvider provider)
+            throws IOException, JsonProcessingException {
 
-		String formatValue = dateFormat(value);
-		jgen.writeString(formatValue);
-	}
+        String formatValue = dateFormat(value);
+        jgen.writeString(formatValue);
+    }
 
-	public static String dateFormat(Date value) {
-		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-		String formatValue = format.format(value);
-		return formatValue;
-	}
+    public static String dateFormat(Date value) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
+        String formatValue = format.format(value);
+        return formatValue;
+    }
 }

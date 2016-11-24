@@ -23,60 +23,58 @@ import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 public class PubSubPublish {
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static void publish() {
-		try {
-			XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration
-					.builder().setHost("192.168.1.227").setPort(5222)
-					.setResource("test").setCompressionEnabled(false)
-					.setSecurityMode(SecurityMode.disabled)
-					.setServiceName("im").build();
-			AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
-			conn.login("hello", "hello");
-			PubSubManager psManager = new PubSubManager(conn);
-			psManager.deleteNode("svn2");
-			// Create the node
-			ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
-			form.setAccessModel(AccessModel.open);
-			form.setPublishModel(PublishModel.open);
-			form.setDeliverPayloads(true);
-			form.setNotifyRetract(true);
-			form.setPersistentItems(true);
-			form.setPublishModel(PublishModel.open);
-			// form.setDataType(FormField.ELEMENT);
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public static void publish() {
+        try {
+            XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder().setHost("192.168.1.227")
+                    .setPort(5222).setResource("test").setCompressionEnabled(false)
+                    .setSecurityMode(SecurityMode.disabled).setServiceName("im").build();
+            AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
+            conn.login("hello", "hello");
+            PubSubManager psManager = new PubSubManager(conn);
+            psManager.deleteNode("svn2");
+            // Create the node
+            ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
+            form.setAccessModel(AccessModel.open);
+            form.setPublishModel(PublishModel.open);
+            form.setDeliverPayloads(true);
+            form.setNotifyRetract(true);
+            form.setPersistentItems(true);
+            form.setPublishModel(PublishModel.open);
+            // form.setDataType(FormField.ELEMENT);
 
-			LeafNode leaf = (LeafNode) psManager.createNode("svn2", form);
-			// LeafNode leaf = (LeafNode) psManager.getNode("svn2");
+            LeafNode leaf = (LeafNode) psManager.createNode("svn2", form);
+            // LeafNode leaf = (LeafNode) psManager.getNode("svn2");
 
-			// leaf.send(new Item());
-			// leaf.deleteItem("incoming svn");
+            // leaf.send(new Item());
+            // leaf.deleteItem("incoming svn");
 
-			// Now publish something – See Javadocs
-			SimplePayload payload = new SimplePayload("book", "pubsub_book", "");
+            // Now publish something – See Javadocs
+            SimplePayload payload = new SimplePayload("book", "pubsub_book", "");
 
-			PayloadItem payloadItem = new PayloadItem(null, payload);
-			leaf.send(payloadItem);
-			// leaf.publish(payloadItem);
-			// leaf.send(new PayloadItem("test" + System.currentTimeMillis(),new
-			// SimplePayload("book", "pubsub:test:book", "Two Towers")));
-		} catch (NoResponseException e) {
-			e.printStackTrace();
-		} catch (XMPPErrorException e) {
-			e.printStackTrace();
-		} catch (NotConnectedException e) {
-			e.printStackTrace();
-		} catch (SmackException e) {
-			e.printStackTrace();
-		} catch (XMPPException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+            PayloadItem payloadItem = new PayloadItem(null, payload);
+            leaf.send(payloadItem);
+            // leaf.publish(payloadItem);
+            // leaf.send(new PayloadItem("test" + System.currentTimeMillis(),new
+            // SimplePayload("book", "pubsub:test:book", "Two Towers")));
+        } catch (NoResponseException e) {
+            e.printStackTrace();
+        } catch (XMPPErrorException e) {
+            e.printStackTrace();
+        } catch (NotConnectedException e) {
+            e.printStackTrace();
+        } catch (SmackException e) {
+            e.printStackTrace();
+        } catch (XMPPException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		System.out.println(StringUtils.escapeForXML("你好，的进货价接口").toString());
-	}
+        System.out.println(StringUtils.escapeForXML("你好，的进货价接口").toString());
+    }
 
 }

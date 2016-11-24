@@ -20,54 +20,52 @@ import org.jivesoftware.smackx.pubsub.listener.NodeConfigListener;
 
 public class PubSubSubscribe {
 
-	public static void main(String[] args) {
+    public static void main(String[] args) {
 
-		try {
-			XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration
-					.builder().setHost("192.168.1.227").setPort(5222)
-					.setResource("test").setCompressionEnabled(false)
-					.setSecurityMode(SecurityMode.disabled)
-					.setServiceName("im").build();
-			AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
-			conn.login("hello", "hello");
-			PubSubManager psManager = new PubSubManager(conn);
-			// Get the node
-			LeafNode node = psManager.getNode("svn2");
-			List<? extends Item> items = node.getItems(100);
-			System.out.println(items.get(2).getId());
+        try {
+            XMPPTCPConnectionConfiguration conf = XMPPTCPConnectionConfiguration.builder().setHost("192.168.1.227")
+                    .setPort(5222).setResource("test").setCompressionEnabled(false)
+                    .setSecurityMode(SecurityMode.disabled).setServiceName("im").build();
+            AbstractXMPPConnection conn = new XMPPTCPConnection(conf).connect();
+            conn.login("hello", "hello");
+            PubSubManager psManager = new PubSubManager(conn);
+            // Get the node
+            LeafNode node = psManager.getNode("svn2");
+            List<? extends Item> items = node.getItems(100);
+            System.out.println(items.get(2).getId());
 
-			/*
-			 * node.addConfigurationListener(new NodeConfigCoordinator());
-			 * node.subscribe(conn.getStreamId());
-			 * 
-			 * ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
-			 * form.setAccessModel(AccessModel.open);
-			 * form.setDeliverPayloads(false); form.setNotifyRetract(true);
-			 * form.setPersistentItems(true);
-			 * form.setPublishModel(PublishModel.open);
-			 * 
-			 * node.sendConfigurationForm(form);
-			 */
-		} catch (NoResponseException e) {
-			e.printStackTrace();
-		} catch (XMPPErrorException e) {
-			e.printStackTrace();
-		} catch (NotConnectedException e) {
-			e.printStackTrace();
-		} catch (SmackException e) {
-			e.printStackTrace();
-		} catch (XMPPException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+            /*
+             * node.addConfigurationListener(new NodeConfigCoordinator());
+             * node.subscribe(conn.getStreamId());
+             * 
+             * ConfigureForm form = new ConfigureForm(DataForm.Type.submit);
+             * form.setAccessModel(AccessModel.open);
+             * form.setDeliverPayloads(false); form.setNotifyRetract(true);
+             * form.setPersistentItems(true);
+             * form.setPublishModel(PublishModel.open);
+             * 
+             * node.sendConfigurationForm(form);
+             */
+        } catch (NoResponseException e) {
+            e.printStackTrace();
+        } catch (XMPPErrorException e) {
+            e.printStackTrace();
+        } catch (NotConnectedException e) {
+            e.printStackTrace();
+        } catch (SmackException e) {
+            e.printStackTrace();
+        } catch (XMPPException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
 
 class NodeConfigCoordinator implements NodeConfigListener {
-	public void handleNodeConfiguration(ConfigurationEvent config) {
-		System.out.println("New configuration");
-		System.out.println(config.getConfiguration());
-	}
+    public void handleNodeConfiguration(ConfigurationEvent config) {
+        System.out.println("New configuration");
+        System.out.println(config.getConfiguration());
+    }
 }

@@ -8,10 +8,10 @@ import javax.ws.rs.core.Application;
 
 @ApplicationPath("app")
 public class MyApp extends Application {
-	@Override
-	public Set<Class<?>> getClasses() {
-		Set<Class<?>> s = new HashSet<Class<?>>();
-		s.add(HelloService.class);
-		return s;
-	}
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> s = new HashSet<Class<?>>();
+        s.add(HelloService.class);
+        return s;
+    }
 }
