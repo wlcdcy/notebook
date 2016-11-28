@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -24,7 +23,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -39,7 +37,6 @@ import net.sf.json.JSONObject;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.ClientProtocolException;
 import org.beetl.core.Configuration;
 import org.beetl.core.GroupTemplate;
 import org.beetl.core.Template;
@@ -51,6 +48,7 @@ import org.jivesoftware.smack.util.MD5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.CommonUtils;
 import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
 import com.sun.jersey.multipart.FormDataBodyPart;
@@ -58,21 +56,23 @@ import com.sun.jersey.multipart.FormDataParam;
 
 @Path("/webhook")
 public class HookResource {
-    Logger logger = LoggerFactory.getLogger(HookResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(HookResource.class);
+
+    private static final String HELLOVALUE = "hello";
+    private static final String CHARSETENCODE = "utf-8";
 
     // 微博全局变量声明
-    // String appKey="1121941913";
-    String weibo_access_token = "0ebc90cad97041ac57615c0af924f729";
-    String weibo_app_secret = "2b3626dc0a956bc98e5b05afd1dbb608";
+    private static final String WEIBODEBUGFORMAT = "[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]";
+    String weiboAccessToken = "0ebc90cad97041ac57615c0af924f729";
+    String weiboAppSecret = "2b3626dc0a956bc98e5b05afd1dbb608";
     static String[] persons = { "佘明强", "张宏", "彭祥波", "刘刚", "刘剑", "李豆", "刘国艳", "符润祯", "梁培杰", "李工", "张青", "李总", "老王",
             "沈京华", "陈静", "焦明明" };
-    static String[] person_urls = { "http://www.kaixin001.com/home/58140650.html", "张宏",
+    static String[] personUrls = { "http://www.kaixin001.com/home/58140650.html", "张宏",
             "http://cn.linkedin.com/pub/%E7%A5%A5%E6%B3%A2-%E5%BD%AD/9a/709/217", "刘刚", "刘剑", "李豆", "刘国艳", "符润祯", "梁培杰",
             "李工", "张青", "李总", "老王", "沈京华", "陈静", "焦明明" };
     static String[] actors = { "土豪", "坏人", "懒人", "商人", "工人", "牛人", "超人", "乞丐", "好人", "神人" };
     static String[] works = { "脸很大", "腰很粗", "脸挺小", "腰蛮细", "嘴很甜", "脖子粗", "眼睛小", "胳膊长", "腿挺短", "手挺快" };
     static Random random = new Random();
-    public static String trello_access_token = "";
     ObjectMapper mapper = new ObjectMapper();
 
     // 监控宝全局变量声明
@@ -80,17 +80,18 @@ public class HookResource {
     /**
      * 推送的一个msgid的集合。防止重复接收。
      */
-    public static final List<String> jkbao_msgIds = new ArrayList<String>();
+    private static final List<String> jkbaoMsgIds = new ArrayList();
     /**
      * 监控宝生成的，需要在hiwork配置时，设置这个token,做数据校验用，确保请求来自于监控宝 （类似签名的效果）
      */
-    public static String jkbao_token = "efc4f368e17fceb424074e52672e544d";
+    private static String jkbaoToken = "efc4f368e17fceb424074e52672e544d";
 
     // 金数据全局变量声明
     /**
      * 推送表单的serial_number的集合。防止重复接收。
      */
-    public static final List<String> jsj_serials = new ArrayList<String>();
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private static final List<String> JSJSERIAL = new ArrayList();
 
     /**
      * 测试服务状态服务
@@ -107,21 +108,32 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String test_form(@Context HttpServletRequest req, @FormParam("post_content") String post_content,
-            @FormParam("post_content_filtered") String post_content_filtered,
-            @FormParam("post_title") String post_title, @FormParam("post_url") String post_url,
+    public String testForm(@Context HttpServletRequest req, @FormParam("post_content") String postContent,
+            @FormParam("post_content_filtered") String postContentFiltered, @FormParam("post_title") String postTitle,
+            @FormParam("post_url") String postUrl,
 
-            @FormParam("comment_post") String comment_post, @FormParam("comment_author") String comment_author,
-            @FormParam("comment_content") String comment_content,
-            @FormParam("comment_author_url") String comment_author_url) {
+            @FormParam("comment_post") String commentPost, @FormParam("comment_author") String commentAuthor,
+            @FormParam("comment_content") String commentContent,
+            @FormParam("comment_author_url") String commentAuthorUrl) {
         // post_content, post_content_filtered, post_title, post_url
         // 彭祥波(10887272) 11:40:33
         // comment_post ： comment_author，comment_content和comment_author_url
 
-        String content_type = req.getContentType();
-        ;
-        logger.debug(content_type);
-        return content_type;
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(postContent);
+            logger.debug(postContentFiltered);
+            logger.debug(postTitle);
+            logger.debug(postUrl);
+            logger.debug(commentPost);
+            logger.debug(commentAuthor);
+            logger.debug(commentContent);
+            logger.debug(commentAuthorUrl);
+
+            logger.debug(contentType);
+        }
+
+        return contentType;
     }
 
     /**
@@ -136,19 +148,22 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String test_json(@Context HttpServletRequest req, @PathParam("token") String token,
+    public String testJson(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.debug(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(contentType);
+        }
 
         String jsonStr = null;
         try {
             jsonStr = mapper.writeValueAsString(jsonData);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         logger.debug(jsonStr);
-        return content_type;
+        return contentType;
     }
 
     /**
@@ -161,7 +176,7 @@ public class HookResource {
     @POST
     @Produces({ MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void github_form(@Context HttpServletRequest req, @FormParam("Payload") String formData) {
+    public void githubForm(@Context HttpServletRequest req, @FormParam("Payload") String formData) {
         String eventName = req.getHeader("X-Github-Event");
         String signature = req.getHeader("X-Hub-Signature");
         String deliverId = req.getHeader("X-Github-Delivery");
@@ -181,14 +196,17 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Object> github_json(@Context HttpServletRequest req, @PathParam("token") String token,
+    public Map<String, Object> githubJson(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
         String eventName = req.getHeader("X-Github-Event");
         String signature = req.getHeader("X-Hub-Signature");
         String deliverId = req.getHeader("X-Github-Delivery");
-        logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]", eventName, signature, deliverId));
-        logger.debug(jsonData.toString());
-        Map<String, Object> result = new HashMap<String, Object>();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(String.format("[event:%s] [signature:%s] [deliverId:%s]", eventName, signature, deliverId));
+            logger.debug(jsonData.toString());
+        }
+        Map<String, Object> result = new HashMap();
         result.put("status", 0);
         return result;
     }
@@ -200,13 +218,14 @@ public class HookResource {
      * @param jsonData
      * @return
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Path("/coding")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Object> code_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public Map<String, Object> codeJson(Map<String, Object> jsonData) {
         logger.debug(jsonData.toString());
-        Map<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap();
         result.put("status", 0);
         return result;
     }
@@ -221,16 +240,12 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void gitlab_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void gitlabJson(Map<String, Object> jsonData) {
         ObjectMapper omap = new ObjectMapper();
         try {
             logger.debug(omap.writeValueAsString(jsonData));
-        } catch (JsonGenerationException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
     }
 
@@ -244,7 +259,7 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String gitosc_json(@Context HttpServletRequest req, @FormParam("hook") String data) {
+    public String gitoscJson(@FormParam("hook") String data) {
         logger.debug(data);
         return "";
     }
@@ -272,25 +287,31 @@ public class HookResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String jkbao_get(@QueryParam("msg_id") String msg_id, @QueryParam("task_id") String task_id,
-            @QueryParam("task_type") String task_type, @QueryParam("fault_time") String fault_time,
-            @QueryParam("task_status") String task_status, @QueryParam("task_summary") String task_summary,
+    public String jkbaoGet(@QueryParam("msg_id") String msgId, @QueryParam("task_id") String taskId,
+            @QueryParam("task_type") String taskType, @QueryParam("fault_time") String faultTime,
+            @QueryParam("task_status") String taskStatus, @QueryParam("task_summary") String taskSummary,
             @QueryParam("content") String content, @QueryParam("token") String token) {
 
         // 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
-        if (jkbao_msgIds.contains(msg_id)) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(taskType);
+            logger.debug(taskStatus);
+            logger.debug(taskSummary);
+        }
+
+        if (jkbaoMsgIds.contains(msgId)) {
             return "";
         }
 
-        if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msg_id, task_id, fault_time, jkbao_token)))) {
+        if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msgId, taskId, faultTime, jkbaoToken)))) {
             try {
-                String msg = URLDecoder.decode(content, "UTF-8");
-                logger.info(msg);
+                String msg = URLDecoder.decode(content, CHARSETENCODE);
+                logger.debug(msg);
                 // TODO 模板渲染，推送到指定频道。
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                logger.warn(e.getMessage(), e);
             }
-            jkbao_msgIds.add(msg_id);
+            jkbaoMsgIds.add(msgId);
         }
 
         return "";
@@ -301,56 +322,63 @@ public class HookResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public void jkbao_post(@FormDataParam("msg_id") List<FormDataBodyPart> msg_idObjs,
-            @FormDataParam("task_id") List<FormDataBodyPart> task_idObjs,
-            @FormDataParam("task_type") List<FormDataBodyPart> task_typeObjs,
-            @FormDataParam("fault_time") List<FormDataBodyPart> fault_timeObjs,
-            @FormDataParam("message_type") List<FormDataBodyPart> message_typeObjs,
-            @FormDataParam("message_status") List<FormDataBodyPart> message_statusObjs,
-            @FormDataParam("task_summary") List<FormDataBodyPart> task_summaryObjs,
+    public void jkbaoPost(@FormDataParam("msg_id") List<FormDataBodyPart> msgIdObjs,
+            @FormDataParam("task_id") List<FormDataBodyPart> taskIdObjs,
+            @FormDataParam("task_type") List<FormDataBodyPart> taskTypeObjs,
+            @FormDataParam("fault_time") List<FormDataBodyPart> faultTimeObjs,
+            @FormDataParam("message_type") List<FormDataBodyPart> messageTypeObjs,
+            @FormDataParam("message_status") List<FormDataBodyPart> messageStatusObjs,
+            @FormDataParam("task_summary") List<FormDataBodyPart> taskSummaryObjs,
             @FormDataParam("content") List<FormDataBodyPart> contentObjs,
             @FormDataParam("token") List<FormDataBodyPart> tokenObjs,
-            @FormDataParam("message_detail") List<FormDataBodyPart> message_detailObjs) {
+            @FormDataParam("message_detail") List<FormDataBodyPart> messageDetailObjs) {
 
-        String msg_id = jkbao_parseFormDataBodyParts(msg_idObjs);
-        String task_id = jkbao_parseFormDataBodyParts(task_idObjs);
-        String task_type = jkbao_parseFormDataBodyParts(task_typeObjs);
-        String fault_time = jkbao_parseFormDataBodyParts(fault_timeObjs);
-        String message_type = jkbao_parseFormDataBodyParts(message_typeObjs);
-        String message_status = jkbao_parseFormDataBodyParts(message_statusObjs);
-        String task_summary = jkbao_parseFormDataBodyParts(task_summaryObjs);
-        String content = jkbao_parseFormDataBodyParts(contentObjs);
-        String token = jkbao_parseFormDataBodyParts(tokenObjs);
-        String message_detail = jkbao_parseFormDataBodyParts(message_detailObjs);
+        String msgId = jkbaoParseFormDataBodyParts(msgIdObjs);
+        String taskId = jkbaoParseFormDataBodyParts(taskIdObjs);
+        String taskType = jkbaoParseFormDataBodyParts(taskTypeObjs);
+        String faultTime = jkbaoParseFormDataBodyParts(faultTimeObjs);
+        String messageType = jkbaoParseFormDataBodyParts(messageTypeObjs);
+        String messageStatus = jkbaoParseFormDataBodyParts(messageStatusObjs);
+        String taskSummary = jkbaoParseFormDataBodyParts(taskSummaryObjs);
+        String content = jkbaoParseFormDataBodyParts(contentObjs);
+        String token = jkbaoParseFormDataBodyParts(tokenObjs);
+        String messageDetail = jkbaoParseFormDataBodyParts(messageDetailObjs);
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(taskType);
+            logger.debug(messageType);
+            logger.debug(messageStatus);
+            logger.debug(taskSummary);
+            logger.debug(messageDetail);
+        }
 
         // 检查msg_id是否已经接收过，接收过的可以忽略，不重复接收
-        if (jkbao_msgIds.contains(msg_id)) {
+        if (jkbaoMsgIds.contains(msgId)) {
             return;
         }
 
-        if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msg_id, task_id, fault_time, jkbao_token)))) {
+        if (StringUtils.endsWith(token, MD5.hex(String.format("%s%s%s%s", msgId, taskId, faultTime, jkbaoToken)))) {
             try {
-                String msg = URLDecoder.decode(content, "UTF-8");
+                String msg = URLDecoder.decode(content, CHARSETENCODE);
                 logger.info(msg);
                 // TODO 模板渲染，推送到指定频道。
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                logger.warn(e.getMessage(), e);
             }
-            jkbao_msgIds.add(msg_id);
+            jkbaoMsgIds.add(msgId);
         }
 
         return;
 
     }
 
-    private String jkbao_parseFormDataBodyParts(List<FormDataBodyPart> dataObjs) {
+    private String jkbaoParseFormDataBodyParts(List<FormDataBodyPart> dataObjs) {
         if (dataObjs != null && !dataObjs.isEmpty()) {
             for (FormDataBodyPart dataObj : dataObjs) {
                 String data = dataObj.getValueAs(String.class);
                 logger.info(data);
                 return data;
             }
-
         }
         return null;
     }
@@ -361,30 +389,27 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String jsj(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        // String api_key="tj_drkod2HhNtz69i7V40w";
-        // String api_secret="uvnVDVbHlcMmtE6huIxy6Q";
 
-        String content_type = req.getContentType();
-
-        // {form=x8GO5U, entry={serial_number=1, field_1=大熊, field_7=一定能来,
-        // field_2=13800000000, field_3=[日期1, 日期2, 日期3, 日期4], field_4=[菜类1],
-        // field_6=带两个家属, creator_name=, created_at=2015-06-03T03:28:51Z,
-        // updated_at=2015-06-03T03:28:51Z, info_remote_ip=1.80.205.127}}
-
+        String apiKey = "tj_drkod2HhNtz69i7V40w";
+        String apiSecret = "uvnVDVbHlcMmtE6huIxy6Q";
+        if (logger.isDebugEnabled()) {
+            logger.debug(apiKey);
+            logger.debug(apiSecret);
+        }
+        String contentType = req.getContentType();
         String form = (String) jsonData.get("form");
-        String serial_number = String.valueOf(((Map) jsonData.get("entry")).get("serial_number"));
-
+        String serialNumber = String.valueOf(((Map) jsonData.get("entry")).get("serial_number"));
         logger.info(form);
 
-        if (!jsj_serials.contains(serial_number)) {
+        if (!JSJSERIAL.contains(serialNumber)) {
             logger.info((String) ((Map) jsonData.get("entry")).get("DateTime"));
             // TODO generate link address and broadcast(通知有新数据，通过链接查看详情)
             String url = String.format("https://www.jinshuju.net/forms/%s/entries?utm_source=%s", form, "hiwork.cc");
             logger.info(url);
 
-            jsj_serials.add(serial_number);
+            JSJSERIAL.add(serialNumber);
         }
-        return content_type;
+        return contentType;
     }
 
     /**
@@ -399,12 +424,20 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String fir(@Context HttpServletRequest req, @FormParam("icon") String icon, @FormParam("msg") String msg,
             @FormParam("name") String name, @FormParam("changelog") String changelog,
-            @FormParam("platform") String platform, @FormParam("release_type") String release_type,
+            @FormParam("platform") String platform, @FormParam("release_type") String releaseType,
             @FormParam("build") String build) {
-        String content_type = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(icon);
+            logger.debug(msg);
+            logger.debug(name);
+            logger.debug(changelog);
+            logger.debug(platform);
+            logger.debug(releaseType);
+            logger.debug(build);
+        }
         // TODO generate msg and broadcast
 
-        return content_type;
+        return req.getContentType();
     }
 
     /**
@@ -418,10 +451,9 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String sendCloud(@Context HttpServletRequest req) {
-        // String API_KEY="pzpnzMopG2SSCSOc";
-        String content_type = req.getContentType();
-        logger.info(content_type);
-        return content_type;
+        String contentType = req.getContentType();
+        logger.info(contentType);
+        return contentType;
     }
 
     /**
@@ -447,25 +479,41 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String sendCloud(@Context HttpServletRequest req, @FormParam("event") String event,
-            @FormParam("message") String message, @FormParam("mail_list_task_id") long mail_list_task_id,
+            @FormParam("message") String message, @FormParam("mail_list_task_id") long mailListTaskId,
             @FormParam("messageId") String messageId, @FormParam("category") String category,
             @FormParam("recipientArray") List<String> recipientArray, @FormParam("emailIds") List<String> emailIds,
             @FormParam("labelId") int labelId, @FormParam("recipientSize") int recipientSize,
             @FormParam("timestamp") long timestamp, @FormParam("token") String token,
             @FormParam("signature") String signature) {
 
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.info(event);
+            logger.info(message);
+            logger.info(String.valueOf(mailListTaskId));
+            logger.info(messageId);
+            logger.info(StringUtils.join(recipientArray, ","));
+            logger.info(category);
+            logger.info(StringUtils.join(emailIds, ","));
+            logger.info(String.valueOf(labelId));
+            logger.info(String.valueOf(recipientSize));
+            logger.info(String.valueOf(timestamp));
+            logger.info(token);
+            logger.info(signature);
+
+            logger.info(contentType);
+        }
+
         // TODO generate msg and broadcast
 
-        return content_type;
+        return contentType;
     }
 
     @POST
     @Path("/bitbucket/post")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void bitbucket_post(@Context HttpServletRequest req, @FormParam("payload") String payload) {
+    public void bitbucketPost(@FormParam("payload") String payload) {
         logger.info(payload);
         // TODO generate msg use jsonData and broadcast
     }
@@ -474,7 +522,7 @@ public class HookResource {
     @Path("/bitbucket/pull")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void bitbucket_pull(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void bitbucketPull(Map<String, Object> jsonData) {
         logger.info(jsonData.toString());
         // TODO generate msg use jsonData and broadcast
     }
@@ -483,15 +531,18 @@ public class HookResource {
     @Path("/swathub/{token}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String swathub_json(@Context HttpServletRequest req, @PathParam("token") String token,
+    public String swathubJson(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(contentType);
+        }
         String jsonStr = null;
         try {
             jsonStr = mapper.writeValueAsString(jsonData);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         logger.info(jsonStr);
         // TODO generate msg use jsonData and broadcast
@@ -502,19 +553,22 @@ public class HookResource {
     @Path("/swathub/{token}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String swathub_form(@Context HttpServletRequest req, @PathParam("token") String token, String payload) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
-        logger.info(payload);
+    public String swathubForm(@Context HttpServletRequest req, @PathParam("token") String token, String payload) {
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(payload);
+            logger.debug(contentType);
+        }
         // TODO generate msg use jsonData and broadcast
-        return "is ok";
+        return contentType;
     }
 
     @POST
     @Path("/gitcafe")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void gitcafe(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void gitcafe(Map<String, Object> jsonData) {
         logger.info(jsonData.toString());
         // TODO generate msg use jsonData and broadcast
     }
@@ -525,14 +579,17 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String circleci(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
-
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
         // [help] :https://circleci.com/docs/configuration
 
         // TODO generate msg use jsonData and broadcast
 
-        return content_type;
+        return contentType;
     }
 
     @POST
@@ -541,43 +598,55 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String magnum(@Context HttpServletRequest req, @PathParam("token") String token,
             @FormParam("payload") String payload) {
-        String content_type = req.getContentType();
-        logger.info(payload);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(payload);
+        }
 
         // [help] :https://circleci.com/docs/configuration
 
         // TODO generate msg use jsonData and broadcast
 
-        return content_type;
+        return contentType;
     }
 
     @Path("/outgoing")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public String outgoing_form(@Context HttpServletRequest req, @FormParam("token") String token,
-            @FormParam("team") String team, @FormParam("domain") String domain, @FormParam("channel") String channel,
-            @FormParam("timestamp") long timestamp, @FormParam("user") String user_name, @FormParam("text") String text,
-            @FormParam("trigger_word") String trigger_word, @FormParam("Payload") String formData) {
+    public String outgoingForm(@FormParam("token") String token, @FormParam("team") String team,
+            @FormParam("domain") String domain, @FormParam("channel") String channel,
+            @FormParam("timestamp") long timestamp, @FormParam("user") String userName, @FormParam("text") String text,
+            @FormParam("trigger_word") String triggerWord, @FormParam("Payload") String formData) {
 
-        logger.debug(formData);
-        if (StringUtils.contains(text, trigger_word)) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(team);
+            logger.debug(domain);
+            logger.debug(channel);
+            logger.debug(String.valueOf(timestamp));
+            logger.debug(userName);
+            logger.debug(formData);
+        }
+        if (StringUtils.contains(text, triggerWord)) {
             return text;
         }
         return null;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Path("/outgoing")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Object> outgoing_json(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        Map<String, Object> return_data = new HashMap<String, Object>();
+    public Map<String, Object> outgoingJson(Map<String, Object> jsonData) {
+        Map<String, Object> returnData = new HashMap();
         logger.debug("channel : " + (String) jsonData.get("channel"));
         String text = (String) jsonData.get("content");
-        String trigger_word = (String) jsonData.get("trigger_word");
+        String triggerWord = (String) jsonData.get("trigger_word");
 
-        if (text.trim().length() > trigger_word.length() && StringUtils.contains(text.trim(), trigger_word)) {
+        if (text.trim().length() > triggerWord.length() && StringUtils.contains(text.trim(), triggerWord)) {
             String returntext = text;
             int i = 0;
             for (String person : persons) {
@@ -589,79 +658,79 @@ public class HookResource {
                 }
 
             }
-            return_data.put("title", "outgoing[" + text + "]");
-            return_data.put("text", returntext);
+            returnData.put("title", "outgoing[" + text + "]");
+            returnData.put("text", returntext);
             if (i == 3) {
-                return_data.put("url", person_urls[i - 1]);
+                returnData.put("url", personUrls[i - 1]);
             } else {
-                return_data.put("url", "#");
+                returnData.put("url", "#");
             }
         }
 
-        return return_data;
+        return returnData;
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Path("/turing")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Object> outgoing_turing(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        Map<String, Object> return_data = new HashMap<String, Object>();
+    public Map<String, Object> outgoingTuring(Map<String, Object> jsonData) {
+        Map<String, Object> returnData = new HashMap();
         logger.debug("channel : " + (String) jsonData.get("channel"));
         String text = (String) jsonData.get("content");
-        String trigger_word = (String) jsonData.get("trigger_word");
+        String triggerWord = (String) jsonData.get("trigger_word");
 
-        if (text.trim().length() > trigger_word.length()) {
+        if (text.trim().length() > triggerWord.length()) {
             String content = StringUtils.split(text)[1];
-
-            StringBuffer sb = null;
-            BufferedReader reader = null;
             HttpURLConnection connection = null;
             try {
-                String APIKEY = "c232f980ef2b261b6934506d67e8f0a8";
-                String INFO = URLEncoder.encode(content, "utf-8");
-                String getURL = "http://www.tuling123.com/openapi/api?key=" + APIKEY + "&info=" + INFO;
+                String apiKey = "c232f980ef2b261b6934506d67e8f0a8";
+                String info = URLEncoder.encode(content, CHARSETENCODE);
+                String getURL = "http://www.tuling123.com/openapi/api?key=" + apiKey + "&info=" + info;
                 URL getUrl = new URL(getURL);
                 connection = (HttpURLConnection) getUrl.openConnection();
                 connection.connect();
 
                 // 取得输入流，并使用Reader读取
-                reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
-                sb = new StringBuffer();
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
+                try (InputStreamReader inr = new InputStreamReader(connection.getInputStream(), CHARSETENCODE);
+                        BufferedReader reader = new BufferedReader(inr)) {
+                    String readText = readerToString(reader);
+                    returnData.put("title", "turing[" + text + "]");
+                    returnData.put("text", readText);
+                    returnData.put("url", "#");
+                    return returnData;
                 }
-
-                System.out.println(sb);
-
-                return_data.put("title", "turing[" + text + "]");
-                return_data.put("text", sb.toString());
-                return_data.put("url", "#");
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.warn(e.getMessage(), e);
             } finally {
-                try {
-                    if (reader != null)
-                        reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 // 断开连接
-                try {
-                    if (connection != null)
+                if (connection != null) {
+                    try {
                         connection.disconnect();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    } catch (Exception e) {
+                        logger.warn(e.getMessage(), e);
+                    }
                 }
             }
 
         }
-        return return_data;
+        return returnData;
+    }
+    private String readerToString(BufferedReader reader){
+        StringBuilder sb = new StringBuilder();
+        String line = "";
+        try {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        } catch (IOException e) {
+            logger.warn(e.getMessage(),e);
+        }
+        if (logger.isDebugEnabled()) {
+            logger.debug(sb.toString());
+        }
+        return sb.toString();
     }
 
     @POST
@@ -669,12 +738,16 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String bugsnag(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
+
         // [help] https://bugsnag.com/docs/notifier-api#json-payload
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -682,20 +755,22 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String jira(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        logger.info(contentType);
         try {
             String json = new ObjectMapper().writeValueAsString(jsonData);
-            logger.info(json);
+            if (logger.isDebugEnabled()) {
+                logger.debug(json);
+            }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
 
         // [help]
         // https://developer.atlassian.com/jiradev/jira-architecture/webhooks
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -703,12 +778,19 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public String teambition(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        try {
+            String json = new ObjectMapper().writeValueAsString(jsonData);
+            if (logger.isDebugEnabled()) {
+                logger.debug(json);
+            }
+        } catch (IOException e) {
+            logger.warn(e.getMessage(), e);
+        }
         // [help] https://docs.teambition.com/wiki/webhooks#webhooks-readme
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -717,11 +799,16 @@ public class HookResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public String kf5(@Context HttpServletRequest req, @PathParam("token") String token,
             @FormDataParam("payload") String payload) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(payload);
+
+            logger.debug(contentType);
+        }
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -729,31 +816,43 @@ public class HookResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public String zendesk(@Context HttpServletRequest req, @PathParam("token") String token,
-            @FormParam("source") String source, @FormParam("id") String ticket_id,
-            @FormParam("status") String ticket_status, @FormParam("payload") String payload) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+            @FormParam("source") String source, @FormParam("id") String ticketId,
+            @FormParam("status") String ticketStatus, @FormParam("payload") String payload) {
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(source);
+            logger.debug(ticketId);
+            logger.debug(ticketStatus);
+            logger.debug(payload);
+            logger.debug(contentType);
+        }
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
     @Path("/qingyun/{token}")
     @Produces(MediaType.APPLICATION_JSON)
-    public String qingyun_post(@Context HttpServletRequest req, @PathParam("token") String token) {
-        String content_type = req.getContentType();
-        logger.info(content_type + HttpMethod.POST);
-
+    public String qingyunPost(@Context HttpServletRequest req, @PathParam("token") String token) {
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(contentType);
+        }
         // TODO generate msg use jsonData and broadcast
         return "5a6026";
     }
 
     @GET
     @Path("/qingyun/{token}")
-    public Response qingyun_get(@Context HttpServletRequest req, @PathParam("token") String token) {
-        String content_type = req.getContentType();
-        logger.info(content_type + HttpMethod.GET);
+    public Response qingyunGet(@Context HttpServletRequest req, @PathParam("token") String token) {
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(contentType);
+        }
         return Response.ok("5a6026").build();
     }
 
@@ -763,12 +862,16 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String vsOnline(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
         // [help] https://www.visualstudio.com/get-started/webhooks-and-vso-vs
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -777,12 +880,16 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String buildkite(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
         // [help] https://buildkite.com/docs/webhooks
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -791,12 +898,16 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String gogs(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
         // [help]
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -805,12 +916,17 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String codeship(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
+
         // [help] https://codeship.com/documentation/integrations/webhooks/
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -819,12 +935,17 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String travis(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
+
         // [help] https://codeship.com/documentation/integrations/webhooks/
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
@@ -833,20 +954,25 @@ public class HookResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String runscope(@Context HttpServletRequest req, @PathParam("token") String token,
             Map<String, Object> jsonData) {
-        String content_type = req.getContentType();
-        logger.info(content_type);
+        String contentType = req.getContentType();
+        if (logger.isDebugEnabled()) {
+            logger.debug(token);
+            logger.debug(CommonUtils.object2Json(jsonData));
+            logger.debug(contentType);
+        }
+
         // [help]
         // https://www.runscope.com/docs/api-testing/notifications#webhook
 
         // TODO generate msg use jsonData and broadcast
-        return content_type == null ? "hello" : content_type;
+        return contentType == null ? HELLOVALUE : contentType;
     }
 
     @POST
     @Path("/getsentry")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void getsentry(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void getsentry(Map<String, Object> jsonData) {
         logger.info(jsonData.toString());
         // [help] https://github.com/getsentry/sentry-webhooks
 
@@ -857,8 +983,7 @@ public class HookResource {
     @Path("/relic")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public void newrelic(@Context HttpServletRequest req, @FormParam("alert") String alert,
-            @FormParam("deployment") String deployment) {
+    public void newrelic(@FormParam("alert") String alert, @FormParam("deployment") String deployment) {
         logger.info(alert);
         logger.info(deployment);
         // 警告信息 和 部署发布通知两类信息
@@ -875,7 +1000,7 @@ public class HookResource {
     @Path("/worktile")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void worktile(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void worktile(Map<String, Object> jsonData) {
 
         // **********以任务评论为例 列举数据模型*************************
         // 1:action
@@ -907,7 +1032,7 @@ public class HookResource {
     @Path("/tower")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public void tower(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+    public void tower(Map<String, Object> jsonData) {
         logger.info(jsonData.toString());
         // **********以讨论的评论为例 列举数据模型*************************
         // 1:action
@@ -942,7 +1067,7 @@ public class HookResource {
         try {
             resp.sendRedirect(TrelloUtils.getOauthUrl());
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
     }
 
@@ -957,13 +1082,12 @@ public class HookResource {
     @GET
     @Path("/trello/auth/callback")
     @Produces(MediaType.APPLICATION_JSON)
-    public String trelloOauthCallBack(@Context HttpServletRequest req, @QueryParam("oauth_token") String oauth_token,
-            @QueryParam("oauth_verifier") String oauth_verifier) {
-        logger.info("oauth_token : " + oauth_token);
-        logger.info("oauth_verifier: " + oauth_verifier);
-        String access_token = TrelloUtils.getAccessToken(oauth_token, oauth_verifier);
-        trello_access_token = access_token;
-        logger.info("access_token: " + access_token);
+    public String trelloOauthCallBack(@QueryParam("oauth_token") String oauthToken,
+            @QueryParam("oauth_verifier") String oauthVerifier) {
+        logger.info("oauth_token : " + oauthToken);
+        logger.info("oauth_verifier: " + oauthVerifier);
+        String accessToken = TrelloUtils.getAccessToken(oauthToken, oauthVerifier);
+        logger.info("trello_access_token: " + accessToken);
         return "is ok!";
     }
 
@@ -977,18 +1101,14 @@ public class HookResource {
     @POST
     @Path("/trello/board/callback")
     @Produces(MediaType.APPLICATION_JSON)
-    public String trelloBoardCallBackPost(@Context HttpServletRequest req, Map<String, Object> json_obj) {
-        String content_type = req.getContentType();
+    public String trelloBoardCallBackPost(@Context HttpServletRequest req, Map<String, Object> jsonObj) {
+        String contentType = req.getContentType();
         try {
-            logger.info("push data : " + new ObjectMapper().writeValueAsString(json_obj));
-        } catch (JsonGenerationException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
+            logger.info("push data : " + new ObjectMapper().writeValueAsString(jsonObj));
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
-        return content_type;
+        return contentType;
     }
 
     /**
@@ -1002,7 +1122,8 @@ public class HookResource {
     @Path("/trello/board/callback")
     @Produces(MediaType.APPLICATION_JSON)
     public String trelloBoardCallBackHead(@Context HttpServletRequest req, @Context HttpServletResponse resp) {
-        return "is ok";
+        resp.getContentType();
+        return req.getContentType();
     }
 
     /**
@@ -1018,46 +1139,59 @@ public class HookResource {
     @Path("/weibo")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public String weibo_json(@Context HttpServletRequest req, String text) throws IOException {
+    public String weiboJson(@Context HttpServletRequest req, String text) throws IOException {
         String timestamp = req.getParameter("timestamp");
         String signature = req.getParameter("signature");
         String nonce = req.getParameter("nonce");
         String echostr = req.getParameter("echostr");
-        logger.debug(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp, nonce,
-                echostr));
-        System.out.println(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp,
-                nonce, echostr));
+
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format(WEIBODEBUGFORMAT, signature, timestamp, nonce, echostr));
+            logger.debug(String.format(WEIBODEBUGFORMAT, signature, timestamp, nonce, echostr));
+            logger.debug("received message : " + text);
+        }
         if (validateSHA(signature, nonce, timestamp)) {
             if (org.apache.commons.lang.StringUtils.isNotBlank(echostr)) {
                 return echostr;
             } else {
                 // 正常推送消息时不会存在echoStr参数。
                 // 接收post过来的消息数据
-                // StringBuilder sb = new StringBuilder();
-                // BufferedReader in = req.getReader();
-                // String line;
-                // while ((line = in.readLine()) != null) {
-                // sb.append(line);
-                // }
+                StringBuilder sb = new StringBuilder();
+                BufferedReader in = req.getReader();
+                String line;
+                while ((line = in.readLine()) != null) {
+                    sb.append(line);
+                }
 
                 // TODO 根据业务对消息进行处理。处理完成可以返回空串，也可以返回回复消息。
-                System.out.println("received message : " + text);
+
                 JSONObject jsonObj = JSONObject.fromObject(text);
                 String msg = (String) jsonObj.get("text");
                 String type = (String) jsonObj.get("type");
+                /* 回复消息的发送方id */
+                String senderId = String.valueOf(jsonObj.get("sender_id"));
+                /* 回复消息的接收方id。这个字段需要在接收的推送消息中获取。 */
+                String receiverId = String.valueOf(jsonObj.get("receiver_id"));
+                String createdAt = (String) jsonObj.get("created_at");
 
-                String senderId = String.valueOf(jsonObj.get("sender_id"));// 回复消息的发送方id。即蓝v自己的uid
-                String receiverId = String.valueOf(jsonObj.get("receiver_id")); // 回复消息的接收方id。蓝v粉丝的uid。这个字段需要在接收的推送消息中获取。
-                String created_at = (String) jsonObj.get("created_at");
+                /* 需要回复消息时，修改returnContent为对应消息内容;回复text类型消息 */
+                String returnText = generateReplyMsg(textMsg(), "text", senderId, receiverId);
+                /* 回复article类型消息 */
+                String returnArticle = generateReplyMsg(articleMsg(), "articles", senderId, receiverId);
+                /* 回复position类型的消息 */
+                String returnPosition = generateReplyMsg(positionMsg(), "position", senderId, receiverId);
 
-                // 需要回复消息时，修改returnContent为对应消息内容
-                // String returnContent = generateReplyMsg(textMsg(), "text",
-                // senderId, receiverId);//回复text类型消息
-                // returnContent = generateReplyMsg(articleMsg(), "articles",
-                // senderId, receiverId); //回复article类型消息
-                // returnContent = generateReplyMsg(positionMsg(), "position",
-                // senderId, receiverId);//回复position类型的消息
-                // System.out.println("returnContent : " + text);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Text : " + returnText);
+                    logger.debug("Article : " + returnArticle);
+                    logger.debug("Position : " + returnPosition);
+
+                    logger.debug(msg);
+                    logger.debug(type);
+                    logger.debug(senderId);
+                    logger.debug(receiverId);
+                    logger.debug(createdAt);
+                }
                 return "";
             }
         } else {
@@ -1076,13 +1210,12 @@ public class HookResource {
     @GET
     @Path("/weibo")
     @Produces(MediaType.APPLICATION_JSON)
-    public String weibo_get(@Context HttpServletRequest req) throws IOException {
+    public String weiboGet(@Context HttpServletRequest req) throws IOException {
         String timestamp = req.getParameter("timestamp");
         String signature = req.getParameter("signature");
         String nonce = req.getParameter("nonce");
         String echostr = req.getParameter("echostr");
-        logger.debug(String.format("[signature:%s] [timestamp:%s] [nonce:%s] [echostr:%s]", signature, timestamp, nonce,
-                echostr));
+        logger.debug(String.format(WEIBODEBUGFORMAT, signature, timestamp, nonce, echostr));
 
         if (validateSHA(signature, nonce, timestamp)) {
             if (org.apache.commons.lang.StringUtils.isNotBlank(echostr)) {
@@ -1102,15 +1235,15 @@ public class HookResource {
      */
     @GET
     @Path("/weibo/auth")
-    public void weibo_auth(@QueryParam("code") String auth_token) {
-        System.out.println(auth_token);
+    public void weiboAuth(@QueryParam("code") String authToken) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(authToken);
+        }
         try {
-            String access_token = WeiboProvide.getAccessToken(auth_token);
-            WeiboProvide.friendsTimeLine(access_token, 0);
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
+            String accessToken = WeiboProvide.getAccessToken(authToken);
+            WeiboProvide.friendsTimeLine(accessToken, 0);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
     }
 
@@ -1139,8 +1272,10 @@ public class HookResource {
      */
     @GET
     @Path("/weibo/unauth")
-    public void weibo_unauth(@QueryParam("code") String access_token) {
-        System.out.println(access_token);
+    public void weiboUnauth(@QueryParam("code") String accessToken) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(accessToken);
+        }
     }
 
     private boolean validateSHA(String data, String signture) {
@@ -1149,7 +1284,7 @@ public class HookResource {
             md.update(data.getBytes());
             return StringUtils.equals(signture, Hex.encodeHexString(md.digest()));
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         return false;
     }
@@ -1166,12 +1301,7 @@ public class HookResource {
         if (signature == null || nonce == null || timestamp == null) {
             return false;
         }
-        // String sign = sha1(getSignContent(nonce, timestamp, appSecret));
-        // if (!signature.equals(sign)) {
-        // return false;
-        // }
-        // return true;
-        return validateSHA(getSignContent(nonce, timestamp, weibo_app_secret), signature);
+        return validateSHA(getSignContent(nonce, timestamp, weiboAppSecret), signature);
 
     }
 
@@ -1181,8 +1311,9 @@ public class HookResource {
      * @param params
      * @return
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static String getSignContent(String... params) {
-        List<String> list = new ArrayList<String>(params.length);
+        List<String> list = new ArrayList(params.length);
         for (String temp : params) {
             if (StringUtils.isNotBlank(temp)) {
                 list.add(temp);
@@ -1202,8 +1333,7 @@ public class HookResource {
      * @param strSrc
      * @return
      */
-    @SuppressWarnings("unused")
-    private static String sha1(String strSrc) {
+    public static String sha1(String strSrc) {
         MessageDigest md = null;
         String strDes = null;
 
@@ -1213,25 +1343,20 @@ public class HookResource {
             md.update(bt);
             strDes = bytes2Hex(md.digest()); // to HexString
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         return strDes;
     }
 
     private static String bytes2Hex(byte[] bts) {
         String des = "";
-        String tmp = null;
-
         for (int i = 0; i < bts.length; i++) {
-            tmp = (Integer.toHexString(bts[i] & 0xFF));
-
+            String tmp = Integer.toHexString(bts[i] & 0xFF);
             if (tmp.length() == 1) {
                 des += "0";
             }
-
             des += tmp;
         }
-
         return des;
     }
 
@@ -1251,17 +1376,16 @@ public class HookResource {
      * @throws JsonMappingException
      * @throws JsonGenerationException
      */
-    @SuppressWarnings("unused")
-    private String generateReplyMsg(String data, String type, String senderId, String receiverId) {
+    public String generateReplyMsg(String data, String type, String senderId, String receiverId) {
         JSONObject jo = new JSONObject();
         jo.put("result", true);
         jo.put("sender_id", senderId);
         jo.put("receiver_id", receiverId);
         jo.put("type", type);
         try {
-            jo.put("data", URLEncoder.encode(data, "utf-8")); // data字段的内容需要进行utf8的urlencode
+            jo.put("data", URLEncoder.encode(data, CHARSETENCODE)); // data字段的内容需要进行utf8的urlencode
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         return jo.toString();
     }
@@ -1271,8 +1395,7 @@ public class HookResource {
      * 
      * @return
      */
-    @SuppressWarnings("unused")
-    private static String textMsg() {
+    public static String textMsg() {
         JSONObject jo = new JSONObject();
         jo.put("text", "中文消息");
         return jo.toString();
@@ -1283,8 +1406,7 @@ public class HookResource {
      * 
      * @return
      */
-    @SuppressWarnings("unused")
-    private static String articleMsg() {
+    public static String articleMsg() {
         JSONObject jo = new JSONObject();
         JSONArray ja = new JSONArray();
         for (int i = 0; i < 1; i++) {
@@ -1304,8 +1426,7 @@ public class HookResource {
      * 
      * @return
      */
-    @SuppressWarnings("unused")
-    private static String positionMsg() {
+    public static String positionMsg() {
         JSONObject jo = new JSONObject();
         jo.put("longitude", "344.3344");
         jo.put("latitude", "232.343434");
