@@ -80,6 +80,7 @@ public class HookResource {
     /**
      * 推送的一个msgid的集合。防止重复接收。
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static final List<String> jkbaoMsgIds = new ArrayList();
     /**
      * 监控宝生成的，需要在hiwork配置时，设置这个token,做数据校验用，确保请求来自于监控宝 （类似签名的效果）
@@ -192,6 +193,7 @@ public class HookResource {
      * @param jsonData
      * @return
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Path("/github/{token}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -317,7 +319,6 @@ public class HookResource {
         return "";
     }
 
-    @SuppressWarnings("unused")
     @Path("/jkbao")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -1134,7 +1135,6 @@ public class HookResource {
      * @return
      * @throws IOException
      */
-    @SuppressWarnings("unused")
     @POST
     @Path("/weibo")
     @Produces(MediaType.APPLICATION_JSON)
