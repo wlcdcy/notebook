@@ -8,10 +8,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -23,16 +25,17 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.JavaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TeambitionUtils<T> {
+public class TeambitionUtils {
 
     private static Logger logger = LoggerFactory.getLogger(TeambitionUtils.class);
+
+    private TeambitionUtils() {
+    }
 
     @SuppressWarnings({ "rawtypes", "unused" })
     public static void main(String[] args) {
@@ -118,15 +121,13 @@ public class TeambitionUtils<T> {
      * @param _access_token
      * @return
      */
-    public static boolean checkAccessToken(String _access_token) {
-        String url = "/api/applications/%s/tokens/check";
-        String req_url = String.format("%s" + url, api_host, client_key);
-
-        if (check_access_token_request(req_url, _access_token) != null) {
+    public static boolean checkAccessToken(String accessTokenParam) {
+        String relativeUrlFormat = "/api/applications/%s/tokens/check";
+        String reqUrl = api_host + String.format(relativeUrlFormat, client_key);
+        if (checkAccessTokenRequest(reqUrl, accessTokenParam) != null) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -134,26 +135,19 @@ public class TeambitionUtils<T> {
      * 
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static List<Map<String, Object>> listProjects() {
         String url = "/api/projects/";
-        String req_url = String.format("%s%s?access_token=%s", api_host, url, access_token);
-        logger.info(String.format("req_url is : %s", req_url));
-        String res_data = get_request(req_url);
-        logger.info(String.format("res_data is : %s", res_data));
+        String reqUrl = String.format("%s%s?access_token=%s", api_host, url, access_token);
+        String respData = getRequest(reqUrl);
         try {
-
             ObjectMapper mapper = new ObjectMapper();
             JavaType javaType = mapper.getTypeFactory().constructParametricType(List.class, Map.class);
-            return mapper.readValue(res_data, javaType);
-
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
+            return mapper.readValue(respData, javaType);
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
-        return null;
+        return ListUtils.EMPTY_LIST;
     }
 
     /**
@@ -166,7 +160,7 @@ public class TeambitionUtils<T> {
         String url = "/api/projects/webhooks/";
         String req_url = String.format("%s%s?access_token=%s", api_host, url, access_token);
         logger.info(String.format("req_url is : %s", req_url));
-        String res_data = get_request(req_url);
+        String res_data = getRequest(req_url);
         logger.info(String.format("res_data is : %s", res_data));
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -185,7 +179,7 @@ public class TeambitionUtils<T> {
     @SuppressWarnings("unchecked")
     public static List<String> listWebhookEvent4Organizations() {
         String url = "/api/organizations/webhooks/";
-        String res_data = get_request(String.format("%s%s?access_token=%s", api_host, url, access_token));
+        String res_data = getRequest(String.format("%s%s?access_token=%s", api_host, url, access_token));
         logger.info(String.format("res_data is : %s", res_data));
         try {
             ObjectMapper mapper = new ObjectMapper();
@@ -301,7 +295,7 @@ public class TeambitionUtils<T> {
         String url = "/api/projects/%s/hooks/";
         String req_url = String.format("%s" + url + "?access_token=%s", api_host, p_id, access_token);
         logger.info(String.format("req_url is : %s", req_url));
-        String res_data = get_request(req_url);
+        String res_data = getRequest(req_url);
         logger.info(String.format("res_data is : %s", res_data));
         return res_data;
     }
@@ -314,9 +308,9 @@ public class TeambitionUtils<T> {
      */
     public static String listWebhook4Organizations(String _id) {
         String url = "/api/organizations/%s/hooks/";
-        String res_data = get_request(String.format("%s" + url + "%s?access_token=%s", api_host, _id, access_token));
-        logger.info(String.format("res_data is : %s", res_data));
-        return res_data;
+        String respData = getRequest(String.format("%s" + url + "%s?access_token=%s", api_host, _id, access_token));
+        logger.info(String.format("res_data is : %s", respData));
+        return respData;
     }
 
     // **********************private method ***************************
@@ -327,24 +321,19 @@ public class TeambitionUtils<T> {
      * @param _access_token
      * @return
      */
-    private static String check_access_token_request(String req_url, String _access_token) {
-        try {
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            HttpGet httpget = new HttpGet(req_url);
-            httpget.addHeader(HttpHeaders.AUTHORIZATION, _access_token);
+    private static String checkAccessTokenRequest(String reqUrl, String accessTokenParam) {
+        boolean isSSL = StringUtils.startsWith(reqUrl, "https") ? true : false;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(isSSL)) {
+            HttpGet httpget = new HttpGet(reqUrl);
+            httpget.addHeader(HttpHeaders.AUTHORIZATION, accessTokenParam);
             CloseableHttpResponse response = httpclient.execute(httpget);
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity());
-                return "" + response.getStatusLine().getStatusCode() + res_body;
+                String respBody = EntityUtils.toString(response.getEntity());
+                return ((Integer) response.getStatusLine().getStatusCode()).toString() + respBody;
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
@@ -355,23 +344,17 @@ public class TeambitionUtils<T> {
      * @param req_url
      * @return
      */
-    private static String get_request(String req_url) {
-        try {
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            HttpGet httpget = new HttpGet(req_url);
+    private static String getRequest(String reqUrl) {
+        boolean isSSL = StringUtils.startsWith(reqUrl, "https") ? true : false;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(isSSL)) {
+            HttpGet httpget = new HttpGet(reqUrl);
             CloseableHttpResponse response = httpclient.execute(httpget);
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity(), Consts.UTF_8);
-                return res_body;
+                return EntityUtils.toString(response.getEntity(), Consts.UTF_8);
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
@@ -398,15 +381,10 @@ public class TeambitionUtils<T> {
 
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity());
-                return res_body;
+                return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(),e);
         }
         return null;
     }
@@ -431,15 +409,10 @@ public class TeambitionUtils<T> {
 
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity());
-                return res_body;
+                return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(),e);
         }
         return null;
     }

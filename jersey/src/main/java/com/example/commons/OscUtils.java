@@ -13,11 +13,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.imageio.ImageIO;
+import javax.imageio.stream.ImageInputStream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.Consts;
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
+import org.apache.http.ParseException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -37,16 +40,22 @@ import org.slf4j.LoggerFactory;
 public class OscUtils {
 
     private static Logger logger = LoggerFactory.getLogger(OscUtils.class);
-    private static String client_id = "rVvmjArEXwSioLakrx5M";
-    private static String client_secret = "ZgU8C2mUKeK6WHS0G4xIvDpclKt6JG2l";
-    private static String base_url = "https://www.oschina.net";
+    private static final String HEADERUSERAGENT="Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803";
+    
+    private static String clientId = "rVvmjArEXwSioLakrx5M";
+    private static String clientSecret = "ZgU8C2mUKeK6WHS0G4xIvDpclKt6JG2l";
+    private static String baseUrl = "https://www.oschina.net";
 
-    static String redirect_uri = "http://xianzhouhe.eicp.net/jersey/webhook/osc/authback";
+    private static String redirectUri = "http://xianzhouhe.eicp.net/jersey/webhook/osc/authback";
 
-    public static String auth_code = "LDHcgP";
-    public static String req_state = "xyz";
-    public static String access_token = "074ca0cb-8e78-4493-ab93-704dd67fc461";
-    public static String refresh_token = "d6b67606-00e3-4d94-84a8-931de8110b35";
+    public static String authCode = "LDHcgP";
+    public static String reqState = "xyz";
+    public static String accessToken = "074ca0cb-8e78-4493-ab93-704dd67fc461";
+    public static String refreshToken = "d6b67606-00e3-4d94-84a8-931de8110b35";
+    
+   
+
+    private static final String CHARSET = "utf-8";
 
     /**
      * 获取osc认证地址
@@ -56,11 +65,11 @@ public class OscUtils {
     @SuppressWarnings("deprecation")
     public String getOauth2AuthUrl() {
         String url = "/action/oauth2/authorize";
-        String response_type = "code";
+        String responseType = "code";
 
-        String param = String.format("response_type=%s&client_id=%s&state=%s&redirect_uri=%s", response_type, client_id,
-                req_state, URLEncoder.encode(redirect_uri));
-        return base_url + url + "?" + param;
+        String param = String.format("response_type=%s&client_id=%s&state=%s&redirect_uri=%s", responseType, clientId,
+                reqState, URLEncoder.encode(redirectUri));
+        return baseUrl + url + "?" + param;
     }
 
     /**
@@ -73,9 +82,9 @@ public class OscUtils {
     public String fetchOauth2Token(String code) {
         String url = "/action/openapi/token";
         String param = String.format("dataType=%s&code=%s&grant_type=%s&client_id=%s&client_secret=%s&redirect_uri=%s",
-                "json", code, "authorization_code", client_id, client_secret, URLEncoder.encode(redirect_uri));
+                "json", code, "authorization_code", clientId, clientSecret, URLEncoder.encode(redirectUri));
         logger.info(String.format("req_data is : %s", param));
-        String res_data = get_request(String.format("%s%s?%s", base_url, url, param));
+        String res_data = getRequest(String.format("%s%s?%s", baseUrl, url, param));
         logger.info(String.format("res_data is : %s", res_data));
         return res_data;
     }
@@ -90,17 +99,15 @@ public class OscUtils {
      */
     public String search(String catalog, String words) {
         String url = "/action/openapi/search_list";
+        String wordsEncode = words;
         try {
-            words = URLEncoder.encode(words, "utf-8");
+            wordsEncode = URLEncoder.encode(words, CHARSET);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
-        String param = String.format("dataType=%s&access_token=%s&catalog=%s&q=%s", "json", access_token, catalog,
-                words);
-        logger.info(String.format("req_data is : %s", param));
-        String res_data = post_request(url, param);
-        logger.info(String.format("res_data is : %s", res_data));
-        return res_data;
+        String param = String.format("dataType=%s&access_token=%s&catalog=%s&q=%s", "json", accessToken, catalog,
+                wordsEncode);
+        return postRequest(url, param);
 
     }
 
@@ -123,13 +130,13 @@ public class OscUtils {
         // content true string 帖子内容
         // askuser false long 用户id（向某人提问）
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         try {
-            sb.append("access_token=" + access_token).append("&catalog=" + catalog)
-                    .append("&title=" + URLEncoder.encode(title, "utf-8"))
-                    .append("&content=" + URLEncoder.encode(content, "utf-8"));
+            sb.append("access_token=" + accessToken).append("&catalog=" + catalog)
+                    .append("&title=" + URLEncoder.encode(title, CHARSET))
+                    .append("&content=" + URLEncoder.encode(content, CHARSET));
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
         if (isNoticeMe != null) {
             sb.append("&isNoticeMe=" + isNoticeMe);
@@ -153,12 +160,12 @@ public class OscUtils {
      */
     public String list_tweet(long userid) {
         String url = "/action/openapi/tweet_list";
-        StringBuffer sb = new StringBuffer();
-        sb.append("access_token=" + access_token).append("&user=" + userid);
+        StringBuilder sb = new StringBuilder();
+        sb.append("access_token=" + accessToken).append("&user=" + userid);
         String params = sb.toString();
         logger.info(String.format("req_data is : %s", params));
 
-        String res_data = post_request(url, params);
+        String res_data = postRequest(url, params);
         logger.info(String.format("res_data is : %s", res_data));
         return res_data;
     }
@@ -177,8 +184,8 @@ public class OscUtils {
         // img false image 图片流
 
         String url = "/action/openapi/tweet_pub";
-        StringBuffer sb = new StringBuffer();
-        sb.append("access_token=" + access_token).append("&msg=" + URLEncoder.encode(msg));
+        StringBuilder sb = new StringBuilder();
+        sb.append("access_token=" + accessToken).append("&msg=" + URLEncoder.encode(msg));
         String params = sb.toString();
         logger.info(String.format("req_data is : %s", params));
         String res_data = request(HttpPost.METHOD_NAME, url, params);
@@ -195,19 +202,20 @@ public class OscUtils {
      *            img(object type)可以是File、InputStram、byte[]类型
      * @return
      */
-    public String pub_tweet(String msg, Object img) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public String pubTweet(String msg, Object img) {
         if (img == null) {
             return pub_tweet(msg);
         }
         String url = "/action/openapi/tweet_pub";
-        Map<String, Object> params = new HashMap<String, Object>();
-        params.put("access_token", access_token);
+        Map<String, Object> params = new HashMap();
+        params.put("access_token", accessToken);
         params.put("msg", msg);
         params.put("img", img);
         logger.info(String.format("req_data is : %s", params));
-        String res_data = request(HttpPost.METHOD_NAME, url, params);
-        logger.info(String.format("res_data is : %s", res_data));
-        return res_data;
+        String reqData = request(HttpPost.METHOD_NAME, url, params);
+        logger.info(String.format("res_data is : %s", reqData));
+        return reqData;
     }
 
     /**
@@ -216,86 +224,76 @@ public class OscUtils {
      * @param type
      * @return
      */
-    public String project_list(String type) {
+    public String projectList(String type) {
         String url = "/action/openapi/project_list";
-        StringBuffer sb = new StringBuffer();
-        sb.append("access_token=" + access_token).append("&type=" + type);
+        StringBuilder sb = new StringBuilder();
+        sb.append("access_token=" + accessToken).append("&type=" + type);
         String params = sb.toString();
         logger.info(String.format("req_data is : %s", params));
 
-        String res_data = post_request(url, params);
-        logger.info(String.format("res_data is : %s", res_data));
-        return res_data;
+        String respData = postRequest(url, params);
+        logger.info(String.format("res_data is : %s", respData));
+        return respData;
     }
 
-    private String buildReqeustUrl(String relative_url, String all_params) {
-        return String.format("%s%s?%s", base_url, relative_url, all_params);
+    private String buildReqeustUrl(String relativeUrl, String params) {
+        String url = String.format("%s%s", baseUrl, relativeUrl);
+        if (StringUtils.isBlank(params)) {
+            return url;
+        } else {
+            return url + "?" + params;
+        }
     }
 
-    private String buildReqeustUrlWithOutParam(String relative_url) {
-        return String.format("%s%s", base_url, relative_url);
+    private String buildReqeustUrlWithOutParam(String relativeUrl) {
+        return String.format("%s%s", baseUrl, relativeUrl);
     }
 
-    public String post_request(String req_url, String req_data) {
-        try {
-            req_url = buildReqeustUrl(req_url, req_data);
+    public String postRequest(String reqUrl, String reqData) {
+        String reqUrlwithParam = buildReqeustUrl(reqUrl, reqData);
 
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            HttpPost httpPost = new HttpPost(req_url);
-            httpPost.addHeader(HttpHeaders.USER_AGENT,
-                    "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+        boolean ssl = StringUtils.startsWith(reqUrlwithParam, "https") ? true : false;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);) {
+
+            HttpPost httpPost = new HttpPost(reqUrlwithParam);
+            httpPost.addHeader(HttpHeaders.USER_AGENT,HEADERUSERAGENT);
             CloseableHttpResponse response = httpclient.execute(httpPost);
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity());
-                return res_body;
+                return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
 
-    private String get_request(String req_url) {
-        try {
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            HttpGet httpget = new HttpGet(req_url);
-            httpget.addHeader(HttpHeaders.USER_AGENT,
-                    "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+    private String getRequest(String reqUrl) {
+        boolean ssl = StringUtils.startsWith(reqUrl, "https") ? true : false;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl)) {
+            HttpGet httpget = new HttpGet(reqUrl);
+            httpget.addHeader(HttpHeaders.USER_AGENT,HEADERUSERAGENT);
             CloseableHttpResponse response = httpclient.execute(httpget);
             logger.info(response.toString());
             if (response.getStatusLine().getStatusCode() < 300) {
-                String res_body = EntityUtils.toString(response.getEntity());
-                return res_body;
+                return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
 
     private String request(String method, String url, String params) {
-        try {
-            String req_url = buildReqeustUrlWithOutParam(url);
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
+        String reqUrl = buildReqeustUrlWithOutParam(url);
+        boolean ssl = StringUtils.startsWith(reqUrl, "https") ? true : false;
 
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            CloseableHttpResponse response = null;
-
+        CloseableHttpResponse response = null;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl)) {
             if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-                response = httpclient.execute(getHttpGet(req_url));
+                response = httpclient.execute(getHttpGet(reqUrl));
             } else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-                response = httpclient.execute(getHttpPost(req_url, params));
+                response = httpclient.execute(getHttpPost(reqUrl, params));
             } else {
                 return null;
             }
@@ -303,28 +301,21 @@ public class OscUtils {
             if (response.getStatusLine().getStatusCode() < 300) {
                 return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
 
     private String request(String method, String url, Map<String, Object> params) {
-        try {
-            String req_url = buildReqeustUrlWithOutParam(url);
-            boolean ssl = StringUtils.startsWith(req_url, "https") ? true : false;
-
-            CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl);
-            CloseableHttpResponse response = null;
-
+        String reqUrl = buildReqeustUrlWithOutParam(url);
+        boolean ssl = StringUtils.startsWith(reqUrl, "https") ? true : false;
+        CloseableHttpResponse response = null;
+        try (CloseableHttpClient httpclient = NETUtils.getHttpClient(ssl)) {
             if (StringUtils.equals(HttpGet.METHOD_NAME, method)) {
-                response = httpclient.execute(getHttpGet(req_url));
+                response = httpclient.execute(getHttpGet(reqUrl));
             } else if (StringUtils.equals(HttpPost.METHOD_NAME, method)) {
-                response = httpclient.execute(getHttpPost(req_url, params));
+                response = httpclient.execute(getHttpPost(reqUrl, params));
             } else {
                 return null;
             }
@@ -332,27 +323,21 @@ public class OscUtils {
             if (response.getStatusLine().getStatusCode() < 300) {
                 return EntityUtils.toString(response.getEntity());
             }
-        } catch (UnsupportedCharsetException e) {
-            e.printStackTrace();
-        } catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (UnsupportedCharsetException | ParseException | IOException e) {
+            logger.warn(e.getMessage(), e);
         }
         return null;
     }
 
-    private HttpGet getHttpGet(String req_url) {
-        HttpGet httpRequest = new HttpGet(req_url);
-        httpRequest.addHeader(HttpHeaders.USER_AGENT,
-                "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+    private HttpGet getHttpGet(String reqUrl) {
+        HttpGet httpRequest = new HttpGet(reqUrl);
+        httpRequest.addHeader(HttpHeaders.USER_AGENT,HEADERUSERAGENT);
         return httpRequest;
     }
 
-    private HttpPost getHttpPost(String req_url, String params) {
-        HttpPost httpPost = new HttpPost(req_url);
-        httpPost.addHeader(HttpHeaders.USER_AGENT,
-                "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+    private HttpPost getHttpPost(String reqUrl, String params) {
+        HttpPost httpPost = new HttpPost(reqUrl);
+        httpPost.addHeader(HttpHeaders.USER_AGENT,HEADERUSERAGENT);
         httpPost.addHeader(HttpHeaders.CONTENT_ENCODING, "utf-8");
         List<NameValuePair> formparams = URLEncodedUtils.parse(params, Consts.UTF_8, '&');
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
@@ -360,10 +345,9 @@ public class OscUtils {
         return httpPost;
     }
 
-    private HttpPost getHttpPost(String req_url, Map<String, Object> params) {
-        HttpPost httpPost = new HttpPost(req_url);
-        httpPost.addHeader(HttpHeaders.USER_AGENT,
-                "Mozilla/5.0 (X11; U; Linux i686; zh-CN; rv:1.9.1.2) Gecko/20090803");
+    private HttpPost getHttpPost(String reqUrl, Map<String, Object> params) {
+        HttpPost httpPost = new HttpPost(reqUrl);
+        httpPost.addHeader(HttpHeaders.USER_AGENT,HEADERUSERAGENT);
         MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
         Iterator<String> keys = params.keySet().iterator();
         while (keys.hasNext()) {
@@ -375,23 +359,19 @@ public class OscUtils {
                 ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), Consts.UTF_8);
                 StringBody stringBody = new StringBody((String) value, contentType);
                 entityBuilder.addPart(key, stringBody);
-                continue;
             }
             if (value instanceof File) {
                 ContentType contentType = ContentType.create(ContentType.APPLICATION_OCTET_STREAM.getMimeType());
                 FileBody fileBody = new FileBody((File) value, contentType);
                 entityBuilder.addPart(key, fileBody);
-                continue;
             }
             if (value instanceof InputStream) {
                 InputStreamBody inputBody = new InputStreamBody((InputStream) value, "img.png");
                 entityBuilder.addPart(key, inputBody);
-                continue;
             }
             if (value instanceof byte[]) {
                 ByteArrayBody byteBody = new ByteArrayBody((byte[]) value, "img.png");
                 entityBuilder.addPart(key, byteBody);
-                continue;
             }
             logger.info(String.format("not found object type for %s param", key));
         }
@@ -401,36 +381,21 @@ public class OscUtils {
 
     public static void main(String[] args) throws FileNotFoundException {
         OscUtils oscUtil = new OscUtils();
-        // search("news","java");
-        // pub_posts(2,100,"java招聘推荐","",null);
         File f = new File("d:/20150612113904.png");
-
-        // byte[] b = new byte[Integer.valueOf(""+f.length())] ;
-
-        InputStream in = new FileInputStream(f);
-
-        try {
-            // ImageInputStream imageIs=null;
-            // imageIs = ImageIO.createImageInputStream(in);
-            // imageIs.read(b);
-
-            // pub_tweet("@开源中国 @乔布斯 @小编辑
-            // 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img false image 图片流
-            // 】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",b);
-            // pub_tweet("@开源中国 @乔布斯 @小编辑
-            // 【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img false image 图片流
-            // 】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",f);
-            // oscUtil.pub_tweet("@开源中国 @乔布斯 @小编辑
-            // 【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦",in);
+        try (InputStream in = new FileInputStream(f); ImageInputStream imageIo = ImageIO.createImageInputStream(in)) {
+            byte[] b = new byte[((Long)f.length()).intValue()];
+            imageIo.read(b);
+            oscUtil.pubTweet(
+                    "@开源中国 @乔布斯 @小编辑【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img false image 图片流】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",
+                    b);
+            oscUtil.pubTweet(
+                    "@开源中国 @乔布斯 @小编辑【这不是恶搞，这真是一个问题】/action/openapi/tweet_pub中的【img false image 图片流】怎么使用?我用流传输了，发布也正常，文字可以显示出来，可是图片没显示出来，谁知道什么原因？",
+                    f);
+            oscUtil.pubTweet("@开源中国 @乔布斯 @小编辑【这不是恶搞，这是一次求助】请问一条沉寂了多年的帖子，怎样才能让再置顶呢？回帖有惊喜哦", in);
             oscUtil.list_tweet(-1);
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            logger.warn(e.getMessage(), e);
         }
-
     }
 
 }

@@ -116,18 +116,15 @@ public class NETUtils {
          * 2、使用java自带的keytool工具将签名证书xxx.cer 导出密钥库文件keystore（java所能识别的）。
          */
         try {
-            SSLContext sslcontext = null;
-            try {
-                sslcontext = SSLContexts.custom()
-                        .loadTrustMaterial(new File(keystore), "111111".toCharArray(), new TrustSelfSignedStrategy())
-                        .build();
-            } catch (NoSuchAlgorithmException | KeyStoreException | CertificateException | IOException e) {
-                LOG.error(e.getMessage(), e);
-            }
+            SSLContext sslcontext = SSLContexts.custom()
+                    .loadTrustMaterial(new File(keystore), "111111".toCharArray(), new TrustSelfSignedStrategy())
+                    .build();
+
             SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
 
             return HttpClients.custom().setSSLSocketFactory(sslsf).build();
-        } catch (KeyManagementException e) {
+        } catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
+                | IOException e) {
             LOG.error(e.getMessage(), e);
 
         }
@@ -167,7 +164,7 @@ public class NETUtils {
         try {
             httpclient = NETUtils.getHttpClient(isSSL);
             HttpResponse response = httpclient.execute(get);
-            return parseResponse(response,String.class);
+            return parseResponse(response, String.class);
         } catch (UnsupportedCharsetException | IOException e) {
             LOG.error(e.getMessage(), e);
         } finally {
@@ -181,9 +178,9 @@ public class NETUtils {
         }
         return null;
     }
-    
+
     @SuppressWarnings("unchecked")
-    public static <T> T parseResponse(HttpResponse response,Class<T> clazz) {
+    public static <T> T parseResponse(HttpResponse response, Class<T> clazz) {
         try {
             if (response.getStatusLine().getStatusCode() == HTTPSTATUOK) {
                 HttpEntity entity = response.getEntity();
@@ -276,7 +273,7 @@ public class NETUtils {
             httpclient = NETUtils.getHttpClient(ssl);
             CloseableHttpResponse response = null;
             response = httpclient.execute(createHttpGet(url));
-            return parseResponse(response,clazz);
+            return parseResponse(response, clazz);
         } catch (UnsupportedCharsetException | IOException e) {
             LOG.error(e.getMessage(), e);
         } finally {
@@ -552,7 +549,7 @@ public class NETUtils {
         }
     }
 
-    public static void userNNTPClient(String[] args) throws IOException {
+    public static void useNNTPClient(String[] args) throws IOException {
         int twoParam = 2;
         int threeParam = 3;
         int fiveParam = 5;
@@ -563,14 +560,13 @@ public class NETUtils {
         }
 
         String hostname = args[0];
-        String newsgroup = args[1];
-
         /* Article specifier can be numeric or Id in form <m.n.o.x@host> */
         String articleSpec = args.length >= threeParam ? args[2] : null;
 
         NNTPClient client = new NNTPClient();
         client.addProtocolCommandListener(new PrintCommandListener(new PrintWriter(System.out), true));
         client.connect(hostname);
+
         /* Optional auth */
         if (args.length == fiveParam) {
             String user = args[3];
@@ -580,42 +576,68 @@ public class NETUtils {
                 return;
             }
         }
+        parseArticle(args, articleSpec);
 
+    }
+
+    /**
+     * NNTP --
+     * 
+     * @param args
+     * @param articleSpec
+     */
+    public static void parseArticle(String[] args, String articleSpec) {
+        String newsgroup = args[1];
         NewsgroupInfo group = new NewsgroupInfo();
-        client.selectNewsgroup(newsgroup, group);
 
-        BufferedReader br = null;
-        String line;
+        BufferedReader brHeader = null;
+        BufferedReader brBody = null;
         try {
+            NNTPClient client = new NNTPClient();
+            client.selectNewsgroup(newsgroup, group);
             if (articleSpec != null) {
-                br = (BufferedReader) client.retrieveArticleHeader(articleSpec);
+                brHeader = (BufferedReader) client.retrieveArticleHeader(articleSpec);
+                brBody = (BufferedReader) client.retrieveArticleBody(articleSpec);
             } else {
                 long articleNum = group.getLastArticleLong();
-                br = client.retrieveArticleHeader(articleNum);
+                brHeader = client.retrieveArticleHeader(articleNum);
+                brBody = client.retrieveArticleBody(articleNum);
             }
-            if (br != null) {
+            String header = readContent(brHeader);
+            String body = readContent(brBody);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(header);
+                LOG.debug(body);
+            }
+        } catch (IOException e) {
+            LOG.warn(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * NNTP--
+     * 
+     * @param br
+     * @return
+     */
+    public static String readContent(BufferedReader br) {
+        if (br != null) {
+            String line = null;
+            try {
                 while ((line = br.readLine()) != null) {
                     LOG.info(line);
                 }
-                br.close();
-            }
-            if (articleSpec != null) {
-                br = (BufferedReader) client.retrieveArticleBody(articleSpec);
-            } else {
-                long articleNum = group.getLastArticleLong();
-                br = client.retrieveArticleBody(articleNum);
-            }
-            if (br != null) {
-                while ((line = br.readLine()) != null) {
-                    LOG.info(line);
+            } catch (IOException e) {
+                LOG.warn(e.getMessage(), e);
+            } finally {
+                try {
+                    br.close();
+                } catch (IOException e) {
+                    LOG.warn(e.getMessage(), e);
                 }
-                br.close();
-            }
-        } finally {
-            if (br != null) {
-                br.close();
             }
         }
+        return null;
     }
 
     public static void main(String[] args) {

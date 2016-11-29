@@ -6,8 +6,15 @@ import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Pointer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenCV {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OpenCV.class);
+    
+    private OpenCV() {
+    }
 
     public static void main(String[] args) {
         String filename = "F:/20151215152519.png";
@@ -109,12 +116,15 @@ public class OpenCV {
     public static IplImage line(IplImage src) {
         IplImage dst = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 3);
         // cvCvtColor(src, dst, CV_GRAY2BGR);
-
-        CvMat line_storage = cvCreateMat(100, 1, CV_32SC4);
-        CvSeq lines = cvHoughLines2(src, line_storage, CV_HOUGH_STANDARD, 1, Math.PI / 180, 150);
+        CvMat lineStorage = cvCreateMat(100, 1, CV_32SC4);
+        CvSeq lines = cvHoughLines2(src, lineStorage, CV_HOUGH_STANDARD, 1, Math.PI / 180, 150);
         for (int i = 0; i < lines.total(); i++) {
-            FloatPointer line = new FloatPointer(cvGetSeqElem(lines, i));
-            cvLine(src, new CvPoint(line.position(0)), new CvPoint(line.position(1)), CV_RGB(0, 255, 0), 1, CV_AA, 0);
+            try (FloatPointer line = new FloatPointer(cvGetSeqElem(lines, i))) {
+                cvLine(src, new CvPoint(line.position(0)), new CvPoint(line.position(1)), CV_RGB(0, 255, 0), 1, CV_AA,
+                        0);
+            } catch (Exception e) {
+                LOG.warn(e.getMessage(), e);
+            }
         }
         return dst;
     }
@@ -128,7 +138,7 @@ public class OpenCV {
      * @return
      */
     public static IplImage rotate(IplImage src, double angle) {
-        angle = -4;
+        //angle = -4;
         // int w =
         // Double.valueOf(src.width()-src.height()*Math.sin(angle)).intValue();
         // int h =
@@ -137,10 +147,10 @@ public class OpenCV {
         IplImage dst = IplImage.create(src.width(), src.height(), src.depth(), src.nChannels());
         CvPoint2D32f point = cvPoint2D32f(0, 0); // 旋转点
         Pointer data = point;
-        CvMat map_matrix = cvMat(2, 3, CV_32F, data);
-        cv2DRotationMatrix(point, angle, 1, map_matrix);
+        CvMat mapMatrix = cvMat(2, 3, CV_32F, data);
+        cv2DRotationMatrix(point, angle, 1, mapMatrix);
         int flags = CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS;
-        cvWarpAffine(src, dst, map_matrix, flags, cvScalarAll(0));
+        cvWarpAffine(src, dst, mapMatrix, flags, cvScalarAll(0));
         return dst;
     }
 }

@@ -3,6 +3,8 @@ package com.example.commons;
 import java.io.IOException;
 
 import org.apache.http.Consts;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl;
@@ -25,28 +27,30 @@ import com.google.api.client.util.store.DataStore;
  */
 public class OauthUtils {
 
+    private static final Logger LOG = LoggerFactory.getLogger(OauthUtils.class);
+
     public static HttpResponse executeGet(HttpTransport transport, JsonFactory json_factory, String access_token,
             GenericUrl url) throws IOException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod())
                 .setAccessToken(access_token);
-        HttpRequestFactory req_factory = transport.createRequestFactory(credential);
-        return req_factory.buildGetRequest(url).execute();
+        HttpRequestFactory reqFactory = transport.createRequestFactory(credential);
+        return reqFactory.buildGetRequest(url).execute();
     }
 
-    @SuppressWarnings({ "null", "unused" })
     public void useAuthorizationCodeFlow() {
         AuthorizationCodeFlow dd = null;
         try {
             Credential credential = dd.loadCredential("userid");
-            // if(credential==null){
-            // // ---
-            // }
-            AuthorizationCodeTokenRequest token_request = dd.newTokenRequest("code");
-            TokenResponse token_response = token_request.execute();
-            dd.createAndStoreCredential(token_response, "userid");
+            if (credential == null) {
+                // TODO
+                return;
+            }
+            AuthorizationCodeTokenRequest tokenRequest = dd.newTokenRequest("code");
+            TokenResponse tokenResponse = tokenRequest.execute();
+            dd.createAndStoreCredential(tokenResponse, "userid");
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn(e.getMessage(), e);
         }
     }
 
@@ -73,7 +77,7 @@ public class OauthUtils {
             // are automatically refreshed using the refresh token
 
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn(e.getMessage(), e);
         }
     }
 

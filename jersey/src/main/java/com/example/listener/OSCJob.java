@@ -43,7 +43,7 @@ public class OSCJob implements Job {
         token = job_data.getString("token");
         url = job_data.getString("url");
         // recommend-推荐|time-最新|view-热门|cn-国产
-        String resp_content = oscUtil.project_list("time");
+        String resp_content = oscUtil.projectList("time");
         List<Map> projects = null;
         String data = null;
         try {

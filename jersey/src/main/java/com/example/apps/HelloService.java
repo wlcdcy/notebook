@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 public class HelloService {
     private static final Logger LOG = LoggerFactory.getLogger(HelloService.class);
 
-    @SuppressWarnings("unused")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String getIt(@Context UriInfo ui, @Context HttpHeaders hh) {

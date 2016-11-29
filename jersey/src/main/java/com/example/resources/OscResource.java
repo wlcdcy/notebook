@@ -21,7 +21,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -78,7 +77,7 @@ public class OscResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String auth_back(@QueryParam("code") String code, @QueryParam("state") String state) {
-        OscUtils.auth_code = code;
+        OscUtils.authCode = code;
         logger.info(String.format("auth code is : %s", code));
         logger.info(String.format("res state is : %s", state));
 
@@ -93,20 +92,15 @@ public class OscResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public String search(String catalog, String words) {
         Map<String, String> data = new HashMap<String, String>();
-        data.put("access_token", OscUtils.access_token);
+        data.put("access_token", OscUtils.accessToken);
         data.put("catalog", catalog);
         data.put("q", words);
         data.put("dataType", "json");
         String req_data = "";
         try {
             req_data = new ObjectMapper().writeValueAsString(data);
-
-        } catch (JsonGenerationException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.warn(e.getMessage(), e);
         }
 
         if (StringUtils.isEmpty(req_data)) {
@@ -124,17 +118,17 @@ public class OscResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Map<String, Object> outgoing_find(@Context HttpServletRequest req, Map<String, Object> jsonData) {
-        Map<String, Object> return_data = new HashMap<String, Object>();
+    public Map<String, Object> outgoingFind(@Context HttpServletRequest req, Map<String, Object> jsonData) {
+        Map<String, Object> returnData = new HashMap<String, Object>();
         logger.debug("channel : " + (String) jsonData.get("channel"));
         String text = (String) jsonData.get("content");
-        String trigger_word = (String) jsonData.get("trigger_word");
+        String triggerWord = (String) jsonData.get("trigger_word");
 
-        if (text.trim().length() > trigger_word.length()) {
+        if (text.trim().length() > triggerWord.length()) {
             String content = StringUtils.split(text, " ", 2)[1];
             String catalog = StringUtils.split(content, " ", 2)[0];
             String words = StringUtils.split(content, " ", 2)[1];
-            String resq_data = "";
+            String respData = "";
             if (catalog.equals("tweet")) {
                 Long useid = null;
                 if ("最新".equals(words)) {
@@ -143,85 +137,70 @@ public class OscResource {
                     useid = -1L;
                 }
                 if (useid == null) {
-                    resq_data = "你只能查看【热门|最新】动弹，禁止查看作者自己的动弹";
+                    respData = "你只能查看【热门|最新】动弹，禁止查看作者自己的动弹";
                 } else {
                     String resq_content = oscUtil.list_tweet(useid);
                     List<Map> contents = null;
                     try {
                         contents = (List<Map>) ((Map) mapper.readValue(resq_content, Map.class)).get("tweetlist");
-                    } catch (JsonParseException e) {
-                        e.printStackTrace();
-                    } catch (JsonMappingException e) {
-                        e.printStackTrace();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.warn(e.getMessage(), e);
                     }
-
                     if (contents != null) {
 
-                        if (contents.size() == 0) {
-                            resq_data = String.format("没有找到与【%s】相关的信息 in [%s] ", words, catalog);
+                        if (contents.isEmpty()) {
+                            respData = String.format("没有找到与【%s】相关的信息 in [%s] ", words, catalog);
                         } else {
-                            resq_data = "";
+                            respData = "";
                             for (Map m : contents) {
                                 String author = (String) m.get("author");
                                 String body = (String) m.get("body");
                                 String pubdate = StringUtils.isEmpty((String) m.get("pubDate")) ? ""
                                         : (String) m.get("pubDate");
                                 String portrait = (String) m.get("portrait");
-                                resq_data += String.format(
+                                respData += String.format(
                                         "</br><img src=\"%s\" class=\"img-circle weibo-avar\"/> <b>%s</b> : %s - %s",
                                         portrait, StringUtils.isEmpty(author) ? "" : author, body, pubdate);
                             }
                         }
                     } else {
-                        resq_data = resq_content;
+                        respData = resq_content;
                     }
                 }
             } else {
 
                 Map<String, String> data = new HashMap<String, String>();
-                data.put("access_token", OscUtils.access_token);
+                data.put("access_token", OscUtils.accessToken);
                 data.put("catalog", catalog);
                 data.put("q", words);
                 data.put("dataType", "json");
-                String req_data = "";
+                String reqData = "";
 
                 try {
-                    req_data = new ObjectMapper().writeValueAsString(data);
+                    reqData = new ObjectMapper().writeValueAsString(data);
 
-                } catch (JsonGenerationException e) {
-                    e.printStackTrace();
-                    resq_data = e.getMessage();
-                } catch (JsonMappingException e) {
-                    e.printStackTrace();
-                    resq_data += "," + e.getMessage();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                    resq_data += "," + e.getMessage();
+                    respData += "," + e.getMessage();
+                    logger.warn(e.getMessage(), e);
                 }
 
-                if (StringUtils.isEmpty(req_data)) {
+                if (StringUtils.isEmpty(reqData)) {
                     logger.error("req_data is empty : return");
                 } else {
-                    logger.info(String.format("req_data is : %s", req_data));
-                    String resq_content = oscUtil.search(catalog, words);
+                    logger.info(String.format("req_data is : %s", reqData));
+                    String respContent = oscUtil.search(catalog, words);
                     List<Map> contents = null;
                     try {
-                        contents = (List<Map>) ((Map) mapper.readValue(resq_content, Map.class)).get("searchlist");
-                    } catch (JsonParseException e) {
-                        e.printStackTrace();
-                    } catch (JsonMappingException e) {
-                        e.printStackTrace();
+                        contents = (List<Map>) ((Map) mapper.readValue(respContent, Map.class)).get("searchlist");
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.warn(e.getMessage(), e);
                     }
                     if (contents != null) {
 
-                        if (contents.size() == 0) {
-                            resq_data = String.format("没有找到与【%s】相关的信息 in [%s] ", words, catalog);
+                        if (contents.isEmpty()) {
+                            respData = String.format("没有找到与【%s】相关的信息 in [%s] ", words, catalog);
                         } else {
-                            resq_data = "";
+                            respData = "";
                             for (Map m : contents) {
                                 String author = (String) m.get("author");
                                 String title = (String) m.get("title");
@@ -231,22 +210,21 @@ public class OscResource {
                                     title = (String) m.get("name");
                                 }
                                 String url = (String) m.get("url");
-                                resq_data += String.format(
+                                respData += String.format(
                                         "</br> <b>%s : </b> <a target=\"_blank\" href=\"%s\">%s </a> - %s",
                                         StringUtils.isEmpty(author) ? "" : author, url, title, pubdate);
                             }
                         }
                     } else {
-                        resq_data = resq_content;
+                        respData = respContent;
                     }
                 }
             }
 
-            return_data.put("title", "osc[" + text + "]");
-            return_data.put("text", resq_data);
-            // return_data.put("url", "#");
+            returnData.put("title", "osc[" + text + "]");
+            returnData.put("text", respData);
         }
-        return return_data;
+        return returnData;
     }
 
 }
