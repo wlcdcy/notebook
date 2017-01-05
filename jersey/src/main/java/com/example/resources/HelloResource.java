@@ -1,5 +1,10 @@
 package com.example.resources;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -22,6 +27,20 @@ public class HelloResource {
         }
         return "Hello, Let go! use ResourceConfig Scanning";
     }
+    @Path("/json")
+    @GET
+    @Produces({ MediaType.APPLICATION_JSON})
+    public List<Map<String,String>> getJson() {
+        List<Map<String,String>> books = new ArrayList<>();
+        for(int i=0;i<10 ;i++){
+            Map<String,String> book = new HashMap<>();
+            book.put("title", "THE WHISTLER"+i);
+            book.put("author", "John Hello"+i);
+            book.put("book_image", "https://s1.nyt.com/du/books/images/9780385541206.jpg");
+            books.add(book);
+        }
+      return books;
+  }
 
     @Path("/file")
     @POST
