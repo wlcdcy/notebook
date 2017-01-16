@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.example.commons.CommonUtils;
+import com.example.commons.NETUtils;
 import com.example.commons.TrelloUtils;
 import com.example.util.WeiboProvide;
 import com.sun.jersey.multipart.FormDataBodyPart;
@@ -72,6 +73,14 @@ public class HookResource {
             "李工", "张青", "李总", "老王", "沈京华", "陈静", "焦明明" };
     static String[] actors = { "土豪", "坏人", "懒人", "商人", "工人", "牛人", "超人", "乞丐", "好人", "神人" };
     static String[] works = { "脸很大", "腰很粗", "脸挺小", "腰蛮细", "嘴很甜", "脖子粗", "眼睛小", "胳膊长", "腿挺短", "手挺快" };
+    
+    public static final String TURING_URL="http://www.tuling123.com/openapi/api";
+    static Map<String,String> robots;
+    static {
+        robots = new HashMap<String , String>();
+        robots.put("xiaoai", "f3d7228474114e99aecc6c05fd03c176");
+        robots.put("tuling", "c232f980ef2b261b6934506d67e8f0a8");
+        };
     static Random random = new Random();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -718,6 +727,68 @@ public class HookResource {
         }
         return returnData;
     }
+    
+    @Path("/robot/{robotId}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public String robot(@PathParam("robotId")String robotId,Map<String, Object> reqData) {
+        String apiKey = robots.get(robotId);
+        if(StringUtils.isEmpty(apiKey)){
+            return null;
+        }
+        String content = (String) reqData.get("info");
+        String userid = (String)reqData.get("userid");
+        return robotGet(apiKey,content,userid);
+    }
+    
+    @SuppressWarnings({ "unchecked", "unused" })
+    private String robotPost(String apiKey,String content,String userid){
+        logger.debug(String.format("[info : %s]  [userid : %s]", content,userid));
+        if (StringUtils.isNotBlank(content) && StringUtils.isNotBlank(userid)){
+            Map<String,String> reqData = new HashMap<>();
+            reqData.put("key", apiKey);
+            reqData.put("info", content);
+            reqData.put("userid", userid);
+            String reqString = CommonUtils.object2Json(reqData);
+        
+            String respJson = NETUtils.httpPostWithJson(TURING_URL, reqString);
+            Map<String,String> respData= CommonUtils.jsonToObject(Map.class, respJson);
+            String text = respData.get("text");
+            logger.debug(text);
+            return text;
+        }
+        return null;
+    }
+    
+    private String robotGet(String apiKey,String content,String userid){
+        HttpURLConnection connection = null;
+        try {
+            String info = URLEncoder.encode(content, CHARSETENCODE);
+            String getURL =TURING_URL+"?key=" + apiKey + "&info=" + info +"&userid="+userid;
+            URL getUrl = new URL(getURL);
+            connection = (HttpURLConnection) getUrl.openConnection();
+            connection.connect();
+            // 取得输入流，并使用Reader读取
+            try (InputStreamReader inr = new InputStreamReader(connection.getInputStream(), CHARSETENCODE);
+                    BufferedReader reader = new BufferedReader(inr)) {
+                String readText = readerToString(reader);
+                return readText;
+            }
+        } catch (IOException e) {
+            logger.warn(e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.disconnect();
+                } catch (Exception e) {
+                    logger.warn(e.getMessage(), e);
+                }
+            }
+        }
+        return null;
+    }
+    
     private String readerToString(BufferedReader reader){
         StringBuilder sb = new StringBuilder();
         String line = "";

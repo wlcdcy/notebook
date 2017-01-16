@@ -59,12 +59,10 @@ public class LoginServlet extends HttpServlet {
         }
 
         if (StringUtils.isEmpty(error)) {
-            req.setAttribute("error", error);
-
-            ((HttpServletResponse) resp).sendRedirect("index.php");
-
             ((HttpServletResponse) resp).sendRedirect("hello.php");
-
+        }else{
+            req.setAttribute("error", error);
+            ((HttpServletResponse) resp).sendRedirect("index.php");
         }
 
     }
