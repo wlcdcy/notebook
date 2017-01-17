@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" >
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <meta name="viewport"
-	content="width=device-width,height=device-height,initial-scale=1.0">
+	content="width=device-width,height=device-height,initial-scale=1.0"
+	charset="utf-8">
 <title></title>
 <script src="js/tripledes.js"></script>
 <script src="js/mode-ecb.js"></script>
@@ -11,9 +12,13 @@
 <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <!-- Bootstrap CDN -->
 <!-- Latest compiled and minified CSS -->
-<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css"
+	rel="stylesheet">
 <!-- Optional theme -->
-<link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" rel="stylesheet">
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
+	rel="stylesheet">
 <!-- Latest compiled and minified JavaScript -->
 <script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 
@@ -53,9 +58,115 @@ padding:
 	margin: 0;
 }
 ]]>
+
+
+.tabs-below>.nav-tabs, .tabs-right>.nav-tabs, .tabs-left>.nav-tabs {
+	border-bottom: 0;
+}
+
+.tab-content>.tab-pane, .pill-content>.pill-pane {
+	display: none;
+}
+
+.tab-content>.active, .pill-content>.active {
+	display: block;
+}
+
+.tabs-below>.nav-tabs {
+	border-top: 1px solid #ddd;
+}
+
+.tabs-below>.nav-tabs>li {
+	margin-top: -1px;
+	margin-bottom: 0;
+}
+
+.tabs-below>.nav-tabs>li>a {
+	-webkit-border-radius: 0 0 4px 4px;
+	-moz-border-radius: 0 0 4px 4px;
+	border-radius: 0 0 4px 4px;
+}
+
+.tabs-below>.nav-tabs>li>a:hover, .tabs-below>.nav-tabs>li>a:focus {
+	border-top-color: #ddd;
+	border-bottom-color: transparent;
+}
+
+.tabs-below>.nav-tabs>.active>a, .tabs-below>.nav-tabs>.active>a:hover,
+	.tabs-below>.nav-tabs>.active>a:focus {
+	border-color: transparent #ddd #ddd #ddd;
+}
+
+.tabs-left>.nav-tabs>li, .tabs-right>.nav-tabs>li {
+	float: none;
+}
+
+.tabs-left>.nav-tabs>li>a, .tabs-right>.nav-tabs>li>a {
+	min-width: 74px;
+	margin-right: 0;
+	margin-bottom: 3px;
+}
+
+.tabs-left>.nav-tabs {
+	float: left;
+	margin-right: 19px;
+	border-right: 1px solid #ddd;
+}
+
+.tabs-left>.nav-tabs>li>a {
+	margin-right: -1px;
+	-webkit-border-radius: 4px 0 0 4px;
+	-moz-border-radius: 4px 0 0 4px;
+	border-radius: 4px 0 0 4px;
+}
+
+.tabs-left>.nav-tabs>li>a:hover, .tabs-left>.nav-tabs>li>a:focus {
+	border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+
+.tabs-left>.nav-tabs .active>a, .tabs-left>.nav-tabs .active>a:hover,
+	.tabs-left>.nav-tabs .active>a:focus {
+	border-color: #ddd transparent #ddd #ddd;
+	*border-right-color: #ffffff;
+}
+
+.tabs-right>.nav-tabs {
+	float: right;
+	margin-left: 19px;
+	border-left: 1px solid #ddd;
+}
+
+/*
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+     -moz-border-radius: 0 4px 4px 0;
+          border-radius: 0 4px 4px 0;
+}
+*/
+.tabs-right>.nav-tabs>li>a {
+	margin-left: -1px;
+	-webkit-border-radius: 4px 4px 0 0;
+	-moz-border-radius: 4px 4px 0 0;
+	border-radius: 4px 4px 0 0;
+}
+
+.tabs-right>.nav-tabs>li>a:hover, .tabs-right>.nav-tabs>li>a:focus {
+	border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+
+.tabs-right>.nav-tabs .active>a, .tabs-right>.nav-tabs .active>a:hover,
+	.tabs-right>.nav-tabs .active>a:focus {
+	border-color: #ddd #ddd #ddd transparent;
+	*border-left-color: #ffffff;
+}
 </style>
+
+
 <script type="application/javascript">
 	
+	
+		
         "use strict";
 
         var Chat = {};
@@ -173,7 +284,54 @@ padding:
          
             return decrypted.toString(CryptoJS.enc.Utf8);
         }
-         
+</script>
+
+
+
+<script type="text/javascript">
+	function p2pChat(robotIt){
+		console.log(robotIt);
+		
+	}
+	
+	function roomChat(robotIt){
+		console.log(robotIt);
+		
+	}
+	
+	var defaultTab= "tab1";
+    var activeTab = defaultTab;
+    var previousTab = defaultTab;  
+    $(function(){
+        //实现事件响应函数，当tab页被显示时会触发
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            activeTab = $(e.target).attr("href").substr(1);
+            if($(e.relatedTarget).attr("href")){
+            	previousTab = $(e.relatedTarget).attr("href").substr(1);
+            }else{
+            	previousTab = defaultTab;
+            }
+        });
+        
+        $("button[name='closetabbtn']").click(function(e){
+        	console.log('closetabbtn');
+        	closeTabId = $(this).parent().attr("href").substr(1);
+            $(this).parent().parent().remove();
+            
+            if(activeTab==closeTabId){
+                $('#contentnavid a[href="#'+previousTab+'"]').tab('show'); 
+            }else if(previousTab==closeTabId){
+            	previousTab = defaultTab;
+            }
+            console.log('previousTab:' + previousTab);
+            console.log('activeTab:' + activeTab);
+            
+            console.log('closeTabId:'+closeTabId);
+            $("#"+closeTabId).remove();
+            return false; //一定要return false，阻止事件往上冒泡
+        });
+    });
+    
 </script>
 </head>
 <body>
@@ -187,7 +345,42 @@ padding:
 		<div class="row">
 			<div class="col-lg-3"></div>
 			<div class="col-lg-6">
-				<div class="input-group">
+				<div class="tabbable tabs-left">
+					<ul class="nav nav-tabs" id="contentnavid">
+						<li class="active"><a href="#tab1" data-toggle="tab">tab1</a></li>
+						<li><a href="#tab2" data-toggle="tab">tab2 <button type="button" class="close"  aria-label="Close" name="closetabbtn"><span aria-hidden="true" style="color:red">&times;</span></button></a></li>
+						<li><a href="#tab3" data-toggle="tab">tab3 <button type="button" class="close"  aria-label="Close" name="closetabbtn"><span aria-hidden="true" style="color:red">&times;</span></button></a></li>
+					</ul>
+					<div class="tab-content">
+						<div class="tab-pane active" id="tab1">
+							<div>
+								<pre style="height: 350px; margin-bottom: 0px" onload="document.body.scrollTop=100"
+									id="content">
+				        			<div id="console"></div>
+				        		</pre>
+
+							</div>
+						</div>
+						<div class="tab-pane" id="tab2">
+							<div>
+								<pre style="height: 350px; margin-bottom: 0px" onload="document.body.scrollTop=100"
+									id="content">
+				        			<div id="console"></div>
+				        		</pre>
+
+							</div>
+						</div>
+						<div class="tab-pane" id="tab3">
+							<div>
+								<pre style="height: 350px; margin-bottom: 0px" onload="document.body.scrollTop=100"
+									id="content" >
+				        			<div id="console"></div>
+				        		</pre>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="input-group" style="padding-left: 93px">
 					<input type="text" class="form-control"
 						placeholder="type and press enter to chat" id="chat"><span
 						class="input-group-btn">
@@ -195,21 +388,56 @@ padding:
 					</span>
 				</div>
 			</div>
-			<div class="col-lg-3"></div>
-		</div>
-
-		<div class="row">
-			<div class="col-lg-3"></div>
-			<div class="col-lg-6">
+			<!--  -->
+			<div class="col-lg-3">
 				<div>
-					<pre style="height: 350px;" onload="document.body.scrollTop=100"
-						id="content">
-	        			<div id="console" ></div>
-	        		</pre>
-	        		
+					<h2>机器人</h2>
+				</div>
+				<div id="friends">
+					<div class="row">
+						<div>
+							<button type="button" class="btn btn-default btn-xs"
+								onclick="p2pChat('turing')">
+								<strong>图灵</strong>
+							</button>
+						</div>
+						<div hidden="true">图灵机器人基于DeepQA深度问答技术，对中文的识别准确率高达90%，是目前中文语境下智能度最高的机器人.</div>
+					</div>
+					<div class="row">
+						<div>
+							<button type="button" class="btn btn-default btn-xs"
+								onclick="p2pChat('xiaoai')">
+								<strong>小艾</strong>
+							</button>
+						</div>
+						<div hidden="true">小艾机器人是基于图灵机器人定制的聊天机器人,开始和她聊天吧。</div>
+					</div>
+				</div>
+
+				<div>
+					<h2>聊天室</h2>
+				</div>
+				<div id="rooms">
+					<div class="row">
+						<div>
+							<button type="button" class="btn btn-default btn-xs"
+								onclick="roomChat('yingshi')">
+								<strong>鬼吹灯</strong>
+							</button>
+						</div>
+						<div hidden="true">鬼吹灯系列，交流通道已经打开，快快加入吐槽吧.</div>
+					</div>
+					<div class="row">
+						<div>
+							<button type="button" class="btn btn-default btn-xs"
+								onclick="roomChat('xiju')">
+								<strong>喜剧人</strong>
+							</button>
+						</div>
+						<div hidden="true">喜剧创作。</div>
+					</div>
 				</div>
 			</div>
-			<div class="col-lg-3"></div>
 		</div>
 	</div>
 </body>
