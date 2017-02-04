@@ -438,6 +438,20 @@
 		    <artifactId>xercesImpl</artifactId>
 		    <version>2.9.1</version>
 		</dependency>
+		
+		<!-- xmpp (Multi-User Chat, PubSub, …) and other XMPP extensions. -->
+		<dependency>
+		    <groupId>org.igniterealtime.smack</groupId>
+		    <artifactId>smack-extensions</artifactId>
+		    <version>4.1.8</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.igniterealtime.smack</groupId>
+		    <artifactId>smack-tcp</artifactId>
+		    <version>4.1.8</version>
+		</dependency>
+		
+		
 <!-- 		<dependency> -->
 <!-- 		    <groupId>xml-apis</groupId> -->
 <!-- 		    <artifactId>xml-apis</artifactId> -->
