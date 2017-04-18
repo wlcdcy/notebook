@@ -3,18 +3,25 @@ package com.example.license;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.hyperic.sigar.Cpu;
+import org.hyperic.sigar.OperatingSystem;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.example.exception.JsonObj2StrException;
 import com.example.exception.JsonStr2ObjException;
 
 //数据:每次颁发License时提供【可以格式化如：[有效期-用户数-空间限制-服务等]】。
-//对称秘钥:每次颁发License时提供。
-//非对称密钥对:固定的，私钥保留，公钥随程序一起。
+//对称秘钥:每次颁发License时提供,对数据进行加密。
+//非对称密钥对:固定的，私钥保留，公钥随程序一起。对称密钥加密后的数据用私钥进行加密结果转换成base64即License。
 //（注：对称秘钥与数据是一一对应的一对。）
 //
 //
@@ -31,6 +38,7 @@ import com.example.exception.JsonStr2ObjException;
  *
  */
 public class LicenseUtil {
+    public static Logger log = LoggerFactory.getLogger(LicenseUtil.class);
     private static ObjectMapper mapper = new ObjectMapper();
 
     public static String generateSecret(String key, LicenseData data) {
@@ -61,7 +69,7 @@ public class LicenseUtil {
         map.put("secret", secret);
         try {
             String source = convertToString(map);
-            String license = RSAUtil2.encrypt(source, pri_key);
+            String license = RSAUtil.encrypt(source, pri_key);
             return license;
         } catch (IOException e) {
             e.printStackTrace();
@@ -72,7 +80,7 @@ public class LicenseUtil {
     @SuppressWarnings("unchecked")
     public static LicenseData parseLicense(String secret, String license, PublicKey pub_key) {
         try {
-            Map<String, String> _obj = convertToObjcet(RSAUtil2.decrypt(license, pub_key), Map.class);
+            Map<String, String> _obj = convertToObjcet(RSAUtil.decrypt(license, pub_key), Map.class);
             LicenseData data = (LicenseData) convertToObjcet(DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
                     LicenseData.class);
             if (StringUtils.equals(generateSecret(secret, data), _obj.get("secret"))) {
@@ -89,8 +97,8 @@ public class LicenseUtil {
     @SuppressWarnings("unchecked")
     public static LicenseData parseLicense(String secret, String license) {
         try {
-            PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey("");
-            Map<String, String> _obj = convertToObjcet(RSAUtil2.decrypt(license, pub_key), Map.class);
+            PublicKey pub_key = SerializableUtil.DeserializablePublicKey("");
+            Map<String, String> _obj = convertToObjcet(RSAUtil.decrypt(license, pub_key), Map.class);
             LicenseData data = (LicenseData) convertToObjcet(DESUtil.decrypt(_obj.get("data"), _obj.get("secret")),
                     LicenseData.class);
             if (StringUtils.equals(generateSecret(secret, data), _obj.get("secret"))) {
@@ -102,5 +110,59 @@ public class LicenseUtil {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    
+    public static void main(String[] args) {
+        String key = "A1B2C3D4E5F6";
+        LicenseData licenseData = new LicenseData();
+        licenseData.setUserNum(50000000);
+        licenseData.setSpaceSum(1000000000);
+        licenseData.setEndTime(new Date());
+        try {
+            String source = convertToString(licenseData);
+            log.info("license data ： " + source);
+            String secret = generateSecret(key,licenseData);
+            log.info("对称密钥 ： " + secret);
+            String encryptData = DESUtil.encrypt(source, secret);
+            log.info("对称密钥加密license data后: " + encryptData);
+            Map<String, String> ml = new HashMap<String, String>();
+            ml.put("data", encryptData);
+            ml.put("secret", secret);
+            String license = convertToString(ml);
+            log.info("license : " + license);
+
+            String seed = "1";
+            String encrypt_license = RSAUtil.encrypt(license, seed);
+            log.info("encrypt_license : " + encrypt_license);
+            String decrypt_license = RSAUtil.decrypt(encrypt_license, seed);
+            log.info("decrypt_license : " + decrypt_license);
+
+            @SuppressWarnings("unchecked")
+            Map<String, String> decrypt_eicense_obj = convertToObjcet(decrypt_license, Map.class);
+            String encrypt_data = decrypt_eicense_obj.get("data");
+            log.info("encrypt_data : " + encrypt_data);
+            String secret_ = decrypt_eicense_obj.get("secret");
+            // LicenseData ld
+            // =generateLicense(decrypt_license,LicenseData.class);
+            // secret_+=ld.getEndTime().getTime();
+            log.info("对称密钥—— : " + secret_);
+            String decryptData = DESUtil.decrypt(encrypt_data, secret_);
+            System.out.println("解密后: " + decryptData);
+
+            Sigar sigar = new Sigar();
+            try {
+                Cpu cpu = sigar.getCpu();
+                log.info(cpu.toString());
+            } catch (SigarException e) {
+                e.printStackTrace();
+            }
+
+            OperatingSystem os = OperatingSystem.getInstance();
+
+            log.info(os.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

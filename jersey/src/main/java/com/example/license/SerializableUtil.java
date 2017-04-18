@@ -9,9 +9,9 @@ import java.io.ObjectOutputStream;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-public class PublicKeyUtil {
+public class SerializableUtil {
 
-    public void SerializablePublicKey(Object obj, String path) {
+    public void SerializableObject(Object obj, String path) {
         FileOutputStream fos = null;
         ObjectOutputStream oos = null;
         try {

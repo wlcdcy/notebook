@@ -45,7 +45,7 @@ public class LicenseListener implements ServletContextListener {
         }
 
         String keyPath = sc.getRealPath("/license.key");
-        PublicKey pub_key = PublicKeyUtil.DeserializablePublicKey(keyPath);
+        PublicKey pub_key = SerializableUtil.DeserializablePublicKey(keyPath);
         if (pub_key == null) {
             throw new RuntimeException(msg);
         }

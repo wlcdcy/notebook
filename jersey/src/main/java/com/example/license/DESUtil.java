@@ -145,7 +145,7 @@ public class DESUtil {
     }
 
     public static void main(String[] args) throws Exception {
-        String source = "amigoxie";
+        String source = "amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好amigoxieh好";
         System.out.println("原文: " + source);
         String key = "A1B2C3D4E5F60708";
         String encryptData = encrypt(source, key);
