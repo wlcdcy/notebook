@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
 import com.example.exception.JsonObj2StrException;
 import com.example.exception.JsonStr2ObjException;
 
-//数据:每次颁发License时提供【可以格式化如：[有效期-用户数-空间限制-服务等]】。
+//数据:每次颁发License时提供【可以格式化如：[有效期-用户数-空间限制-服务等]】。对称密钥先对数据加密
 //对称秘钥:每次颁发License时提供,对数据进行加密。
-//非对称密钥对:固定的，私钥保留，公钥随程序一起。对称密钥加密后的数据用私钥进行加密结果转换成base64即License。
+//非对称密钥对:固定的，私钥保留，公钥随程序一起。
 //（注：对称秘钥与数据是一一对应的一对。）
 //
 //
