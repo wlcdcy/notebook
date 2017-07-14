@@ -92,7 +92,7 @@ public class GuideServlet extends HttpServlet {
      */
     public static void main(String[] args){
         //http://www.ibodao.com/Personal/ability/puserid/8.html
-        String filePath = "D:/Users/Yahoo/Desktop/ibodao.cookies";
+        String filePath = "D:/Users/Yahoo/git/notebook/jersey/src/main/java/com/example/action/ibodao.cookies";
         parseUserInfo(new File(filePath));
     }
 }
