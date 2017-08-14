@@ -677,7 +677,9 @@ public class DOCXDocumentParse extends DocumentParse {
                             logger.info(childText);
                         }
                         sentenceElement.setChildTexts(childTexts);
-
+                        
+                        bodyElement.setCharNumber(1);
+                        bodyElement.setWordNumber(1);
                         return bodyElement;
                     }
                 }
@@ -692,8 +694,8 @@ public class DOCXDocumentParse extends DocumentParse {
             int charNumber = countWordNumber(deleteSpace(content));
             int wordNumber = isWord ? wordNumberDeleteSpace(content,isWord) : charNumber;
             bodyElement = new BElement();
-            bodyElement.setCharNumber(charNumber);
-            bodyElement.setWordNumber(wordNumber);
+            bodyElement.setCharNumber(charNumber+1);
+            bodyElement.setWordNumber(wordNumber+1);
             List<SentenceElement> sentences = new ArrayList<>();
             bodyElement.setSentences(sentences);
 
