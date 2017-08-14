@@ -24,8 +24,10 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.LogUtils;
+
 public class PoiXwpfExtractContentImpl extends PoiExtractContent<XWPFDocument> {
-    Logger logger = LoggerFactory.getLogger(PoiXwpfExtractContentImpl.class);
+    Logger log = LoggerFactory.getLogger(PoiXwpfExtractContentImpl.class);
 
     @Override
     public Integer characterLength(InputStream ins) {
@@ -136,6 +138,136 @@ public class PoiXwpfExtractContentImpl extends PoiExtractContent<XWPFDocument> {
                     e.printStackTrace();
                 }
             }
+        }
+        return null;
+    }
+    
+    public List<Part> documentParse(InputStream ins) {
+
+        XWPFDocument document = null;
+        try {
+            document = new XWPFDocument(ins);
+            List<IBodyElement> bodys = document.getBodyElements();
+
+            List<Paragraph> paragraphs = new ArrayList<Paragraph>();
+
+            // 段落元素序号
+            int paragraphNo = 0;
+            int documentLength = 0;
+
+            for (IBodyElement body : bodys) {
+                LogUtils.writeDebugLog(log, "bodyType :" +body.getElementType().name());
+                String bodyType = body.getElementType().name();
+                if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), bodyType)) {
+                    paragraphNo += 1;
+                    XWPFParagraph xp = (XWPFParagraph) body;
+                    Paragraph p = parseXWPFParagraph(xp);
+                    if(p!=null){
+                        p.setPno(paragraphNo);
+                        paragraphs.add(p);
+                    }
+                    
+
+                } else if (StringUtils.equals(BodyElementType.TABLE.name(), bodyType)) {
+                    XWPFTable xt = ((XWPFTable) body);
+                    List<XWPFTableRow> trs = xt.getRows();
+                    for (XWPFTableRow tr : trs) {
+                        List<XWPFTableCell> tcs = tr.getTableCells();
+                        for (XWPFTableCell tc : tcs) {
+                            List<IBodyElement>  ibodyOfCell = tc.getBodyElements();
+                            
+                        }
+                    }
+                } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), bodyType)) {
+
+                }
+            }
+            logger.info("document length : " + documentLength);
+            return parts;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (document != null) {
+                try {
+                    document.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+    
+    private List<Paragraph> parseIBodyElements(List<IBodyElement> ibodys){
+        int bodyIndex=0;
+        List<Paragraph> paragraphs = new ArrayList<>();
+        for (IBodyElement body : ibodys) {
+            LogUtils.writeDebugLog(log, "bodyType :" +body.getElementType().name());
+            String bodyType = body.getElementType().name();
+            if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), bodyType)) {
+                bodyIndex += 1;
+                XWPFParagraph xp = (XWPFParagraph) body;
+                Paragraph p = parseXWPFParagraph(xp);
+                if(p!=null){
+                    p.setPno(bodyIndex);
+                    paragraphs.add(p);
+                }
+            } else if (StringUtils.equals(BodyElementType.TABLE.name(), bodyType)) {
+                XWPFTable xt = ((XWPFTable) body);
+                List<XWPFTableRow> trs = xt.getRows();
+                for (XWPFTableRow tr : trs) {
+                    List<XWPFTableCell> tcs = tr.getTableCells();
+                    for (XWPFTableCell tc : tcs) {
+                        List<Paragraph> paragraphsOfCell = parseIBodyElements(tc.getBodyElements());
+                        new Tablee
+                        
+                    }
+                }
+            } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), bodyType)) {
+
+            }
+        }
+        return paragraphs;
+    }
+    
+    private  Paragraph parseXWPFParagraph(XWPFParagraph xParagraph){
+        String content = xParagraph.getText().trim();
+        LogUtils.writeDebugLog(log, "PARAGRAPH content : " +content);
+        if (content.length() > 0) {
+            
+            Paragraph p = new Paragraph();
+            List<Run> runs = new ArrayList<>();
+            p.setRuns(runs);
+
+            int paragraphLength = 0;
+            List<XWPFRun> xruns = xParagraph.getRuns();
+            int rno = 0;
+            if (xruns.isEmpty()) {
+                return null; 
+            }
+            StringBuilder sb = new StringBuilder();
+            for (XWPFRun run : xruns) {
+                String text = run.text().trim();
+                if (StringUtils.isNotEmpty(text)) {
+                    int rlength = text.length();
+                    Run r = new Run();
+                    r.setLength(rlength);
+                    r.setText(text);
+                    r.setRno(rno);
+                    runs.add(r);
+                    paragraphLength += rlength;
+                    sb.append(text);
+                }
+                rno += 1;
+            }
+            p.setLength(paragraphLength);
+            p.setText(sb.toString());
+            String[] sentences = splitContent(p.getText());
+            p.setSentences(sentences);
+            LogUtils.writeDebugLog(log, "PARAGRAPH content : " +p.getText());
+            LogUtils.writeDebugLog(log, "PARAGRAPH length : " +paragraphLength);
+            
+            return p;
         }
         return null;
     }
