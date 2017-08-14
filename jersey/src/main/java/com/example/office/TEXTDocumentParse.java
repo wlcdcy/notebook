@@ -16,209 +16,88 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.example.commons.LogUtils;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 
 public class TEXTDocumentParse extends DocumentParse {
-    static Logger logger = LoggerFactory.getLogger(TEXTDocumentParse.class);
+    private static Logger logger = LoggerFactory.getLogger(TEXTDocumentParse.class);
 
     public static void main(String[] args) throws FileNotFoundException {
         DocumentParse documentParse = new TEXTDocumentParse();
-        int charLength = documentParse.charLength("D:/Users/Administrator/Desktop/notes.txt");
+        int charLength = documentParse.charNumber("D:/Users/Administrator/Desktop/notes.txt");
         logger.info("charLength: " + charLength);
         String context = "大框架爱爱啊";
-        InputStream ins = null;
-        try {
-            ins = new ByteArrayInputStream(context.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (ins != null)
-                try {
-                    ins.close();
-                } catch (IOException e) {
-                }
+        try (InputStream ins = new ByteArrayInputStream(context.getBytes());) {
+            charLength = documentParse.charNumber(ins);
+            logger.info("charLength: " + charLength);
+        } catch (IOException e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
         }
-        charLength = documentParse.charLength(ins);
-        logger.info("charLength: " + charLength);
     }
 
     /*
      * 缺省字符集UTF-8；
      */
-    public Integer charLength(InputStream ins) {
-        BufferedInputStream bins = new BufferedInputStream(ins);
-        return charLength(bins, "UTF-8");
-    }
-
-    public Integer charLength(InputStream ins, String encoding) {
-        BufferedInputStream bins = new BufferedInputStream(ins);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(bins, Charset.forName(encoding)));
-        int charLength = 0;
-        try {
-            while (true) {
-                try {
-                    String lineContent = reader.readLine();
-                    logger.info(lineContent);
-                    if (lineContent == null) {
-                        break;
-                    } else {
-                        charLength += getLengthRemoveSpace(lineContent);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    break;
-                }
-            }
-        } finally {
-            if (ins != null) {
-                try {
-                    ins.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return charLength > 0 ? charLength : null;
-    }
-
     @Override
-    public Integer charLength(String filePath) {
-        File file = new File(filePath);
-        String encoding = "UTF-8";
-        InputStream fins = null;
-        try {
-            fins = new BufferedInputStream(new FileInputStream(file));
-            encoding = getTextStreamEncode(fins);
-        } catch (Exception e) {
-
-        } finally {
-            if (fins != null) {
-                try {
-                    fins.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        InputStream ins = null;
-        try {
-            ins = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return charLength(ins, encoding);
+    public Integer charNumber(InputStream ins) {
+        BufferedInputStream bins = new BufferedInputStream(ins);
+        return charNumber(bins, "UTF-8");
     }
 
-    @Override
-    public List<PartEntity> document2Parts(String filePath, int partLength) {
-        File file = new File(filePath);
-        String encoding = getTextStreamEncode(file);
-        InputStream ins = null;
-        BufferedInputStream bins = null;
+    public Integer charNumber(InputStream ins, String encoding) {
         BufferedReader reader = null;
-        try {
-            ins = new FileInputStream(file);
-            bins = new BufferedInputStream(ins);
-            reader = new BufferedReader(new InputStreamReader(bins, Charset.forName(encoding)));
-            // 拆分文档字符数
-            int partCharLength = 0;
-            // 拆分文档序号
-            int partNo = 0;
+        int charNumber = 0;
 
-            List<PartEntity> parts = new ArrayList<PartEntity>();
-            PartEntity pe = new PartEntity();
-            pe.setPartNo(partNo);
-            parts.add(pe);
-            List<ParagraphEntity> paragraphs = new ArrayList<ParagraphEntity>();
-            pe.setParagraphs(paragraphs);
+        try (BufferedInputStream bins = new BufferedInputStream(ins);
+                InputStreamReader isReader = new InputStreamReader(bins, Charset.forName(encoding));) {
 
-            // 段落元素序号
-            int paragraphNo = 0;
-            int firstNo = 0, lastNo = 0;
-
+            reader = new BufferedReader(isReader);
             while (true) {
-                try {
-                    String lineText = reader.readLine();
-                    logger.info(lineText);
-                    if (lineText == null) {
-                        break;
-                    }
-                    if (!"".equals(lineText)) {
-                        if (partCharLength >= partLength) {
-                            logger.info("partCharLength : " + partCharLength);
-                            logger.info("paragraphNo : " + paragraphNo);
-                            pe = new PartEntity();
-                            partCharLength = 0;
-                            partNo += 1;
-                            pe.setPartNo(partNo);
-                            paragraphs = new ArrayList<ParagraphEntity>();
-                            pe.setParagraphs(paragraphs);
-                            parts.add(pe);
-                            firstNo = lastNo;
-                        }
-                        int contentCharLength = getLengthRemoveSpace(lineText);
-                        partCharLength += contentCharLength;
-                        ParagraphEntity paragraph = new ParagraphEntity();
-                        paragraph.setLength(contentCharLength);
-                        paragraph.setNo(paragraphNo);
-                        String[] texts = splitContent(lineText);
-                        paragraph.setSentences(texts);
-                        paragraph.setText(lineText);
-                        paragraph.setPartNo(partNo);
-                        paragraphs.add(paragraph);
-                        pe.setCharacters(partCharLength);
-                        pe.setFirstNo(firstNo);
-                        pe.setLasteNo(lastNo);
-                        paragraphNo += 1;
-                        lastNo += 1;
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                String lineContent = reader.readLine();
+                logger.info(lineContent);
+                if (lineContent == null) {
                     break;
+                } else {
+                    charNumber += charNumberAfterDeleteSpace(lineContent);
                 }
             }
-            // 创建原文的切片文件
-            for (PartEntity partEnty : parts) {
-                String subfilePath = createSubDocument(file, partEnty);
-                partEnty.setPartPath(subfilePath);
-            }
-            return parts;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
         } finally {
-            if (ins != null) {
-                try {
-                    ins.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (bins != null) {
-                try {
-                    bins.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
             if (reader != null) {
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LogUtils.writeDebugExceptionLog(logger, e);
+                }
+            }
+            if (ins != null) {
+                try {
+                    ins.close();
+                } catch (IOException e) {
+                    LogUtils.writeDebugExceptionLog(logger, e);
                 }
             }
         }
-        return null;
+        return charNumber > 0 ? charNumber : null;
     }
 
     @Override
-    public List<ParagraphEntity> document2Paragraphs(File file) {
+    public Integer charNumber(String filePath) {
+        File file = new File(filePath);
+        String encoding = "UTF-8";
+        try (InputStream fins = new BufferedInputStream(new FileInputStream(file));
+                InputStream ins = new FileInputStream(file);) {
+            encoding = getTextStreamEncode(fins);
+            return charNumber(ins, encoding);
+        } catch (IOException e) {
+            LogUtils.writeDebugExceptionLog(logger, e);
+        }
         return null;
     }
 
@@ -230,63 +109,62 @@ public class TEXTDocumentParse extends DocumentParse {
             if (charsetMatch != null)
                 return charsetMatch.getName();
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtils.writeDebugExceptionLog(logger, e);
         }
         return null;
     }
 
     public static String getTextStreamEncode(File file) {
-        InputStream ins = null;
-        try {
-            ins = new BufferedInputStream(new FileInputStream(file));
+        try (InputStream ins = new BufferedInputStream(new FileInputStream(file));){
             return getTextStreamEncode(ins);
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                ins.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            LogUtils.writeWarnExceptionLog(logger, e);
         }
         return null;
     }
+    
+    private String getTranText(BElement bElement,boolean checked){
+        List<SentenceElement> tranSentences = getTranSentenceElement(bElement, checked);
+        return getTranText(tranSentences);
+    }
+    
+    private String getTranText(List<SentenceElement> tranSentences){
+        String text="";
+        for (SentenceElement tranSentence:tranSentences) {
+            text +=getTranText(tranSentence);
+        }
+        return text;
+    }
+    
+    private String getText(List<SentenceElement> tranSentences){
+        String text="";
+        for (SentenceElement tranSentence:tranSentences) {
+            text +=tranSentence.getText();
+        }
+        return text;
+    }
 
     @Override
-    public String createSubDocument(File file, PartEntity partEntity) {
-        File subFile = createSubFile(file, partEntity.getPartNo());
-        Writer writer = null;
+    public String createSubDocument(PElement pElement,File file) {
+        File subFile = createSubFile(file, pElement.getPartId());
+        
+        List<BElement> bElements = pElement.getBodyElements();
         BufferedWriter bwriter = null;
-        try {
-            List<ParagraphEntity> paragraphs = partEntity.getParagraphs();
-            writer = new FileWriter(subFile);
+        try (Writer writer = new FileWriter(subFile);){
             bwriter = new BufferedWriter(writer);
-            for (ParagraphEntity paragraph : paragraphs) {
-                String[] sentences = paragraph.getSentences();
-                String text = "";
-                for (String sentence : sentences) {
-                    text += sentence;
-                }
+            for (BElement bElement : bElements) {
+                String text = getText(bElement.getSentences());
                 bwriter.write(text);
             }
             return subFile.getPath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+                LogUtils.writeWarnExceptionLog(logger, e);
         } finally {
             if (bwriter != null) {
                 try {
                     bwriter.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    LogUtils.writeDebugExceptionLog(logger, e);
                 }
             }
         }
@@ -294,56 +172,37 @@ public class TEXTDocumentParse extends DocumentParse {
     }
 
     @Override
-    public String createSubTranlatedDocument(PartEntity translatePart, String filePath, boolean checked) {
+    public String createSubTranlatedDocument(PElement pElement,String filePath, boolean checked) {
         // 文件不存在时会自动创建
         File file = new File(filePath);
-        File subTranlatedFile = createSubTranlatedFile(file, translatePart.getPartNo());
-        Writer writer = null;
+        File subTranlatedFile = createSubTranlatedFile(file, pElement.getPartId());
+        
+        List<BElement> bElements = pElement.getBodyElements();
         BufferedWriter bwriter = null;
-        try {
-            List<ParagraphEntity> paragraphs = translatePart.getParagraphs();
-            writer = new FileWriter(subTranlatedFile);
+        try (Writer writer = new FileWriter(subTranlatedFile);){
             bwriter = new BufferedWriter(writer);
-            for (ParagraphEntity paragraph : paragraphs) {
-                String[] tranSentences = null;
-                if (checked) {
-                    tranSentences = paragraph.getCheckSentences();
-                } else {
-                    tranSentences = paragraph.getTranSentences();
-                }
-                String tranText = "";
-                for (String tranSentence : tranSentences) {
-                    tranText += tranSentence;
-                }
-                bwriter.write(tranText);
-                bwriter.newLine();
+            for (BElement bElement : bElements) {
+                String text = getTranText(bElement, checked);
+                bwriter.write(text);
             }
             return subTranlatedFile.getPath();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+                LogUtils.writeWarnExceptionLog(logger, e);
         } finally {
             if (bwriter != null) {
                 try {
                     bwriter.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    LogUtils.writeDebugExceptionLog(logger, e);
                 }
             }
         }
         return null;
+        
     }
 
     @Override
-    public String createTranlatedDocument(List<PartEntity> partEntitys, String filePath, Boolean afterTranlated) {
+    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated, boolean checked) {
         File tranlatedFile = createTranlatedFile(new File(filePath), afterTranlated);
         Writer writer = null;
         BufferedWriter bwriter = null;
@@ -351,56 +210,52 @@ public class TEXTDocumentParse extends DocumentParse {
             writer = new FileWriter(tranlatedFile);
             bwriter = new BufferedWriter(writer);
             if (afterTranlated == null) {
-                for (PartEntity partEntity : partEntitys) {
-                    List<ParagraphEntity> paragraphs = partEntity.getParagraphs();
-                    for (ParagraphEntity paragraph : paragraphs) {
-                        String[] tranSentences = paragraph.getCheckSentences();
+                for (PElement partEntity : dElement.getParts()) {
+                    List<BElement> paragraphs = partEntity.getBodyElements();
+                    for (BElement paragraph : paragraphs) {
+                        List<SentenceElement> tranSentences = getTranSentenceElement(paragraph, checked);
                         String tranText = "";
-                        for (String tranSentence : tranSentences) {
-                            tranText += tranSentence;
+                        for (SentenceElement tranSentence : tranSentences) {
+                            tranText += getTranText(tranSentence);
                         }
                         bwriter.write(tranText);
                     }
                 }
                 return tranlatedFile.getPath();
             } else if (afterTranlated) {
-                for (PartEntity partEntity : partEntitys) {
-                    List<ParagraphEntity> paragraphs = partEntity.getParagraphs();
-                    for (ParagraphEntity paragraph : paragraphs) {
-                        String[] sentences = paragraph.getSentences();
+                for (PElement partEntity : dElement.getParts()) {
+                    List<BElement> paragraphs = partEntity.getBodyElements();
+                    for (BElement paragraph : paragraphs) {
+                        List<SentenceElement> sentences = paragraph.getSentences();
+                        List<SentenceElement> tranSentences = getTranSentenceElement(paragraph, checked);
                         String text = "";
-                        for (String tranSentence : sentences) {
-                            text += tranSentence;
+                        String tranText = "";
+                        for(int i=0;i<sentences.size();i++){
+                            text += sentences.get(i).getText();
+                            tranText += getTranText(tranSentences.get(i));
                         }
+                        
                         bwriter.write(text);
                         bwriter.newLine();
-
-                        String[] tranSentences = paragraph.getCheckSentences();
-                        String tranText = "";
-                        for (String tranSentence : tranSentences) {
-                            tranText += tranSentence;
-                        }
                         bwriter.write(tranText);
                         bwriter.newLine();
                     }
                 }
             } else {
-                for (PartEntity partEntity : partEntitys) {
-                    List<ParagraphEntity> paragraphs = partEntity.getParagraphs();
-                    for (ParagraphEntity paragraph : paragraphs) {
-                        String[] tranSentences = paragraph.getCheckSentences();
+                for (PElement partEntity : dElement.getParts()) {
+                    List<BElement> paragraphs = partEntity.getBodyElements();
+                    for (BElement paragraph : paragraphs) {
+                        
+                        List<SentenceElement> sentences = paragraph.getSentences();
+                        List<SentenceElement> tranSentences = getTranSentenceElement(paragraph, checked);
+                        String text = "";
                         String tranText = "";
-                        for (String tranSentence : tranSentences) {
-                            tranText += tranSentence;
+                        for(int i=0;i<sentences.size();i++){
+                            text += sentences.get(i).getText();
+                            tranText += getTranText(tranSentences.get(i));
                         }
                         bwriter.write(tranText);
                         bwriter.newLine();
-
-                        String[] sentences = paragraph.getSentences();
-                        String text = "";
-                        for (String tranSentence : sentences) {
-                            text += tranSentence;
-                        }
                         bwriter.write(text);
                         bwriter.newLine();
                     }
@@ -432,7 +287,124 @@ public class TEXTDocumentParse extends DocumentParse {
 
     @Override
     public File createSubTranlatedFile(File file, int partNo) {
-        File subTranlatedFile = new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_t."));
-        return subTranlatedFile;
+        return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_t."));
     }
+
+    @Override
+    public Integer wordNumber(InputStream ins) {
+        return null;
+    }
+
+    @Override
+    public DElement documentParse(String filePath, boolean wordSplit, int pLength, int pNumber) {
+        
+        List<PElement> pElments = parseIbody(filePath,wordSplit,pLength,pNumber);
+        
+        DElement dElment= new DElement();
+        dElment.setParts(pElments);
+        
+//      创建原文的切片文件
+        for (PElement pElment : pElments) {
+            String subfilePath = createSubDocument(pElment,filePath);
+            pElment.setPartPath(subfilePath);
+        }
+        return dElment;
+    }
+    
+    private List<PElement> parseIbody(String filePath, boolean wordSplit, int pLength, int pNumber){
+        List<PElement> parts = new ArrayList<>();
+        
+        File file = new File(filePath);
+        String encoding = getTextStreamEncode(file);
+        BufferedReader reader = null;
+        try (InputStream ins = new FileInputStream(file);BufferedInputStream bins = new BufferedInputStream(ins);){
+            reader = new BufferedReader(new InputStreamReader(bins, Charset.forName(encoding)));
+            // 拆分文档字符数
+            int length = 0;
+            // 拆分文档序号
+            int pIndex = 0;
+            
+            int lineNum=0;
+            
+            List<BElement> bodyElements4Part =null;
+            
+            String ltext = reader.readLine();
+            while (ltext != null) {
+                
+                if(StringUtils.isBlank(ltext)){
+                    continue;
+                }
+                LogUtils.writeDebugLog(logger, ltext);
+                
+                if (length == 0) {
+                    bodyElements4Part = new ArrayList<>();
+                }
+                BElement bElement = new BElement();
+                bElement.setIndex(lineNum);
+                bodyElements4Part.add(bElement);
+                
+                int charNumber = charNumberAfterDeleteSpace(ltext);
+                int wordNumber = wordNumberDeleteSpace(ltext, wordSplit);
+                
+                bElement.setCharNumber(charNumber);
+                bElement.setWordNumber(wordNumber);
+                List<SentenceElement> sentences = newSentenceElements(ltext);
+                bElement.setSentences(sentences);
+                length += wordNumber;
+                
+                if (length >= pLength && pIndex<=pNumber) {
+                    PElement part = newPElement(bodyElements4Part);
+                    part.setPartId(pIndex++);
+                    parts.add(part);
+                    
+                    length = 0;
+                }
+                
+                lineNum++;
+                ltext = reader.readLine();
+            }
+            
+            if (length > 0 && bodyElements4Part != null) {
+                PElement part = newPElement(bodyElements4Part);
+                part.setPartId(pIndex);
+                parts.add(part);
+            }
+            return parts;
+        } catch (IOException e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    LogUtils.writeDebugExceptionLog(logger, e);
+                }
+            }
+        }
+        return parts;
+    }
+    
+    private List<SentenceElement> newSentenceElements(String text){
+        
+        List<SentenceElement> sentences = new ArrayList<>(); 
+        String[] textChilds =splitContentFirstDeleteBR(text);
+        int index=0;
+        for(String child:textChilds){
+            SentenceElement se = new SentenceElement();
+
+            se.setContentType(ContentType.TEXT);
+            se.setSentenceSerial(++index);
+//            List<ContentElement> contents = new ArrayList<>()
+//            se.setContents(contents)
+            se.setText(child);
+            // 分割片段内容为句
+            String[] childTexts = new String[1];
+            childTexts[0] = child;
+            se.setChildTexts(childTexts);
+            
+            sentences.add(se);
+        }
+        return sentences;
+    }
+
 }

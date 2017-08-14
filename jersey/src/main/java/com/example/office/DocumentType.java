@@ -3,7 +3,7 @@ package com.example.office;
 import org.apache.commons.lang.StringUtils;
 
 public enum DocumentType {
-    DOCX(1, "docx"), DOC(2, "doc"), XLSX(3, "xlsx"), XLS(4, "xls"), PDF(5, "pdf"), TEXT(6, "text");
+    DOCX(1, "docx"), DOC(2, "doc"), XLSX(3, "xlsx"), XLS(4, "xls"), PDF(5, "pdf"), TEXT(6, "txt");
 
     private int value;
     private String name;

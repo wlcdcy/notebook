@@ -2,50 +2,45 @@ package com.example.office;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.List;
 
 public class PDFDocumentParse extends DocumentParse {
 
     @Override
-    public Integer charLength(String filePath) {
+    public Integer charNumber(InputStream ins) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public List<PartEntity> document2Parts(String filePath, int partLength) {
+    public Integer wordNumber(InputStream ins) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public List<ParagraphEntity> document2Paragraphs(File file) {
+    public DElement documentParse(String file, boolean wordSplite, int pLength, int pNumber) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public String createSubDocument(File file, PartEntity partEnty) {
+    public String createSubDocument(PElement pElement,File file) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public String createSubTranlatedDocument(PartEntity part, String subFilePath, boolean checked) {
+    public String createSubTranlatedDocument(PElement pElement, String filePath, boolean checked) {
         // TODO Auto-generated method stub
         return null;
     }
 
     @Override
-    public String createTranlatedDocument(List<PartEntity> partEntitys, String filePath, Boolean afterTranlated) {
+    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated, boolean checked) {
         // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
-    public Integer charLength(InputStream ins) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+   
 
 }

@@ -18,68 +18,52 @@ import org.slf4j.LoggerFactory;
 
 import com.aspose.words.Document;
 import com.aspose.words.License;
+import com.example.commons.LogUtils;
 
 public class DOCDocumentParse extends DOCXDocumentParse {
-    Logger logger = LoggerFactory.getLogger(DOCDocumentParse.class);
+    private static Logger log = LoggerFactory.getLogger(DOCDocumentParse.class);
 
     @Override
-    public Integer charLength(String filePath) {
+    public Integer charNumber(String filePath) {
         File file = doc2docx(filePath);
-        return super.charLength(file.getPath());
+        return super.charNumber(file.getPath());
     }
 
     @Override
-    public List<PartEntity> document2Parts(String filePath, int partLength) {
-        File file = doc2docx(filePath);
-        return super.document2Parts(file.getPath(), partLength);
-    }
-
-    @Override
-    public List<ParagraphEntity> document2Paragraphs(File file) {
-        File docxFile = doc2docx(file);
-        return super.document2Paragraphs(docxFile);
-    }
-
-    public String createSubDocument_(File file, PartEntity partEntity) {
+    public String createSubDocument(PElement pElement,File file) {
         File docxfile = doc2docx(file);
-        return super.createSubDocument(docxfile, partEntity);
+        return super.createSubDocument(pElement,docxfile);
     }
 
     @Override
-    public String createSubTranlatedDocument(PartEntity partEntity, String filePath, boolean checked) {
+    public String createSubTranlatedDocument(PElement pElement, String filePath, boolean checked) {
         File docxfile = doc2docx(filePath);
-        return super.createSubTranlatedDocument(partEntity, docxfile.getPath(), checked);
+        return super.createSubTranlatedDocument(pElement, docxfile.getPath(), checked);
     }
 
     @Override
-    public String createTranlatedDocument(List<PartEntity> partEntitys, String filePath, Boolean afterTranlated) {
+    
+    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated,boolean checked) {
         File docxfile = doc2docx(filePath);
-        return super.createTranlatedDocument(partEntitys, docxfile.getPath(), afterTranlated);
+        return super.createTranlatedDocument(dElement, docxfile.getPath(), afterTranlated,checked);
     }
 
     private File doc2docx(String docPath) {
         return doc2docx(new File(docPath));
     }
 
+    @SuppressWarnings("unused")
     private File doc2docxOld(File docFile) {
         String docxFilePath = docFile.getPath() + "x";
         File docxFile = new File(docxFilePath);
         if (!docxFile.exists()) {
             XWPFDocument document = null;
-            OutputStream out = null;
-            InputStream ins = null;
-            try {
+            try (InputStream ins = new FileInputStream(docxFile);OutputStream out = new FileOutputStream(docxFile);) {
                 Document doc = new Document(docFile.getPath());
                 doc.save(docxFile.getPath());
-                try {
-                    ins = new FileInputStream(docxFile);
-                    document = new XWPFDocument(ins);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    ins.close();
-                }
-                // document.removeBodyElement(0);
+                document = new XWPFDocument(ins);
+                
+                // document.removeBodyElement(0)
                 List<IBodyElement> elements = document.getBodyElements();
                 IBodyElement element = elements.get(elements.size() - 1);
                 if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), element.getElementType().name())) {
@@ -102,28 +86,15 @@ public class DOCDocumentParse extends DOCXDocumentParse {
                     }
                 }
 
-                out = new FileOutputStream(docxFile);
                 document.write(out);
             } catch (Exception e) {
-                e.printStackTrace();
+                LogUtils.writeWarnExceptionLog(log, e);
             } finally {
                 try {
                     if (document != null)
                         document.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (out != null)
-                        out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    if (ins != null)
-                        ins.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    LogUtils.writeDebugExceptionLog(log, e);
                 }
             }
         }
@@ -152,10 +123,7 @@ public class DOCDocumentParse extends DOCXDocumentParse {
 
     private void deleteAsposeInfo(File docxFile) {
         XWPFDocument document = null;
-        OutputStream out = null;
-        InputStream ins = null;
-        try {
-            ins = new FileInputStream(docxFile);
+        try (InputStream ins = new FileInputStream(docxFile); OutputStream out = new FileOutputStream(docxFile);) {
             document = new XWPFDocument(ins);
             List<IBodyElement> elements = document.getBodyElements();
             IBodyElement element = elements.get(elements.size() - 1);
@@ -179,55 +147,30 @@ public class DOCDocumentParse extends DOCXDocumentParse {
                 }
             }
 
-            out = new FileOutputStream(docxFile);
             document.write(out);
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtils.writeWarnExceptionLog(log, e);
         } finally {
-            try {
-                if (document != null)
+            if (document != null) {
+                try {
                     document.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+                } catch (IOException e) {
+                    LogUtils.writeDebugExceptionLog(log,e);
+                }
             }
-            try {
-                if (out != null)
-                    out.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (ins != null)
-                    ins.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            
         }
-    }
-
-    @Deprecated
-    public Integer charLength(InputStream ins) {
-        return null;
     }
 
     public static boolean getLicense() {
         boolean result = false;
-        InputStream is = null;
-        try {
-            is = DOCDocumentParse.class.getResourceAsStream("license.xml");
+
+        try (InputStream is = DOCDocumentParse.class.getResourceAsStream("license.xml");) {
             License aposeLic = new License();
             aposeLic.setLicense(is);
             result = true;
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // e.printStackTrace();
-                }
-            }
+            LogUtils.writeWarnExceptionLog(log, e);
         }
         return result;
     }
