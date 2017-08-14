@@ -113,6 +113,7 @@ public class OpenCV {
         return edges;
     }
 
+    @SuppressWarnings("deprecation")
     public static IplImage line(IplImage src) {
         IplImage dst = cvCreateImage(cvGetSize(src), IPL_DEPTH_8U, 3);
         // cvCvtColor(src, dst, CV_GRAY2BGR);
@@ -137,6 +138,7 @@ public class OpenCV {
      *            旋转角度
      * @return
      */
+    @SuppressWarnings("deprecation")
     public static IplImage rotate(IplImage src, double angle) {
         //angle = -4;
         // int w =
