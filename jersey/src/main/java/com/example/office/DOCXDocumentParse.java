@@ -209,7 +209,7 @@ public class DOCXDocumentParse extends DocumentParse {
             }
 
             // 正文
-            List<PElement> parts = parseIBodyElements(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
+            List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
             dElement.setParts(parts);
 
             // 创建原文的切片文件
@@ -1393,12 +1393,12 @@ public class DOCXDocumentParse extends DocumentParse {
         return bodyElements;
     }
 
-    private List<PElement> parseIBodyElements(List<IBodyElement> bodys, XWPFDocument document, String directory,
+    private List<PElement> parseBodys(List<IBodyElement> bodys, XWPFDocument document, String directory,
             boolean wordSplit,long pLength,int pNumber) {
 
         List<PElement> parts = new ArrayList<>();
         // 拆分文档序号
-        int partSerial = 0;
+        int partSerial = 1;
         // 元素序号
         int bodySerial = 0;
         int length = 0;
@@ -1413,7 +1413,7 @@ public class DOCXDocumentParse extends DocumentParse {
             bodyElements4Part.addAll(bElements);
             length += getWordNumberOfBElements(bElements, wordSplit);
 
-            if (length >= pLength && partSerial<=pNumber) {
+            if (length >= pLength && partSerial<pNumber) {
                 PElement part = newPElement(bodyElements4Part);
                 part.setPartId(partSerial++);
                 parts.add(part);
