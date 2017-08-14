@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.POIXMLDocument;
 import org.apache.poi.xwpf.usermodel.BodyElementType;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import com.example.commons.LogUtils;
 
 public class PoiXwpfExtractContentImpl extends PoiExtractContent<XWPFDocument> {
-    Logger log = LoggerFactory.getLogger(PoiXwpfExtractContentImpl.class);
+    Logger logger = LoggerFactory.getLogger(PoiXwpfExtractContentImpl.class);
 
     @Override
     public Integer characterLength(InputStream ins) {
@@ -142,97 +142,55 @@ public class PoiXwpfExtractContentImpl extends PoiExtractContent<XWPFDocument> {
         return null;
     }
     
-    public List<Part> documentParse(InputStream ins) {
+    public List<Paragraph> documentParse(InputStream ins) {
 
         XWPFDocument document = null;
+        List<Paragraph> paragraphs = new ArrayList<>();
         try {
             document = new XWPFDocument(ins);
             List<IBodyElement> bodys = document.getBodyElements();
-
-            List<Paragraph> paragraphs = new ArrayList<Paragraph>();
-
-            // 段落元素序号
-            int paragraphNo = 0;
-            int documentLength = 0;
-
-            for (IBodyElement body : bodys) {
-                LogUtils.writeDebugLog(log, "bodyType :" +body.getElementType().name());
-                String bodyType = body.getElementType().name();
-                if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), bodyType)) {
-                    paragraphNo += 1;
-                    XWPFParagraph xp = (XWPFParagraph) body;
-                    Paragraph p = parseXWPFParagraph(xp);
-                    if(p!=null){
-                        p.setPno(paragraphNo);
-                        paragraphs.add(p);
-                    }
-                    
-
-                } else if (StringUtils.equals(BodyElementType.TABLE.name(), bodyType)) {
-                    XWPFTable xt = ((XWPFTable) body);
-                    List<XWPFTableRow> trs = xt.getRows();
-                    for (XWPFTableRow tr : trs) {
-                        List<XWPFTableCell> tcs = tr.getTableCells();
-                        for (XWPFTableCell tc : tcs) {
-                            List<IBodyElement>  ibodyOfCell = tc.getBodyElements();
-                            
-                        }
-                    }
-                } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), bodyType)) {
-
-                }
-            }
-            logger.info("document length : " + documentLength);
-            return parts;
+            paragraphs = parseIBodyElements(null,bodys);
+            return paragraphs;
         } catch (IOException e) {
-            e.printStackTrace();
+            LogUtils.writeWarnExceptionLog(logger, e);
         } finally {
             if (document != null) {
                 try {
                     document.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LogUtils.writeDebugExceptionLog(logger, e);
                 }
             }
         }
-        return null;
+        return paragraphs;
     }
     
-    private List<Paragraph> parseIBodyElements(List<IBodyElement> ibodys){
+    private List<Paragraph> parseIBodyElements(String index ,List<IBodyElement> ibodys){
         int bodyIndex=0;
         List<Paragraph> paragraphs = new ArrayList<>();
+        String newIndex = StringUtils.isBlank(index)? "":index+"|";
         for (IBodyElement body : ibodys) {
-            LogUtils.writeDebugLog(log, "bodyType :" +body.getElementType().name());
+            LogUtils.writeDebugLog(logger, "bodyType :" +body.getElementType().name());
             String bodyType = body.getElementType().name();
             if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), bodyType)) {
-                bodyIndex += 1;
-                XWPFParagraph xp = (XWPFParagraph) body;
-                Paragraph p = parseXWPFParagraph(xp);
+                Paragraph p = parseXWPFParagraph((XWPFParagraph) body);
                 if(p!=null){
-                    p.setPno(bodyIndex);
+                    p.setIndex(newIndex+bodyIndex);
                     paragraphs.add(p);
                 }
             } else if (StringUtils.equals(BodyElementType.TABLE.name(), bodyType)) {
-                XWPFTable xt = ((XWPFTable) body);
-                List<XWPFTableRow> trs = xt.getRows();
-                for (XWPFTableRow tr : trs) {
-                    List<XWPFTableCell> tcs = tr.getTableCells();
-                    for (XWPFTableCell tc : tcs) {
-                        List<Paragraph> paragraphsOfCell = parseIBodyElements(tc.getBodyElements());
-                        new Tablee
-                        
-                    }
-                }
+                paragraphs.addAll(parseXWPFTable(newIndex+bodyIndex,(XWPFTable) body));
             } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), bodyType)) {
 
             }
+            bodyIndex += 1;
         }
         return paragraphs;
     }
     
     private  Paragraph parseXWPFParagraph(XWPFParagraph xParagraph){
         String content = xParagraph.getText().trim();
-        LogUtils.writeDebugLog(log, "PARAGRAPH content : " +content);
+        LogUtils.writeDebugLog(logger, "PARAGRAPH content : " +content);
         if (content.length() > 0) {
             
             Paragraph p = new Paragraph();
@@ -264,12 +222,29 @@ public class PoiXwpfExtractContentImpl extends PoiExtractContent<XWPFDocument> {
             p.setText(sb.toString());
             String[] sentences = splitContent(p.getText());
             p.setSentences(sentences);
-            LogUtils.writeDebugLog(log, "PARAGRAPH content : " +p.getText());
-            LogUtils.writeDebugLog(log, "PARAGRAPH length : " +paragraphLength);
-            
+            LogUtils.writeDebugLog(logger, "PARAGRAPH content : " +p.getText());
+            LogUtils.writeDebugLog(logger, "PARAGRAPH length : " +paragraphLength);
+
             return p;
         }
         return null;
+    }
+    
+    private List<Paragraph> parseXWPFTable(String index,XWPFTable xTable){
+        List<Paragraph> paragraphs = new ArrayList<>();
+        List<XWPFTableRow> trs = xTable.getRows();
+        int row=1;
+        int column=1;
+        for (XWPFTableRow tr : trs) {
+            List<XWPFTableCell> tcs = tr.getTableCells();
+            for (XWPFTableCell tc : tcs) {
+                List<Paragraph> paragraphsOfCell = parseIBodyElements(index+"*"+row+"*"+column,tc.getBodyElements());
+                paragraphs.addAll(paragraphsOfCell);
+                column++;
+            }
+            row++;
+        }
+        return paragraphs;
     }
 
     public void document2Files(InputStream ins, int _partLength, String tempTemple) {
