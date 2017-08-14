@@ -12,7 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.POIXMLDocumentPart;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.xwpf.usermodel.BodyElementType;
@@ -163,7 +163,8 @@ public class DOCXDocumentParse extends DocumentParse {
         return null;
     }
 
-    public DElement documentParse(String filePath, boolean wordSplite, int pLength, int pNumber) {
+    @Override
+    public DElement documentParse(String filePath, boolean wordSplit, int pLength, int pNumber) {
 
         XWPFDocument document = null;
         File file = new File(filePath);
@@ -174,41 +175,41 @@ public class DOCXDocumentParse extends DocumentParse {
             document = new XWPFDocument(ins);
             // 脚注
             List<XWPFFootnote> footnotes = document.getFootnotes();
-            List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplite);
+            List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
             if (footnoteElements != null) {
                 dElement.setFootnotes(footnoteElements);
             }
 
             // 尾注
             List<XWPFFootnote> endnotes = getEndnote(document);
-            List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplite);
+            List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
             if (endnoteElements != null) {
                 dElement.setEndnotes(endnoteElements);
             }
 
             // 页眉
             List<XWPFHeader> headers = document.getHeaderList();
-            List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplite);
+            List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplit);
             if (headerElements != null) {
                 dElement.setHeaders(headerElements);
             }
 
             // 页脚
             List<XWPFFooter> footers = document.getFooterList();
-            List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplite);
+            List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplit);
             if (footerElements != null) {
                 dElement.setFooters(footerElements);
             }
 
             // 文本框
             List<IBodyElement> bodys = document.getBodyElements();
-            List<BElement> tbxElements = parseTXBoxs(bodys, file.getParent(), wordSplite);
+            List<BElement> tbxElements = parseTXBoxs(bodys, file.getParent(), wordSplit);
             if (tbxElements != null) {
                 dElement.setTextboxs(tbxElements);
             }
 
             // 正文
-            List<PElement> parts = parseIBodyElements(bodys, document, file.getParent(),wordSplite,pLength, pNumber);
+            List<PElement> parts = parseIBodyElements(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
             dElement.setParts(parts);
 
             // 创建原文的切片文件
