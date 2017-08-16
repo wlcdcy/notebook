@@ -193,20 +193,18 @@ public abstract class DocumentParse {
      * @param partEntitys
      * @param tempTemple
      */
-    public abstract String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated,boolean checked);
+    public abstract String createTranlatedDocument(DElement dElement, String filePath, boolean isTakeOriginal,boolean checked);
 
     public File createSubFile(File file, int partNo) {
         return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_" + partNo + "."));
     }
 
-    public static File createTranlatedFile(File file, Boolean afterTranlated) {
-        if (afterTranlated == null) {
+    public static File createTranlatedFile(File file, boolean isTakeOriginal) {
+        if (!isTakeOriginal) {
             return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_t."));
-        } else if (afterTranlated) {
-            return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_yt."));
         } else {
-            return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_ty."));
-        }
+            return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_yt."));
+        } 
     }
 
     public File createSubTranlatedFile(File file, int partNo) {

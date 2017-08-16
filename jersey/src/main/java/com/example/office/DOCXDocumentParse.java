@@ -57,6 +57,7 @@ public class DOCXDocumentParse extends DocumentParse {
         DOCXDocumentParse documentParse = new DOCXDocumentParse();
         boolean checked=true;
         boolean wordSplite = false;
+        boolean isTakeOriginal=true;
         String tempTemple = "D:/Users/Yahoo/Documents/360js/公式不识别.docx";
         File file = new File(tempTemple);
         int length = documentParse.charNumber(tempTemple) / 2;
@@ -68,7 +69,7 @@ public class DOCXDocumentParse extends DocumentParse {
             for (PElement part : parts) {
                 documentParse.createSubTranlatedDocument(part, tempTemple, checked);
             }
-            documentParse.createTranlatedDocument(dElement, tempTemple, true,checked);
+            documentParse.createTranlatedDocument(dElement, tempTemple, isTakeOriginal,checked);
         } catch (FileNotFoundException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(e.getMessage(), e);
@@ -277,7 +278,7 @@ public class DOCXDocumentParse extends DocumentParse {
     @Override
     public String createSubTranlatedDocument(PElement pElement, String filePath, boolean checked) {
         XWPFDocument document = null;
-
+        boolean isTakeOriginal = false;
         File file = new File(filePath);
         // 文件不存在时会自动创建
         File subTranlatedFile = createSubTranlatedFile(file, pElement.getPartId());
@@ -288,7 +289,7 @@ public class DOCXDocumentParse extends DocumentParse {
             List<BElement> bodys = pElement.getBodyElements();
             for (BElement bElement : bodys) {
                 IBodyElement ibody = document.getBodyElements().get(bElement.getIndex());
-                updateIBody(ibody, bElement, null, checked);
+                updateIBody(ibody, bElement, isTakeOriginal, checked);
             }
 
             int bodyLength = document.getBodyElements().size();
@@ -316,25 +317,25 @@ public class DOCXDocumentParse extends DocumentParse {
         return null;
     }
 
-    private void updateIBody(IBodyElement ibody, BElement bElement, Boolean afterTranlated, boolean checked) {
+    private void updateIBody(IBodyElement ibody, BElement bElement, boolean isTakeOriginal, boolean checked) {
         if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), bElement.getName())) {
-            updateIBody((XWPFParagraph) ibody, bElement, afterTranlated, checked);
+            updateIBody((XWPFParagraph) ibody, bElement, isTakeOriginal, checked);
         } else if (StringUtils.equals(BodyElementType.TABLE.name(), bElement.getName())) {
             XWPFTableCell cell = ((XWPFTable) ibody).getRow(bElement.getRowNum() - 1)
                     .getCell(bElement.getColumnNum() - 1);
             for (BElement be_ : bElement.getChilds()) {
                 IBodyElement ibd = cell.getBodyElements().get(be_.getIndex());
-                updateIBody(ibd, be_, afterTranlated, checked);
+                updateIBody(ibd, be_, isTakeOriginal, checked);
             }
         } else if (StringUtils.equals(BodyElementType.TXTBOX.name(), bElement.getName())){
-            updateTXBox((XWPFParagraph) ibody, bElement, afterTranlated, checked);
+            updateTXBox((XWPFParagraph) ibody, bElement, isTakeOriginal, checked);
         }
     }
 
     @Override
-    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated,boolean checked) {
+    public String createTranlatedDocument(DElement dElement, String filePath, boolean isTakeOriginal,boolean checked) {
         XWPFDocument document = null;
-        File tranlatedFile = createTranlatedFile(new File(filePath), afterTranlated);
+        File tranlatedFile = createTranlatedFile(new File(filePath), isTakeOriginal);
         if (tranlatedFile.exists() && !tranlatedFile.delete()) {
             LogUtils.writeWarnLog(logger, "tranlatedFile delete fail");
         }
@@ -351,19 +352,19 @@ public class DOCXDocumentParse extends DocumentParse {
                     XWPFHeader header = xheader.get(be.getIndex());
                     List<IBodyElement> ibodys = header.getBodyElements();
                     List<BElement> childs = be.getChilds();
-                    updateIbodys(childs, ibodys, afterTranlated, checked);
+                    updateIbodys(childs, ibodys, isTakeOriginal, checked);
                 }
             }
 
             // 更新页脚
             List<XWPFFooter> xfooters = document.getFooterList();
             List<BElement> footers = dElement.getFooters();
-            updateFooters(xfooters,footers,afterTranlated,checked);
+            updateFooters(xfooters,footers,isTakeOriginal,checked);
 
             // 更新脚注
             List<XWPFFootnote> xfootnote = document.getFootnotes();
             List<BElement> footnotes = dElement.getFootnotes();
-            updateFootnotes(xfootnote,footnotes,afterTranlated,checked);
+            updateFootnotes(xfootnote,footnotes,isTakeOriginal,checked);
 
             // 更新尾注
             List<XWPFFootnote> xendnotes = getEndnote(document);
@@ -375,7 +376,7 @@ public class DOCXDocumentParse extends DocumentParse {
                     XWPFFootnote xhd = document.getEndnoteByID(id);
                     List<BElement> childs = bodyElement.getChilds();
                     List<IBodyElement> ibodys = xhd.getBodyElements();
-                    updateIbodys(childs, ibodys, afterTranlated, checked);
+                    updateIbodys(childs, ibodys, isTakeOriginal, checked);
                 }
             }
 
@@ -386,7 +387,7 @@ public class DOCXDocumentParse extends DocumentParse {
                 for (BElement body : bodys) {
                     int index = body.getIndex();
                     IBodyElement ibody = document.getBodyElements().get(index);
-                    updateIBody(ibody, body, afterTranlated, checked);
+                    updateIBody(ibody, body, isTakeOriginal, checked);
                 }
             }
 
@@ -407,16 +408,15 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     /**
-     * 译文更新段落；afterTranlated=null时生成纯译文，afterTranlated=true时生成原译文对照文，
-     * afterTranlated=false时生成译原文对照文
+     * 译文更新段落；isTakeOriginal=false时生成纯译文，isTakeOriginal=true时生成原译文对照文，
      * 
      * @param paragraph
      * @param body
-     * @param afterTranlated
-     *            afterTranlated={null，true，false}
+     * @param isTakeOriginal
+     *            isTakeOriginal={true，false}
      */
-    private void updateIBody(XWPFParagraph paragraph, BElement body, Boolean afterTranlated, boolean checked) {
-        if (afterTranlated != null && afterTranlated) {
+    private void updateIBody(XWPFParagraph paragraph, BElement body, boolean isTakeOriginal, boolean checked) {
+        if (isTakeOriginal) {
             updateIBodyAppendTran(paragraph, body, checked);
         } else {
             updateIBodyWithTran(paragraph, body, checked);
@@ -544,6 +544,7 @@ public class DOCXDocumentParse extends DocumentParse {
         }
     }
     
+    @SuppressWarnings("unused")
     private BElement parseParagraphImage(XWPFParagraph paragraph, String directory, XWPFDocument xdocument, boolean isWord) {
 //      段落中的内嵌图片
         CTP ctp = paragraph.getCTP();
@@ -553,7 +554,7 @@ public class DOCXDocumentParse extends DocumentParse {
             if (domNode != null && StringUtils.equals(domNode.getLocalName(), "pict")) {
                 XWPFPictureData pdata = null;
                 String imageId = "";
-                if (domNode != null && !StringUtils.equals(domNode.getLastChild().getLocalName(), "group")) {
+                if (!StringUtils.equals(domNode.getLastChild().getLocalName(), "group")) {
                     NodeList nds = domNode.getLastChild().getChildNodes();
                     for (int i = 0; i < nds.getLength(); i++) {
                         Element e = (Element) nds.item(i);
@@ -1042,7 +1043,7 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     // 更新文本框
-    private void updateTXBox(XWPFParagraph paragraph, BElement bElement, Boolean afterTranlated,
+    private void updateTXBox(XWPFParagraph paragraph, BElement bElement, boolean isTakeOriginal,
             boolean checked) {
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
@@ -1054,34 +1055,57 @@ public class DOCXDocumentParse extends DocumentParse {
 
             List<SentenceElement> sentenceElements = getTranSentenceElement(child, checked);
             
-            for (SentenceElement sentenceElement : sentenceElements) {
-
-                String tranText = getTranText(sentenceElement);
-
-                XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
-                XmlCursor xmlCursor = xobj.newCursor();
-                xmlCursor.push();// 保存当前位置
-                xmlCursor.toLastChild();// w:r
-                boolean updated = false;
-                do {
-                    // 更新译文
-                    xmlCursor.toLastChild();// w:t
-                    QName qname = xmlCursor.getName();
-                    String pname = qname.getPrefix();
-                    String lname = qname.getLocalPart();
-                    if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
-
-                        logger.info(xmlCursor.getTextValue());
-                        if (!updated) {
-                            xmlCursor.setTextValue(tranText);
-                            updated = true;
-                        } else {
-                            xmlCursor.setTextValue("");
+            if(!isTakeOriginal){
+                for (SentenceElement sentenceElement : sentenceElements) {
+    
+                    String tranText = getTranText(sentenceElement);
+    
+                    XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
+                    XmlCursor xmlCursor = xobj.newCursor();
+                    xmlCursor.push();// 保存当前位置
+                    xmlCursor.toLastChild();// w:r
+                    boolean updated = false;
+                    do {
+                        // 更新译文
+                        xmlCursor.toLastChild();// w:t
+                        QName qname = xmlCursor.getName();
+                        String pname = qname.getPrefix();
+                        String lname = qname.getLocalPart();
+                        if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
+    
+                            logger.info(xmlCursor.getTextValue());
+                            if (!updated) {
+                                xmlCursor.setTextValue(tranText);
+                                updated = true;
+                            } else {
+                                xmlCursor.setTextValue("");
+                            }
+                            logger.info(xmlCursor.getTextValue());
                         }
-                        logger.info(xmlCursor.getTextValue());
-                    }
-                    // xmlCursor.toParent()
-                } while (xmlCursor.toPrevSibling());
+                    } while (xmlCursor.toPrevSibling());
+                }   
+            }else{
+                for (SentenceElement sentenceElement : sentenceElements) {
+                    String tranText= getTranText(sentenceElement);
+                  
+                    XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
+                    XmlCursor xmlCursor = xobj.newCursor();
+                    xmlCursor.push();// 保存当前位置
+                    xmlCursor.toLastChild();// w:r
+                    xmlCursor.toParent();
+                    xmlCursor.toEndToken();
+                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
+                    xmlCursor.toEndToken();
+                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","br","w"));
+                   
+                    xmlCursor.pop();
+                    xmlCursor.toLastChild();// w:r
+                    xmlCursor.toParent();
+                    xmlCursor.toEndToken();
+                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
+                    xmlCursor.toEndToken();
+                    xmlCursor.insertElementWithText(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","t","w"), tranText);
+                } 
             }
         } catch (Exception e) {
             LogUtils.writeWarnExceptionLog(logger, e);
@@ -1089,7 +1113,7 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     @SuppressWarnings("unused")
-    private void updateTextBoxBody_2007(XWPFParagraph paragraph, BElement bElement, Boolean afterTranlated,
+    private void updateTextBoxBody_2007(XWPFParagraph paragraph, BElement bElement, boolean isTakeOriginal,
             boolean checked) {
         String nameSpace = "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/v:textbox/w:txbxContent";
 
@@ -1101,14 +1125,7 @@ public class DOCXDocumentParse extends DocumentParse {
             XmlObject[] paraObjects = textBoxObjects[index]
                     .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
 
-            List<SentenceElement> sentenceElements;
-            if (checked) {
-                sentenceElements = bElement.getCheckSentences() != null ? bElement.getCheckSentences()
-                        : bElement.getSentences();
-            } else {
-                sentenceElements = bElement.getTranSentences() != null ? bElement.getTranSentences()
-                        : bElement.getSentences();
-            }
+            List<SentenceElement> sentenceElements= getTranSentenceElement(bElement, checked);
             for (SentenceElement sentenceElement : sentenceElements) {
 
                 String tranText = getTranText(sentenceElements.get(0));
@@ -1143,37 +1160,37 @@ public class DOCXDocumentParse extends DocumentParse {
         paragraph.getCTP();
     }
 
-    private void updateFootnotes(List<XWPFFootnote> xfooters, List<BElement> footers, Boolean afterTranlated,
+    private void updateFootnotes(List<XWPFFootnote> xfooters, List<BElement> footers, boolean isTakeOriginal,
             boolean checked) {
         if (footers != null && !footers.isEmpty()) {
             for (BElement be : footers) {
                 XWPFFootnote header = xfooters.get(be.getIndex());
                 List<IBodyElement> ibodys = header.getBodyElements();
                 List<BElement> childs = be.getChilds();
-                updateIbodys(childs, ibodys, afterTranlated, checked);
+                updateIbodys(childs, ibodys, isTakeOriginal, checked);
             }
         }
     }
 
-    private void updateFooters(List<XWPFFooter> xfooters, List<BElement> footers, Boolean afterTranlated,
+    private void updateFooters(List<XWPFFooter> xfooters, List<BElement> footers, boolean isTakeOriginal,
             boolean checked) {
         if (footers != null && !footers.isEmpty()) {
             for (BElement be : footers) {
                 XWPFFooter xfooter = xfooters.get(be.getIndex());
                 List<IBodyElement> ibodys = xfooter.getBodyElements();
                 List<BElement> childs = be.getChilds();
-                updateIbodys(childs, ibodys, afterTranlated, checked);
+                updateIbodys(childs, ibodys, isTakeOriginal, checked);
             }
         }
     }
 
-    private void updateIbodys(List<BElement> childs, List<IBodyElement> ibodys, Boolean afterTranlated,
+    private void updateIbodys(List<BElement> childs, List<IBodyElement> ibodys, boolean isTakeOriginal,
             boolean checked) {
         if (childs != null && !childs.isEmpty()) {
             for (BElement body : childs) {
                 int bodyIndex = body.getIndex();
                 IBodyElement ibody = ibodys.get(bodyIndex);
-                updateIBody(ibody, body, afterTranlated, checked);
+                updateIBody(ibody, body, isTakeOriginal, checked);
             }
         }
     }

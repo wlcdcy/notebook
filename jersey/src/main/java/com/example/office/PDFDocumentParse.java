@@ -36,7 +36,7 @@ public class PDFDocumentParse extends DocumentParse {
     }
 
     @Override
-    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated, boolean checked) {
+    public String createTranlatedDocument(DElement dElement, String filePath, boolean isTakeOriginal, boolean checked) {
         // TODO Auto-generated method stub
         return null;
     }

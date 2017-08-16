@@ -202,14 +202,14 @@ public class TEXTDocumentParse extends DocumentParse {
     }
 
     @Override
-    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated, boolean checked) {
-        File tranlatedFile = createTranlatedFile(new File(filePath), afterTranlated);
+    public String createTranlatedDocument(DElement dElement, String filePath, boolean isTakeOriginal, boolean checked) {
+        File tranlatedFile = createTranlatedFile(new File(filePath), isTakeOriginal);
         Writer writer = null;
         BufferedWriter bwriter = null;
         try {
             writer = new FileWriter(tranlatedFile);
             bwriter = new BufferedWriter(writer);
-            if (afterTranlated == null) {
+            if (!isTakeOriginal) {
                 for (PElement partEntity : dElement.getParts()) {
                     List<BElement> paragraphs = partEntity.getBodyElements();
                     for (BElement paragraph : paragraphs) {
@@ -222,7 +222,7 @@ public class TEXTDocumentParse extends DocumentParse {
                     }
                 }
                 return tranlatedFile.getPath();
-            } else if (afterTranlated) {
+            } else if (isTakeOriginal) {
                 for (PElement partEntity : dElement.getParts()) {
                     List<BElement> paragraphs = partEntity.getBodyElements();
                     for (BElement paragraph : paragraphs) {

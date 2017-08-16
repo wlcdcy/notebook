@@ -43,9 +43,9 @@ public class DOCDocumentParse extends DOCXDocumentParse {
 
     @Override
     
-    public String createTranlatedDocument(DElement dElement, String filePath, Boolean afterTranlated,boolean checked) {
+    public String createTranlatedDocument(DElement dElement, String filePath, boolean isTakeOriginal,boolean checked) {
         File docxfile = doc2docx(filePath);
-        return super.createTranlatedDocument(dElement, docxfile.getPath(), afterTranlated,checked);
+        return super.createTranlatedDocument(dElement, docxfile.getPath(), isTakeOriginal,checked);
     }
 
     private File doc2docx(String docPath) {
