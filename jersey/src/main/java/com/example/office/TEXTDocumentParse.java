@@ -63,7 +63,7 @@ public class TEXTDocumentParse extends DocumentParse {
                 if (lineContent == null) {
                     break;
                 } else {
-                    charNumber += charNumberAfterDeleteSpace(lineContent);
+                    charNumber += charNumberDeleteSpace(lineContent);
                 }
             }
         } catch (IOException e) {
@@ -343,7 +343,7 @@ public class TEXTDocumentParse extends DocumentParse {
                 bElement.setIndex(lineNum);
                 bodyElements4Part.add(bElement);
                 
-                int charNumber = charNumberAfterDeleteSpace(ltext);
+                int charNumber = charNumberDeleteSpace(ltext);
                 int wordNumber = wordNumberDeleteSpace(ltext, wordSplit);
                 
                 bElement.setCharNumber(charNumber);

@@ -15,7 +15,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.POIXMLDocumentPart;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
-import org.apache.poi.xwpf.usermodel.BodyElementType;
 import org.apache.poi.xwpf.usermodel.IBody;
 import org.apache.poi.xwpf.usermodel.IBodyElement;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -69,7 +68,7 @@ public class DOCXDocumentParse extends DocumentParse {
             for (PElement part : parts) {
                 documentParse.createSubTranlatedDocument(part, tempTemple, checked);
             }
-            documentParse.createTranlatedDocument(dElement, tempTemple, null,checked);
+            documentParse.createTranlatedDocument(dElement, tempTemple, true,checked);
         } catch (FileNotFoundException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(e.getMessage(), e);
@@ -81,8 +80,8 @@ public class DOCXDocumentParse extends DocumentParse {
     public Integer charNumber(InputStream ins){
         XWPFDocument document = null;
         int charNumber = 0;
-        try {
-            document = new XWPFDocument(ins);
+        try(InputStream in = ins) {
+            document = new XWPFDocument(in);
             List<IBodyElement> bodys = document.getBodyElements();
             for (IBodyElement body : bodys) {
                 logger.info(body.getElementType().name());
@@ -92,7 +91,7 @@ public class DOCXDocumentParse extends DocumentParse {
                     String content = xp.getText().trim();
                     charNumber += countWordNumber(deleteSpace(content));
                 } else if (StringUtils.equals(BodyElementType.TABLE.name(), elementType)) {
-                    XWPFTable xt = ((XWPFTable) body);
+                    XWPFTable xt = (XWPFTable) body;
                     List<XWPFTableRow> trs = xt.getRows();
                     for (XWPFTableRow tr : trs) {
                         List<XWPFTableCell> tcs = tr.getTableCells();
@@ -133,11 +132,11 @@ public class DOCXDocumentParse extends DocumentParse {
                 logger.info(body.getElementType().name());
                 String elementType = body.getElementType().name();
                 if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), elementType)) {
-                    XWPFParagraph xp = ((XWPFParagraph) body);
+                    XWPFParagraph xp = (XWPFParagraph) body;
                     String content = xp.getText().trim();
                     charLength += wordNumberDeleteSpace(content,false);
                 } else if (StringUtils.equals(BodyElementType.TABLE.name(), elementType)) {
-                    XWPFTable xt = ((XWPFTable) body);
+                    XWPFTable xt = (XWPFTable) body;
                     List<XWPFTableRow> trs = xt.getRows();
                     for (XWPFTableRow tr : trs) {
                         List<XWPFTableCell> tcs = tr.getTableCells();
@@ -146,6 +145,7 @@ public class DOCXDocumentParse extends DocumentParse {
                         }
                     }
                 } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), elementType)) {
+                    LogUtils.writeWarnLog(logger, BodyElementType.CONTENTCONTROL.name() +" don't parse");
                 }
             }
             return charLength;
@@ -173,46 +173,40 @@ public class DOCXDocumentParse extends DocumentParse {
         try (InputStream ins = new FileInputStream(file);) {
 
             document = new XWPFDocument(ins);
-            // 脚注
+//          脚注
             List<XWPFFootnote> footnotes = document.getFootnotes();
             List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
             if (footnoteElements != null) {
                 dElement.setFootnotes(footnoteElements);
             }
 
-            // 尾注
+//          尾注
             List<XWPFFootnote> endnotes = getEndnote(document);
             List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
-            if (endnoteElements != null) {
+            if (endnoteElements != null && !endnoteElements.isEmpty()) {
                 dElement.setEndnotes(endnoteElements);
             }
 
-            // 页眉
+//          页眉
             List<XWPFHeader> headers = document.getHeaderList();
             List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplit);
             if (headerElements != null) {
                 dElement.setHeaders(headerElements);
             }
 
-            // 页脚
+//          页脚
             List<XWPFFooter> footers = document.getFooterList();
             List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplit);
             if (footerElements != null) {
                 dElement.setFooters(footerElements);
             }
 
-            // 文本框
+//          正文
             List<IBodyElement> bodys = document.getBodyElements();
-            List<BElement> tbxElements = parseTXBoxs(bodys, file.getParent(), wordSplit);
-            if (tbxElements != null) {
-                dElement.setTextboxs(tbxElements);
-            }
-
-            // 正文
             List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
             dElement.setParts(parts);
 
-            // 创建原文的切片文件
+//          创建原文的切片文件
             for (PElement pElement : parts) {
                 String subfilePath = createSubDocument(pElement,file);
                 pElement.setPartPath(subfilePath);
@@ -332,6 +326,8 @@ public class DOCXDocumentParse extends DocumentParse {
                 IBodyElement ibd = cell.getBodyElements().get(be_.getIndex());
                 updateIBody(ibd, be_, afterTranlated, checked);
             }
+        } else if (StringUtils.equals(BodyElementType.TXTBOX.name(), bElement.getName())){
+            updateTXBox((XWPFParagraph) ibody, bElement, afterTranlated, checked);
         }
     }
 
@@ -393,10 +389,6 @@ public class DOCXDocumentParse extends DocumentParse {
                     updateIBody(ibody, body, afterTranlated, checked);
                 }
             }
-
-            // 更新文本框
-            List<BElement> tbxElements = dElement.getTextboxs();
-            updateTXBoxs(document, tbxElements, afterTranlated, checked);
 
             document.write(outs);
             return tranlatedFile.getPath();
@@ -550,14 +542,6 @@ public class DOCXDocumentParse extends DocumentParse {
             }
             text.delete(0, text.length());
         }
-    }
-    
-    private BElement parseParagraphTXBox(XWPFParagraph paragraph, String directory, XWPFDocument xdocument, boolean wordSplit) {
-//      段落中的TXBOX
-        List<BElement> childs = parseTXBox(paragraph,wordSplit);
-        BElement be = new BElement();
-        be.setChilds(childs);
-        return be;
     }
     
     private BElement parseParagraphImage(XWPFParagraph paragraph, String directory, XWPFDocument xdocument, boolean isWord) {
@@ -1006,57 +990,9 @@ public class DOCXDocumentParse extends DocumentParse {
         }
         return endnotes;
     }
-
-//  解析 全文中的文本框
-    private List<BElement> parseTXBoxs(List<IBodyElement> bodys, String directory, boolean isWord) {
-        // 元素序号
-        int bodySerial = 0;
-        List<BElement> bodyElements = new ArrayList<>();
-        for (IBodyElement body : bodys) {
-            logger.info(body.getElementType().name());
-            String etype = body.getElementType().name();
-
-            if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), etype)) {
-                List<BElement> childs = parseTXBox((XWPFParagraph) body,isWord);
-                BElement be = new BElement();
-                be.setIndex(bodySerial);
-                be.setChilds(childs);
-
-                bodyElements.add(be);
-            } else if (StringUtils.equals(BodyElementType.TABLE.name(), etype)) {
-                XWPFTable xt = (XWPFTable) body;
-                List<XWPFTableRow> rows = xt.getRows();
-                int rowNum = 0;
-                for (XWPFTableRow row : rows) {
-                    rowNum += 1;
-                    List<XWPFTableCell> cells = row.getTableCells();
-
-                    int columnNum = 0;
-                    for (XWPFTableCell cell : cells) {
-                        columnNum += 1;
-                        List<IBodyElement> bodyElementsOfCell = cell.getBodyElements();
-
-                        BElement be = new BElement();
-                        List<BElement> childs = parseTXBoxs(bodyElementsOfCell, directory, isWord);
-                        be.setRowNum(rowNum);
-                        be.setColumnNum(columnNum);
-                        be.setIndex(bodySerial);
-                        be.setChilds(childs);
-
-                        bodyElements.add(be);
-                    }
-                }
-            } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), etype)) {
-                XWPFSDT sdt = (XWPFSDT) body;
-                logger.info(sdt.getContent().getText());
-            }
-            bodySerial += 1;
-        }
-        return bodyElements;
-    }
     
 //  解析段落中的文本框
-    private List<BElement> parseTXBox(XWPFParagraph paragraph,boolean wordSplit) {
+    private List<BElement> parseTXTBox(XWPFParagraph paragraph,boolean wordSplit) {
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
 
@@ -1070,9 +1006,10 @@ public class DOCXDocumentParse extends DocumentParse {
                 tbxElements.add(tbxElement);
 
                 tbxElement.setIndex(index++);
-                tbxElement.setName("TEXTBOX");
-                tbxElement.setColumnNum(1);
+                tbxElement.setName(BodyElementType.TXTBOX.name());
                 tbxElement.setRowNum(1);
+                tbxElement.setColumnNum(i);
+                
                 if (paraObjects.length > 0) {
                     List<SentenceElement> sentences = new ArrayList<>();
                     tbxElement.setSentences(sentences);
@@ -1083,23 +1020,19 @@ public class DOCXDocumentParse extends DocumentParse {
                         XWPFParagraph embeddedPara = new XWPFParagraph(CTP.Factory.parse(paraObjects[j].xmlText()),
                                 paragraph.getBody());
                         String text = embeddedPara.getText();
-                        charNumber+=charNumberAfterDeleteSpace(text);
+                        charNumber+=charNumberDeleteSpace(text);
                         wordNumber+=wordNumberDeleteSpace(text, wordSplit);
                         SentenceElement sentenceElement = new SentenceElement();
                         sentenceElement.setContentType(ContentType.TEXT);
                         sentenceElement.setSentenceSerial(j);
-                        logger.info(text);
                         sentenceElement.setText(text);
                         // 分割片段内容为句
                         String[] childTexts = splitContentFirstDeleteBR(sentenceElement.getText());
-                        for (String childText : childTexts) {
-                            logger.info(childText);
-                        }
                         sentenceElement.setChildTexts(childTexts);
                         sentences.add(sentenceElement);
                     }
-                    tbxElement.setCharNumber(charNumber);
-                    tbxElement.setWordNumber(wordNumber);
+                    tbxElement.setCharNumber(charNumber+1);
+                    tbxElement.setWordNumber(wordNumber+1);
                 }
             } catch (XmlException e) {
                 LogUtils.writeWarnExceptionLog(logger, e);
@@ -1109,68 +1042,49 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     // 更新文本框
-    private void updateTXBoxs(XWPFDocument document, List<BElement> tbxElements, Boolean afterTranlated,
-            boolean checked) {
-        for (BElement tbxElement : tbxElements) {
-            int index = tbxElement.getIndex();
-            IBodyElement ibody = document.getBodyElements().get(index);
-            if (ibody instanceof XWPFParagraph) {
-                updateTXBox((XWPFParagraph) ibody, tbxElement, afterTranlated, checked);
-                // updateTextBoxBody_2007((XWPFParagraph) ibody,
-                // bodyElement,afterTranlated, true)
-            } else if (ibody instanceof XWPFTable) {
-                updateTXBox((XWPFTable) ibody, tbxElement, afterTranlated, checked);
-            }
-        }
-    }
-
     private void updateTXBox(XWPFParagraph paragraph, BElement bElement, Boolean afterTranlated,
             boolean checked) {
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
+        
+        BElement child = bElement;
+        try {
+            XmlObject[] paraObjects = textBoxObjects[child.getColumnNum()]
+                    .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
 
-        List<BElement> childs = bElement.getChilds();
+            List<SentenceElement> sentenceElements = getTranSentenceElement(child, checked);
+            
+            for (SentenceElement sentenceElement : sentenceElements) {
 
-        for (BElement child : childs) {
+                String tranText = getTranText(sentenceElement);
 
-            try {
-                XmlObject[] paraObjects = textBoxObjects[child.getIndex()]
-                        .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
+                XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
+                XmlCursor xmlCursor = xobj.newCursor();
+                xmlCursor.push();// 保存当前位置
+                xmlCursor.toLastChild();// w:r
+                boolean updated = false;
+                do {
+                    // 更新译文
+                    xmlCursor.toLastChild();// w:t
+                    QName qname = xmlCursor.getName();
+                    String pname = qname.getPrefix();
+                    String lname = qname.getLocalPart();
+                    if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
 
-                List<SentenceElement> sentenceElements = getTranSentenceElement(child, checked);
-                
-                for (SentenceElement sentenceElement : sentenceElements) {
-
-                    String tranText = getTranText(sentenceElement);
-
-                    XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
-                    XmlCursor xmlCursor = xobj.newCursor();
-                    xmlCursor.push();// 保存当前位置
-                    xmlCursor.toLastChild();// w:r
-                    boolean updated = false;
-                    do {
-                        // 更新译文
-                        xmlCursor.toLastChild();// w:t
-                        QName qname = xmlCursor.getName();
-                        String pname = qname.getPrefix();
-                        String lname = qname.getLocalPart();
-                        if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
-
-                            logger.info(xmlCursor.getTextValue());
-                            if (!updated) {
-                                xmlCursor.setTextValue(tranText);
-                                updated = true;
-                            } else {
-                                xmlCursor.setTextValue("");
-                            }
-                            logger.info(xmlCursor.getTextValue());
+                        logger.info(xmlCursor.getTextValue());
+                        if (!updated) {
+                            xmlCursor.setTextValue(tranText);
+                            updated = true;
+                        } else {
+                            xmlCursor.setTextValue("");
                         }
-                        // xmlCursor.toParent()
-                    } while (xmlCursor.toPrevSibling());
-                }
-            } catch (Exception e) {
-                LogUtils.writeWarnExceptionLog(logger, e);
+                        logger.info(xmlCursor.getTextValue());
+                    }
+                    // xmlCursor.toParent()
+                } while (xmlCursor.toPrevSibling());
             }
+        } catch (Exception e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
         }
     }
 
@@ -1227,26 +1141,6 @@ public class DOCXDocumentParse extends DocumentParse {
             LogUtils.writeWarnExceptionLog(logger, e);
         }
         paragraph.getCTP();
-    }
-
-    private void updateTXBox(XWPFTable itable, BElement bElement, Boolean afterTranlated, boolean checked) {
-        int rowNum = bElement.getRowNum();
-        int columnNum = bElement.getColumnNum();
-        int index = bElement.getIndex();
-
-        XWPFTableRow tableRow = itable.getRow(rowNum);
-        if (tableRow != null) {
-            if (tableRow.getCell(columnNum) != null) {
-                XWPFTableCell cell = tableRow.getCell(columnNum);
-                List<XWPFParagraph> paragraphs = cell.getParagraphs();
-                if (paragraphs != null && !paragraphs.isEmpty()) {
-                    if (index < paragraphs.size()) {
-                        XWPFParagraph paragraph = paragraphs.get(index);
-                        updateTXBox(paragraph, bElement, afterTranlated, checked);
-                    }
-                }
-            }
-        }
     }
 
     private void updateFootnotes(List<XWPFFootnote> xfooters, List<BElement> footers, Boolean afterTranlated,
@@ -1340,10 +1234,9 @@ public class DOCXDocumentParse extends DocumentParse {
     private List<BElement> parseIBodyElement(int index, IBodyElement body, XWPFDocument document, String directory,
             boolean wordSplit) {
         List<BElement> bodyElements = new ArrayList<>();
-        String elementType = body.getElementType().name();
-        logger.info("IBodyElement elementType : " + elementType);
+        String beType = body.getElementType().name();
 
-        if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), elementType)) {
+        if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), beType)) {
             BElement bodyElement = parseParagraph((XWPFParagraph) body, directory, document, wordSplit);
             if (bodyElement != null) {
                 bodyElement.setIndex(index);
@@ -1352,8 +1245,14 @@ public class DOCXDocumentParse extends DocumentParse {
                 bodyElement.setColumnNum(1);
                 bodyElements.add(bodyElement);
             }
+//          parse txtBox
+            List<BElement> childs = parseTXTBox((XWPFParagraph) body,wordSplit);
+            for(BElement child:childs){
+                child.setIndex(index);
+            }
+            bodyElements.addAll(childs);
 
-        } else if (StringUtils.equals(BodyElementType.TABLE.name(), elementType)) {
+        } else if (StringUtils.equals(BodyElementType.TABLE.name(), beType)) {
             XWPFTable xt = (XWPFTable) body;
             List<XWPFTableRow> rows = xt.getRows();
             int rowNum = 0;
@@ -1376,7 +1275,7 @@ public class DOCXDocumentParse extends DocumentParse {
                     bodyElements.add(bodyElement);
                 }
             }
-        } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), elementType)) {
+        } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), beType)) {
             XWPFSDT sdt = (XWPFSDT) body;
             logger.info(sdt.getContent().getText());
         }

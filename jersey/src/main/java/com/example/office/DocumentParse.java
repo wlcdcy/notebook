@@ -134,7 +134,7 @@ public abstract class DocumentParse {
      * @param text
      * @return
      */
-    public int charNumberAfterDeleteSpace(String text) {
+    public int charNumberDeleteSpace(String text) {
         return deleteSpace(text).length();
     }
     
@@ -142,13 +142,13 @@ public abstract class DocumentParse {
     
     public int wordNumberDeleteSpace(String text,boolean wordSplit) {
         if(wordSplit){
-            return wordNumberAfterDeleteSpace(text);
+            return wordNumberDeleteSpace(text);
         }else{
-            return charNumberAfterDeleteSpace(text);
+            return charNumberDeleteSpace(text);
         }
     }
     
-    private int wordNumberAfterDeleteSpace(String text) {
+    private int wordNumberDeleteSpace(String text) {
         return wordDeleteSpaces(text).length;
     }
     
