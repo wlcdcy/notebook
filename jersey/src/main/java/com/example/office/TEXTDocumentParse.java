@@ -3,7 +3,6 @@ package com.example.office;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,14 +28,21 @@ public class TEXTDocumentParse extends DocumentParse {
 
     public static void main(String[] args) throws FileNotFoundException {
         DocumentParse documentParse = new TEXTDocumentParse();
-        int charLength = documentParse.charNumber("D:/Users/Administrator/Desktop/notes.txt");
-        logger.info("charLength: " + charLength);
-        String context = "大框架爱爱啊";
-        try (InputStream ins = new ByteArrayInputStream(context.getBytes());) {
-            charLength = documentParse.charNumber(ins);
-            logger.info("charLength: " + charLength);
-        } catch (IOException e) {
-            LogUtils.writeWarnExceptionLog(logger, e);
+        String file = "D:/Users/Yahoo/Documents/360js/xml.txt";
+        boolean isTakeOriginal = true;
+        boolean checked=true;
+        boolean wordSplit=false;
+        try {
+            DElement dElement = documentParse.documentParse(file, wordSplit, 10, 2);
+            List<PElement> parts = dElement.getParts();
+            for (PElement part : parts) {
+                documentParse.createSubTranlatedDocument(part, file, checked);
+            }
+            documentParse.createTranlatedDocument(dElement, file, isTakeOriginal,checked);
+        } catch (Exception e) {
+            if (logger.isDebugEnabled()) {
+                logger.debug(e.getMessage(), e);
+            }
         }
     }
 
@@ -129,29 +135,23 @@ public class TEXTDocumentParse extends DocumentParse {
     }
     
     private String getTranText(List<SentenceElement> tranSentences){
-        String text="";
+        StringBuilder text=new StringBuilder("");
         for (SentenceElement tranSentence:tranSentences) {
-            text +=getTranText(tranSentence);
+            text.append(getTranText(tranSentence));
         }
-        return text;
+        return text.toString();
     }
     
     private String getText(List<SentenceElement> tranSentences){
-        String text="";
-        for (SentenceElement tranSentence:tranSentences) {
-            text +=tranSentence.getText();
-        }
-        return text;
+        return getTranText(tranSentences);
     }
 
     @Override
     public String createSubDocument(PElement pElement,File file) {
         File subFile = createSubFile(file, pElement.getPartId());
-        
         List<BElement> bElements = pElement.getBodyElements();
-        BufferedWriter bwriter = null;
-        try (Writer writer = new FileWriter(subFile);){
-            bwriter = new BufferedWriter(writer);
+        try (Writer writer = new FileWriter(subFile);BufferedWriter bwriter = new BufferedWriter(writer);){
+            
             for (BElement bElement : bElements) {
                 String text = getText(bElement.getSentences());
                 bwriter.write(text);
@@ -159,14 +159,6 @@ public class TEXTDocumentParse extends DocumentParse {
             return subFile.getPath();
         } catch (IOException e) {
                 LogUtils.writeWarnExceptionLog(logger, e);
-        } finally {
-            if (bwriter != null) {
-                try {
-                    bwriter.close();
-                } catch (IOException e) {
-                    LogUtils.writeDebugExceptionLog(logger, e);
-                }
-            }
         }
         return null;
     }
@@ -178,25 +170,18 @@ public class TEXTDocumentParse extends DocumentParse {
         File subTranlatedFile = createSubTranlatedFile(file, pElement.getPartId());
         
         List<BElement> bElements = pElement.getBodyElements();
-        BufferedWriter bwriter = null;
-        try (Writer writer = new FileWriter(subTranlatedFile);){
-            bwriter = new BufferedWriter(writer);
+        
+        try (Writer writer = new FileWriter(subTranlatedFile);BufferedWriter bwriter = new BufferedWriter(writer);){
+            
             for (BElement bElement : bElements) {
                 String text = getTranText(bElement, checked);
                 bwriter.write(text);
+                bwriter.newLine();
             }
             return subTranlatedFile.getPath();
         } catch (IOException e) {
                 LogUtils.writeWarnExceptionLog(logger, e);
-        } finally {
-            if (bwriter != null) {
-                try {
-                    bwriter.close();
-                } catch (IOException e) {
-                    LogUtils.writeDebugExceptionLog(logger, e);
-                }
-            }
-        }
+        } 
         return null;
         
     }
@@ -219,6 +204,7 @@ public class TEXTDocumentParse extends DocumentParse {
                             tranText += getTranText(tranSentence);
                         }
                         bwriter.write(tranText);
+                        bwriter.newLine();
                     }
                 }
                 return tranlatedFile.getPath();
@@ -283,11 +269,6 @@ public class TEXTDocumentParse extends DocumentParse {
             }
         }
         return null;
-    }
-
-    @Override
-    public File createSubTranlatedFile(File file, int partNo) {
-        return new File(file.getParent(), StringUtils.join(file.getName().split("\\."), "_t."));
     }
 
     @Override

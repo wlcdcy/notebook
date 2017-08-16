@@ -54,7 +54,7 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     public static void main(String[] args) throws Exception {
-        DOCXDocumentParse documentParse = new DOCXDocumentParse();
+        DocumentParse documentParse = new DOCXDocumentParse();
         boolean checked=true;
         boolean wordSplite = false;
         boolean isTakeOriginal=true;
