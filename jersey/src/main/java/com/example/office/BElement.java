@@ -4,6 +4,12 @@ import java.util.List;
 
 public class BElement {
     int index;
+    
+    /**
+     * 元素在文档中的位置层级关系 父 子间用“|”隔开
+     * 
+     */
+    String pIndex;
     /**
      * p,t,b
      */
@@ -91,6 +97,12 @@ public class BElement {
     }
     public void setColumnNum(int columnNum) {
         this.columnNum = columnNum;
+    }
+    public String getpIndex() {
+        return pIndex;
+    }
+    public void setpIndex(String pIndex) {
+        this.pIndex = pIndex;
     }
     
 }
