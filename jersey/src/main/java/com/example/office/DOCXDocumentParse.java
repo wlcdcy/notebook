@@ -57,7 +57,7 @@ public class DOCXDocumentParse extends DocumentParse {
         DocumentParse documentParse = new DOCXDocumentParse();
         boolean checked=true;
         boolean wordSplite = false;
-        boolean isTakeOriginal=true;
+        boolean isTakeOriginal=false;
         String tempTemple = "D:/Users/Yahoo/Documents/360js/公式不识别.docx";
         File file = new File(tempTemple);
         int length = documentParse.charNumber(tempTemple) / 2;
@@ -65,6 +65,7 @@ public class DOCXDocumentParse extends DocumentParse {
 
         try (InputStream ins = new FileInputStream(file);) {
             DElement dElement = documentParse.documentParse(tempTemple, wordSplite, 10, 2);
+            LogUtils.writeDebugLog(logger, "document word " + dElement.getWordNnumber());
             List<PElement> parts = dElement.getParts();
             for (PElement part : parts) {
                 documentParse.createSubTranlatedDocument(part, tempTemple, checked);
@@ -179,6 +180,7 @@ public class DOCXDocumentParse extends DocumentParse {
             List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
             if (footnoteElements != null) {
                 dElement.setFootnotes(footnoteElements);
+                dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(footnoteElements, wordSplit));
             }
 
 //          尾注
@@ -186,6 +188,75 @@ public class DOCXDocumentParse extends DocumentParse {
             List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
             if (endnoteElements != null && !endnoteElements.isEmpty()) {
                 dElement.setEndnotes(endnoteElements);
+                dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(endnoteElements, wordSplit));
+            }
+
+//          页眉|字数统计不包含页眉页脚内容（与office保持一致）
+            List<XWPFHeader> headers = document.getHeaderList();
+            List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplit);
+            if (headerElements != null) {
+                dElement.setHeaders(headerElements);
+            }
+
+//          页脚|字数统计不包含页眉页脚内容（与office保持一致）
+            List<XWPFFooter> footers = document.getFooterList();
+            List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplit);
+            if (footerElements != null) {
+                dElement.setFooters(footerElements);
+            }
+
+//          正文
+            List<IBodyElement> bodys = document.getBodyElements();
+            List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
+            dElement.setParts(parts);
+
+//          创建原文的切片文件
+            for (PElement pElement : parts) {
+                String subfilePath = createSubDocument(pElement,file);
+                pElement.setPartPath(subfilePath);
+                dElement.setWordNnumber(dElement.getWordNnumber()+pElement.getWordNumber());
+            }
+            return dElement;
+        } catch (Exception e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
+        } finally {
+            if (document != null) {
+                try {
+                    document.close();
+                } catch (IOException e) {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug(e.getMessage(), e);
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    @Override
+    public DElement documentParse(String filePath, boolean wordSplit) {
+
+        XWPFDocument document = null;
+        File file = new File(filePath);
+        DElement dElement = new DElement();
+
+        try (InputStream ins = new FileInputStream(file);) {
+
+            document = new XWPFDocument(ins);
+//          脚注
+            List<XWPFFootnote> footnotes = document.getFootnotes();
+            List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
+            if (footnoteElements != null) {
+                dElement.setFootnotes(footnoteElements);
+                dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(footnoteElements, wordSplit));
+            }
+
+//          尾注
+            List<XWPFFootnote> endnotes = getEndnote(document);
+            List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
+            if (endnoteElements != null && !endnoteElements.isEmpty()) {
+                dElement.setEndnotes(endnoteElements);
+                dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(endnoteElements, wordSplit));
             }
 
 //          页眉
@@ -204,13 +275,11 @@ public class DOCXDocumentParse extends DocumentParse {
 
 //          正文
             List<IBodyElement> bodys = document.getBodyElements();
-            List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit,pLength, pNumber);
+            List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit);
             dElement.setParts(parts);
-
-//          创建原文的切片文件
+//          正文内容字数统计
             for (PElement pElement : parts) {
-                String subfilePath = createSubDocument(pElement,file);
-                pElement.setPartPath(subfilePath);
+                dElement.setWordNnumber(dElement.getWordNnumber()+pElement.getWordNumber());
             }
             return dElement;
         } catch (Exception e) {
@@ -609,8 +678,7 @@ public class DOCXDocumentParse extends DocumentParse {
 
     private BElement parseParagraph(XWPFParagraph paragraph, String directory, XWPFDocument xdocument, boolean isWord) {
         BElement bodyElement = null;
-      
-        // 内嵌图片
+//      内嵌图片
         CTP ctp = paragraph.getCTP();
         XmlObject ctpXml = ctp.copy();
         if (ctpXml.getDomNode().getLastChild() != null) {
@@ -670,17 +738,13 @@ public class DOCXDocumentParse extends DocumentParse {
                 }
             }
         }
-        String content = paragraph.getText().trim();
+        
         boolean isEmpty = contentIsEmpty(paragraph);
         if (!isEmpty) {
             int sentenceSerial = 0;
             int runNum = 0;
             String sentenceText = "";
-            int charNumber = countWordNumber(deleteSpace(content));
-            int wordNumber = isWord ? wordNumberDeleteSpace(content,isWord) : charNumber;
             bodyElement = new BElement();
-            bodyElement.setCharNumber(charNumber+1);
-            bodyElement.setWordNumber(wordNumber+1);
             List<SentenceElement> sentences = new ArrayList<>();
             bodyElement.setSentences(sentences);
 
@@ -876,7 +940,11 @@ public class DOCXDocumentParse extends DocumentParse {
                     sentenceElement.setChildTexts(childTexts);
                 }
             }
-            logger.info(sentenceElement.getText());
+            
+            int charNumber = countWordNumberOfSentenceElements(sentences,isWord);
+            int wordNumber = countWordNumberOfSentenceElements(sentences,isWord);
+            bodyElement.setCharNumber(charNumber);
+            bodyElement.setWordNumber(wordNumber);
         }
         return bodyElement;
     }
@@ -904,18 +972,20 @@ public class DOCXDocumentParse extends DocumentParse {
         return true;
     }
 
-    private List<BElement> parseIbody(List<IBody> ibodys, XWPFDocument document, String directory, boolean isWord) {
+    private List<BElement> parseIbody(List<IBody> ibodys, XWPFDocument document, String directory, boolean wordSplit) {
         List<BElement> hds = null;
         if (ibodys != null) {
             hds = new ArrayList<>();
             int index = 0;
             for (IBody ibody : ibodys) {
                 List<IBodyElement> ibodyClilds = ibody.getBodyElements();
-                List<BElement> childs = parseIBodyElements(ibodyClilds, document, directory, isWord);
+                List<BElement> childs = parseIBodyElements(ibodyClilds, document, directory, wordSplit);
 
                 BElement be = new BElement();
                 be.setIndex(index++);
                 be.setChilds(childs);
+                be.setWordNumber(countWordNumberOfBElements(childs, wordSplit));
+                be.setCharNumber(countWordNumberOfBElements(childs, wordSplit));
                 hds.add(be);
             }
         }
@@ -1032,8 +1102,8 @@ public class DOCXDocumentParse extends DocumentParse {
                         sentenceElement.setChildTexts(childTexts);
                         sentences.add(sentenceElement);
                     }
-                    tbxElement.setCharNumber(charNumber+1);
-                    tbxElement.setWordNumber(wordNumber+1);
+                    tbxElement.setCharNumber(charNumber);
+                    tbxElement.setWordNumber(wordNumber);
                 }
             } catch (XmlException e) {
                 LogUtils.writeWarnExceptionLog(logger, e);
@@ -1329,11 +1399,12 @@ public class DOCXDocumentParse extends DocumentParse {
             }
 
             bodyElements4Part.addAll(bElements);
-            length += getWordNumberOfBElements(bElements, wordSplit);
+            length += countWordNumberOfBElements(bElements, wordSplit);
 
             if (length >= pLength && partSerial<pNumber) {
                 PElement part = newPElement(bodyElements4Part);
                 part.setPartId(partSerial++);
+                part.setWordNumber(countWordNumberOfBElements(bodyElements4Part, wordSplit));
                 parts.add(part);
 
                 length = 0;
@@ -1344,8 +1415,37 @@ public class DOCXDocumentParse extends DocumentParse {
         if (length > 0 && bodyElements4Part != null) {
             PElement part = newPElement(bodyElements4Part);
             part.setPartId(partSerial);
+            part.setWordNumber(countWordNumberOfBElements(bodyElements4Part, wordSplit));
             parts.add(part);
         }
+        return parts;
+    }
+    
+    private List<PElement> parseBodys(List<IBodyElement> bodys, XWPFDocument document, String directory,
+            boolean wordSplit) {
+
+        List<PElement> parts = new ArrayList<>();
+        // 拆分文档序号
+        int partSerial = 1;
+        // 元素序号
+        int bodySerial = 0;
+        int length = 0;
+        List<BElement> bodyElements4Part = new ArrayList<>();
+
+        for (IBodyElement body : bodys) {
+            List<BElement> bElements = parseIBodyElement(bodySerial, body, document, directory, wordSplit);
+
+            bodyElements4Part.addAll(bElements);
+            length += countWordNumberOfBElements(bElements, wordSplit);
+            bodySerial += 1;
+        }
+
+        if (length > 0) {
+            PElement part = newPElement(bodyElements4Part);
+            part.setPartId(partSerial);
+            parts.add(part);
+        }
+        
         return parts;
     }
 
@@ -1363,12 +1463,28 @@ public class DOCXDocumentParse extends DocumentParse {
         return bElement;
     }
     
-    private int getWordNumberOfBElements(List<BElement> bElements, boolean wordSplit) {
+    private int countWordNumberOfBElements(List<BElement> bElements, boolean wordSplit) {
         int wordNumber = 0;
         int charNumber = 0;
         for (BElement bElement : bElements) {
             wordNumber += bElement.getWordNumber();
             charNumber += bElement.getCharNumber();
+        }
+        if (wordSplit) {
+            return wordNumber;
+        } else {
+            return charNumber;
+        }
+    }
+    
+    private int countWordNumberOfSentenceElements(List<SentenceElement> sentenceElement, boolean wordSplit) {
+        int wordNumber = 0;
+        int charNumber = 0;
+        for (SentenceElement bElement : sentenceElement) {
+            if(bElement.getContentType().equals(ContentType.TEXT)){
+                wordNumber += wordNumberDeleteSpace(bElement.getText(), wordSplit);
+                charNumber += charNumberDeleteSpace(bElement.getText());
+            }
         }
         if (wordSplit) {
             return wordNumber;

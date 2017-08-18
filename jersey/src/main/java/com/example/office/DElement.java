@@ -26,18 +26,14 @@ public class DElement {
     private List<BElement> endnotes;
     
     /**
-     * 文本框
-     */
-    private List<BElement> textboxs;
-    
-    /**
      * 字数
      */
-    private Integer wordNnumber;
+    private int wordNnumber;
     /**
      * 字符数
      */
-    private Integer charNumber;
+    private int charNumber;
+    
     public List<PElement> getParts() {
         return parts;
     }
@@ -68,23 +64,16 @@ public class DElement {
     public void setEndnotes(List<BElement> endnotes) {
         this.endnotes = endnotes;
     }
-    public List<BElement> getTextboxs() {
-        return textboxs;
-    }
-    public void setTextboxs(List<BElement> textboxs) {
-        this.textboxs = textboxs;
-    }
-    public Integer getWordNnumber() {
+    public int getWordNnumber() {
         return wordNnumber;
     }
-    public void setWordNnumber(Integer wordNnumber) {
+    public void setWordNnumber(int wordNnumber) {
         this.wordNnumber = wordNnumber;
     }
-    public Integer getCharNumber() {
+    public int getCharNumber() {
         return charNumber;
     }
-    public void setCharNumber(Integer charNumber) {
+    public void setCharNumber(int charNumber) {
         this.charNumber = charNumber;
     }
-    
 }

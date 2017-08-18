@@ -164,7 +164,8 @@ public abstract class DocumentParse {
         return textOfWord.split("\\s+");
     }
 
-    public abstract DElement documentParse(String file, boolean wordSplite, int pLength, int pNumber);
+    public abstract DElement documentParse(String file, boolean wordSplit, int pLength, int pNumber);
+    public abstract DElement documentParse(String file, boolean wordSplit);
 
     /**
      * 生成原文子文档 /**

@@ -34,6 +34,7 @@ public class TEXTDocumentParse extends DocumentParse {
         boolean wordSplit=false;
         try {
             DElement dElement = documentParse.documentParse(file, wordSplit, 10, 2);
+            LogUtils.writeDebugLog(logger, "document word " + dElement.getWordNnumber());
             List<PElement> parts = dElement.getParts();
             for (PElement part : parts) {
                 documentParse.createSubTranlatedDocument(part, file, checked);
@@ -281,14 +282,24 @@ public class TEXTDocumentParse extends DocumentParse {
         
         List<PElement> pElments = parseIbody(filePath,wordSplit,pLength,pNumber);
         
-        DElement dElment= new DElement();
-        dElment.setParts(pElments);
+        DElement dElement= new DElement();
+        dElement.setParts(pElments);
         
 //      创建原文的切片文件
-        for (PElement pElment : pElments) {
-            String subfilePath = createSubDocument(pElment,filePath);
-            pElment.setPartPath(subfilePath);
+        for (PElement pElement : pElments) {
+            String subfilePath = createSubDocument(pElement,filePath);
+            pElement.setPartPath(subfilePath);
+            
+            dElement.setWordNnumber(dElement.getWordNnumber()+pElement.getWordNumber());
         }
+        return dElement;
+    }
+    @Override
+    public DElement documentParse(String file, boolean wordSplit) {
+        List<PElement> pElments = parseIbody(file,wordSplit);
+        
+        DElement dElment= new DElement();
+        dElment.setParts(pElments);
         return dElment;
     }
     
@@ -346,6 +357,70 @@ public class TEXTDocumentParse extends DocumentParse {
             }
             
             if (length > 0 && bodyElements4Part != null) {
+                PElement part = newPElement(bodyElements4Part);
+                part.setPartId(pIndex);
+                parts.add(part);
+            }
+            return parts;
+        } catch (IOException e) {
+            LogUtils.writeWarnExceptionLog(logger, e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    LogUtils.writeDebugExceptionLog(logger, e);
+                }
+            }
+        }
+        return parts;
+    }
+    
+    private List<PElement> parseIbody(String filePath, boolean wordSplit){
+        List<PElement> parts = new ArrayList<>();
+        
+        File file = new File(filePath);
+        String encoding = getTextStreamEncode(file);
+        BufferedReader reader = null;
+        try (InputStream ins = new FileInputStream(file);BufferedInputStream bins = new BufferedInputStream(ins);){
+            reader = new BufferedReader(new InputStreamReader(bins, Charset.forName(encoding)));
+            // 拆分文档字符数
+            int length = 0;
+            // 拆分文档序号
+            int pIndex = 0;
+            
+            int lineNum=0;
+            
+            List<BElement> bodyElements4Part =new ArrayList<>();
+            
+            String ltext = reader.readLine();
+            while (ltext != null) {
+                
+                if(StringUtils.isBlank(ltext)){
+                    continue;
+                }
+                LogUtils.writeDebugLog(logger, ltext);
+
+                BElement bElement = new BElement();
+                bElement.setIndex(lineNum);
+                
+                
+                int charNumber = charNumberDeleteSpace(ltext);
+                int wordNumber = wordNumberDeleteSpace(ltext, wordSplit);
+                
+                bElement.setCharNumber(charNumber);
+                bElement.setWordNumber(wordNumber);
+                List<SentenceElement> sentences = newSentenceElements(ltext);
+                bElement.setSentences(sentences);
+                bodyElements4Part.add(bElement);
+                
+                length += wordNumber;
+                
+                lineNum++;
+                ltext = reader.readLine();
+            }
+            
+            if (length > 0) {
                 PElement part = newPElement(bodyElements4Part);
                 part.setPartId(pIndex);
                 parts.add(part);

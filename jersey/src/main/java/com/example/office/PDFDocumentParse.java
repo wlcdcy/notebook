@@ -18,7 +18,12 @@ public class PDFDocumentParse extends DocumentParse {
     }
 
     @Override
-    public DElement documentParse(String file, boolean wordSplite, int pLength, int pNumber) {
+    public DElement documentParse(String file, boolean wordSplit, int pLength, int pNumber) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    @Override
+    public DElement documentParse(String file, boolean wordSplit) {
         // TODO Auto-generated method stub
         return null;
     }

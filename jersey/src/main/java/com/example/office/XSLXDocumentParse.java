@@ -22,6 +22,12 @@ public class XSLXDocumentParse extends DocumentParse {
         // TODO Auto-generated method stub
         return null;
     }
+    
+    @Override
+    public DElement documentParse(String file, boolean wordSplit) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
     @Override
     public String createSubDocument(PElement pElement,File file) {
