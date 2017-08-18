@@ -36,6 +36,7 @@ import org.apache.xmlbeans.XmlObject;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTFtnEdn;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTP;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTbl;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.EndnotesDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -676,7 +677,7 @@ public class DOCXDocumentParse extends DocumentParse {
         return null;
     }
 
-    private BElement parseParagraph(XWPFParagraph paragraph, String directory, XWPFDocument xdocument, boolean isWord) {
+    private BElement parseParagraph(XWPFParagraph paragraph, XWPFDocument xdocument, String directory, boolean isWord) {
         BElement bodyElement = null;
 //      内嵌图片
         CTP ctp = paragraph.getCTP();
@@ -1111,6 +1112,48 @@ public class DOCXDocumentParse extends DocumentParse {
         }
         return tbxElements;
     }
+    
+    
+    private List<BElement> parseTXTBoxNew(XWPFParagraph paragraph,boolean wordSplit) {
+        XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
+                "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
+
+        List<BElement> tbxElements = new ArrayList<>();
+        int index = 0;
+        
+        for (int i = 0; i < textBoxObjects.length; i++) {
+            try {
+                XmlObject xmlObj = textBoxObjects[i];
+                XmlCursor  cursor = xmlObj.newCursor();
+                cursor.push();
+                int nodeNum = cursor.getDomNode().getChildNodes().getLength();
+                
+                List<IBodyElement> ibodys = new ArrayList<>();
+                for(int n =0;n<nodeNum;n++){
+                    cursor.toChild(n);
+                    String name = cursor.getName().getLocalPart();
+                    LogUtils.writeDebugLog(logger, "Qname : " + name);
+                    if(StringUtils.equals(name, "p")){ 
+                        XWPFParagraph embeddedPara = new XWPFParagraph(CTP.Factory.parse(convertTXTBoxPToPar(cursor.xmlText())),paragraph.getBody());
+                        ibodys.add(embeddedPara);
+                    }else if (StringUtils.equals(name, "tbl")){
+                        LogUtils.writeDebugLog(logger, "cursor.xmlText() : " + cursor.xmlText());
+                        XWPFTable embeddedTable = new XWPFTable(CTTbl.Factory.parse(convertTXTBoxTb1ToTable(cursor.xmlText())),paragraph.getBody());
+                        ibodys.add(embeddedTable);
+                    }
+                    cursor.toParent();
+                }
+                
+                List<PElement> pElements = parseBodys(ibodys, null, "", wordSplit);
+                List<BElement> bElements = pElements.get(0).getBodyElements();
+                tbxElements.addAll(bElements);
+                
+            } catch (Exception e) {
+                LogUtils.writeWarnExceptionLog(logger, e);
+            }
+        }
+        return tbxElements;
+    }
 
     // 更新文本框
     private void updateTXBox(XWPFParagraph paragraph, BElement bElement, boolean isTakeOriginal,
@@ -1324,7 +1367,7 @@ public class DOCXDocumentParse extends DocumentParse {
         String beType = body.getElementType().name();
 
         if (StringUtils.equals(BodyElementType.PARAGRAPH.name(), beType)) {
-            BElement bodyElement = parseParagraph((XWPFParagraph) body, directory, document, wordSplit);
+            BElement bodyElement = parseParagraph((XWPFParagraph) body, document, directory, wordSplit);
             if (bodyElement != null) {
                 bodyElement.setIndex(index);
                 bodyElement.setName(BodyElementType.PARAGRAPH.name());
@@ -1340,31 +1383,38 @@ public class DOCXDocumentParse extends DocumentParse {
             bodyElements.addAll(childs);
 
         } else if (StringUtils.equals(BodyElementType.TABLE.name(), beType)) {
-            XWPFTable xt = (XWPFTable) body;
-            List<XWPFTableRow> rows = xt.getRows();
-            int rowNum = 0;
-            for (XWPFTableRow row : rows) {
-                rowNum += 1;
-                List<XWPFTableCell> cells = row.getTableCells();
-
-                int columnNum = 0;
-                for (XWPFTableCell cell : cells) {
-                    columnNum += 1;
-                    List<IBodyElement> bodysOfCell = cell.getBodyElements();
-                    List<BElement> childs = parseIBodyElements(bodysOfCell, document, directory, wordSplit);
-                    
-                    BElement bodyElement = createBElementByChild(childs);
-                    bodyElement.setIndex(index);
-                    bodyElement.setName(BodyElementType.TABLE.name());
-                    bodyElement.setRowNum(rowNum);
-                    bodyElement.setColumnNum(columnNum);
-                    
-                    bodyElements.add(bodyElement);
-                }
-            }
+            List<BElement> bElementsOfTable = parseTable(index, (XWPFTable) body, document, directory, wordSplit);
+            bodyElements.addAll(bElementsOfTable);
+            
         } else if (StringUtils.equals(BodyElementType.CONTENTCONTROL.name(), beType)) {
             XWPFSDT sdt = (XWPFSDT) body;
             logger.info(sdt.getContent().getText());
+        }
+        return bodyElements;
+    }
+    
+    private List<BElement> parseTable(int index,XWPFTable xtable,XWPFDocument document, String directory,boolean wordSplit ){
+        List<XWPFTableRow> rows = xtable.getRows();
+        int rowNum = 0;
+        List<BElement> bodyElements = new ArrayList<>();
+        for (XWPFTableRow row : rows) {
+            rowNum += 1;
+            List<XWPFTableCell> cells = row.getTableCells();
+
+            int columnNum = 0;
+            for (XWPFTableCell cell : cells) {
+                columnNum += 1;
+                List<IBodyElement> bodysOfCell = cell.getBodyElements();
+                List<BElement> childs = parseIBodyElements(bodysOfCell, document, directory, wordSplit);
+                
+                BElement bodyElement = createBElementByChild(childs);
+                bodyElement.setIndex(index);
+                bodyElement.setName(BodyElementType.TABLE.name());
+                bodyElement.setRowNum(rowNum);
+                bodyElement.setColumnNum(columnNum);
+                
+                bodyElements.add(bodyElement);
+            }
         }
         return bodyElements;
     }
@@ -1491,6 +1541,14 @@ public class DOCXDocumentParse extends DocumentParse {
         } else {
             return charNumber;
         }
+    }
+    
+    private String  convertTXTBoxPToPar(String xmlText){
+        return xmlText.replace("<w:p ","<xml-fragment ").replace("w:p>", "xml-fragment>");
+    }
+    
+    private String  convertTXTBoxTb1ToTable(String xmlText){
+        return xmlText.replace("<w:tbl ","<xml-fragment ").replace("w:tbl>", "xml-fragment>");
     }
 
 }
