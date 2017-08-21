@@ -8,6 +8,10 @@ public class BElement {
     /**
      * 元素在文档中的位置层级关系 父 子间用“|”隔开
      * 
+     * 段落       n       n 段落序号。
+     * 文本框  n*t     t 文本框序号。
+     * 表格       n*r*c   r 表格单元格的行号，c表格单元格的列号。
+     * 
      */
     String pIndex;
     /**

@@ -178,7 +178,7 @@ public class DOCXDocumentParse extends DocumentParse {
             document = new XWPFDocument(ins);
 //          脚注
             List<XWPFFootnote> footnotes = document.getFootnotes();
-            List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
+            List<BElement> footnoteElements = parseFootnoteOfDocument(footnotes, document, file.getParent(), wordSplit);
             if (footnoteElements != null) {
                 dElement.setFootnotes(footnoteElements);
                 dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(footnoteElements, wordSplit));
@@ -186,7 +186,7 @@ public class DOCXDocumentParse extends DocumentParse {
 
 //          尾注
             List<XWPFFootnote> endnotes = getEndnote(document);
-            List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
+            List<BElement> endnoteElements = parseEndnoteOfDocument(endnotes, document, file.getParent(), wordSplit);
             if (endnoteElements != null && !endnoteElements.isEmpty()) {
                 dElement.setEndnotes(endnoteElements);
                 dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(endnoteElements, wordSplit));
@@ -194,14 +194,14 @@ public class DOCXDocumentParse extends DocumentParse {
 
 //          页眉|字数统计不包含页眉页脚内容（与office保持一致）
             List<XWPFHeader> headers = document.getHeaderList();
-            List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplit);
+            List<BElement> headerElements = parseHeaderOfDocument(headers, document, file.getParent(), wordSplit);
             if (headerElements != null) {
                 dElement.setHeaders(headerElements);
             }
 
 //          页脚|字数统计不包含页眉页脚内容（与office保持一致）
             List<XWPFFooter> footers = document.getFooterList();
-            List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplit);
+            List<BElement> footerElements = parseFooterOfDocument(footers, document, file.getParent(), wordSplit);
             if (footerElements != null) {
                 dElement.setFooters(footerElements);
             }
@@ -246,7 +246,7 @@ public class DOCXDocumentParse extends DocumentParse {
             document = new XWPFDocument(ins);
 //          脚注
             List<XWPFFootnote> footnotes = document.getFootnotes();
-            List<BElement> footnoteElements = parseFootnote(footnotes, document, file.getParent(), wordSplit);
+            List<BElement> footnoteElements = parseFootnoteOfDocument(footnotes, document, file.getParent(), wordSplit);
             if (footnoteElements != null) {
                 dElement.setFootnotes(footnoteElements);
                 dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(footnoteElements, wordSplit));
@@ -254,7 +254,7 @@ public class DOCXDocumentParse extends DocumentParse {
 
 //          尾注
             List<XWPFFootnote> endnotes = getEndnote(document);
-            List<BElement> endnoteElements = parseEndnote(endnotes, document, file.getParent(), wordSplit);
+            List<BElement> endnoteElements = parseEndnoteOfDocument(endnotes, document, file.getParent(), wordSplit);
             if (endnoteElements != null && !endnoteElements.isEmpty()) {
                 dElement.setEndnotes(endnoteElements);
                 dElement.setWordNnumber(dElement.getWordNnumber()+countWordNumberOfBElements(endnoteElements, wordSplit));
@@ -262,21 +262,28 @@ public class DOCXDocumentParse extends DocumentParse {
 
 //          页眉
             List<XWPFHeader> headers = document.getHeaderList();
-            List<BElement> headerElements = parseHeader(headers, document, file.getParent(), wordSplit);
+            List<BElement> headerElements = parseHeaderOfDocument(headers, document, file.getParent(), wordSplit);
             if (headerElements != null) {
                 dElement.setHeaders(headerElements);
             }
 
 //          页脚
             List<XWPFFooter> footers = document.getFooterList();
-            List<BElement> footerElements = parseFooter(footers, document, file.getParent(), wordSplit);
+            List<BElement> footerElements = parseFooterOfDocument(footers, document, file.getParent(), wordSplit);
             if (footerElements != null) {
                 dElement.setFooters(footerElements);
             }
 
 //          正文
             List<IBodyElement> bodys = document.getBodyElements();
-            List<PElement> parts = parseBodys(bodys, document, file.getParent(),wordSplit);
+            List<BElement> bodyElements = parseBodyOfDocument(bodys, document, file.getParent(),wordSplit);
+            
+            List<PElement> parts = new ArrayList<>();
+            PElement part = new PElement();
+            part.setPartId(1);
+            part.setBodyElements(bodyElements);
+            parts.add(part);
+            
             dElement.setParts(parts);
 //          正文内容字数统计
             for (PElement pElement : parts) {
@@ -973,7 +980,7 @@ public class DOCXDocumentParse extends DocumentParse {
         return true;
     }
 
-    private List<BElement> parseIbody(List<IBody> ibodys, XWPFDocument document, String directory, boolean wordSplit) {
+    private List<BElement> parseFootnote(List<IBody> ibodys, XWPFDocument document, String directory, boolean wordSplit) {
         List<BElement> hds = null;
         if (ibodys != null) {
             hds = new ArrayList<>();
@@ -994,17 +1001,17 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> List<BElement> parseFootnote(List<T> footnotes, XWPFDocument document, String directory,
+    private <T> List<BElement> parseFootnoteOfDocument(List<T> footnotes, XWPFDocument document, String directory,
             boolean isWord) {
-        return parseIbody((List<IBody>) footnotes, document, directory, isWord);
+        return parseFootnote((List<IBody>) footnotes, document, directory, isWord);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> List<BElement> parseEndnote(List<T> endnotes, XWPFDocument document, String directory, boolean isWord) {
-        return parseIbody((List<IBody>) endnotes, document, directory, isWord);
+    private <T> List<BElement> parseEndnoteOfDocument(List<T> endnotes, XWPFDocument document, String directory, boolean isWord) {
+        return parseFootnote((List<IBody>) endnotes, document, directory, isWord);
     }
 
-    private List<BElement> parseHeader(List<XWPFHeader> headers, XWPFDocument document, String directory,
+    private List<BElement> parseHeaderOfDocument(List<XWPFHeader> headers, XWPFDocument document, String directory,
             boolean isWord) {
         List<BElement> hds = null;
         if (headers != null) {
@@ -1023,7 +1030,7 @@ public class DOCXDocumentParse extends DocumentParse {
         return hds;
     }
 
-    private List<BElement> parseFooter(List<XWPFFooter> footers, XWPFDocument document, String directory,
+    private List<BElement> parseFooterOfDocument(List<XWPFFooter> footers, XWPFDocument document, String directory,
             boolean isWord) {
         List<BElement> hds = null;
         if (footers != null) {
@@ -1114,12 +1121,12 @@ public class DOCXDocumentParse extends DocumentParse {
     }
     
     
-    private List<BElement> parseTXTBoxNew(XWPFParagraph paragraph,boolean wordSplit) {
+    private List<BElement> parseTXTBoxNew(int index,XWPFParagraph paragraph,boolean wordSplit) {
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
 
         List<BElement> tbxElements = new ArrayList<>();
-        int index = 0;
+        int cIndex = 0;
         
         for (int i = 0; i < textBoxObjects.length; i++) {
             try {
@@ -1144,8 +1151,7 @@ public class DOCXDocumentParse extends DocumentParse {
                     cursor.toParent();
                 }
                 
-                List<PElement> pElements = parseBodys(ibodys, null, "", wordSplit);
-                List<BElement> bElements = pElements.get(0).getBodyElements();
+                List<BElement> bElements = parseBodyOfDocument(ibodys, null, "", wordSplit);
                 tbxElements.addAll(bElements);
                 
             } catch (Exception e) {
@@ -1370,13 +1376,15 @@ public class DOCXDocumentParse extends DocumentParse {
             BElement bodyElement = parseParagraph((XWPFParagraph) body, document, directory, wordSplit);
             if (bodyElement != null) {
                 bodyElement.setIndex(index);
+                bodyElement.setpIndex(String.valueOf(index));
                 bodyElement.setName(BodyElementType.PARAGRAPH.name());
-                bodyElement.setRowNum(1);
-                bodyElement.setColumnNum(1);
+                bodyElement.setRowNum(0);
+                bodyElement.setColumnNum(0);
                 bodyElements.add(bodyElement);
             }
 //          parse txtBox
             List<BElement> childs = parseTXTBox((XWPFParagraph) body,wordSplit);
+//            List<BElement> childs = parseTXTBoxNew(index,(XWPFParagraph) body,wordSplit);
             for(BElement child:childs){
                 child.setIndex(index);
             }
@@ -1408,6 +1416,8 @@ public class DOCXDocumentParse extends DocumentParse {
                 List<BElement> childs = parseIBodyElements(bodysOfCell, document, directory, wordSplit);
                 
                 BElement bodyElement = createBElementByChild(childs);
+                
+                
                 bodyElement.setIndex(index);
                 bodyElement.setName(BodyElementType.TABLE.name());
                 bodyElement.setRowNum(rowNum);
@@ -1471,32 +1481,9 @@ public class DOCXDocumentParse extends DocumentParse {
         return parts;
     }
     
-    private List<PElement> parseBodys(List<IBodyElement> bodys, XWPFDocument document, String directory,
+    private List<BElement> parseBodyOfDocument(List<IBodyElement> bodys, XWPFDocument document, String directory,
             boolean wordSplit) {
-
-        List<PElement> parts = new ArrayList<>();
-        // 拆分文档序号
-        int partSerial = 1;
-        // 元素序号
-        int bodySerial = 0;
-        int length = 0;
-        List<BElement> bodyElements4Part = new ArrayList<>();
-
-        for (IBodyElement body : bodys) {
-            List<BElement> bElements = parseIBodyElement(bodySerial, body, document, directory, wordSplit);
-
-            bodyElements4Part.addAll(bElements);
-            length += countWordNumberOfBElements(bElements, wordSplit);
-            bodySerial += 1;
-        }
-
-        if (length > 0) {
-            PElement part = newPElement(bodyElements4Part);
-            part.setPartId(partSerial);
-            parts.add(part);
-        }
-        
-        return parts;
+        return parseIBodyElements(bodys, document, directory, wordSplit);
     }
 
     private BElement createBElementByChild(List<BElement> childs){
