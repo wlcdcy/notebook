@@ -13,14 +13,14 @@ public class BElement {
      * 表格       n*r*c   r 表格单元格的行号，c表格单元格的列号。
      * 
      */
-    String pIndex;
+    String path;
     /**
      * p,t,b
      */
+    String pName;
     String name;
     int rowNum;
     int columnNum;
-    List<BElement> childs;
     /**
      * 字符数
      */
@@ -53,12 +53,6 @@ public class BElement {
     }
     public void setName(String name) {
         this.name = name;
-    }
-    public List<BElement> getChilds() {
-        return childs;
-    }
-    public void setChilds(List<BElement> childs) {
-        this.childs = childs;
     }
     public int getCharNumber() {
         return charNumber;
@@ -102,11 +96,17 @@ public class BElement {
     public void setColumnNum(int columnNum) {
         this.columnNum = columnNum;
     }
-    public String getpIndex() {
-        return pIndex;
+    public String getPath() {
+        return path;
     }
-    public void setpIndex(String pIndex) {
-        this.pIndex = pIndex;
+    public void setPath(String path) {
+        this.path = path;
+    }
+    public String getpName() {
+        return pName;
+    }
+    public void setpName(String pName) {
+        this.pName = pName;
     }
     
 }

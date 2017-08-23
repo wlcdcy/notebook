@@ -24,6 +24,9 @@ public abstract class DocumentParse {
     static String CHAR_ALL_SPACE = "　";
     static String CHAR_TAB_SPACE = "	";
     static String CHAR_SOFTENTER = "";
+    
+    static final String PATHSPLITSIGN="_";
+    static final String PATHLINKSIGN="x";
 
     /**
      * 获取文件包含字符数
