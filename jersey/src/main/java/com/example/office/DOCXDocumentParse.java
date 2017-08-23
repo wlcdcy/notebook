@@ -55,7 +55,7 @@ public class DOCXDocumentParse extends DocumentParse {
     }
 
     public static void main(String[] args) throws Exception {
-        DocumentParse documentParse = new DOCXDocumentParse();
+        DOCXDocumentParse documentParse = new DOCXDocumentParse();
         boolean checked=true;
         boolean wordSplite = false;
         boolean isTakeOriginal=false;
@@ -416,9 +416,9 @@ public class DOCXDocumentParse extends DocumentParse {
             List<XWPFHeader> xheader = document.getHeaderList();
             List<BElement> headers = dElement.getHeaders();
             if (headers != null && !headers.isEmpty()) {
-                for (BElement be : headers) {
-                    IBodyElement ibody = getIBodyElementOfHFF(be, xheader);
-                    updateIBody(ibody, be, isTakeOriginal, checked);
+                for (BElement bElement : headers) {
+                    IBodyElement ibody = getIBodyElementOfHFF(bElement, xheader);
+                    updateIBodyWithBElement(bElement, ibody, isTakeOriginal, checked);
                 }
             }
 
@@ -451,7 +451,8 @@ public class DOCXDocumentParse extends DocumentParse {
             for (PElement pElement : pElements) {
                 List<BElement> bElements = pElement.getBodyElements();
                 for (BElement bElement : bElements) {
-                    updateIBodyWithBElement(bElement, ibodys, isTakeOriginal, checked);
+                    IBodyElement ibody = getIBodyElement(bElement, ibodys);
+                    updateIBodyWithBElement(bElement, ibody, isTakeOriginal, checked);
                 }
             }
 
@@ -491,13 +492,8 @@ public class DOCXDocumentParse extends DocumentParse {
         return (XWPFParagraph)obj;
     }
     
-    private IBodyElement getIBodyElementTXTBox(BElement bElement,List<IBodyElement> ibodys){
-        return getIBodyElement(bElement,ibodys);
-    }
-    
     private IBodyElement getIBodyElementOfHFF(BElement bElement,List<?> xfooters){
         String path = bElement.getPath();
-        LogUtils.writeDebugLog(logger, "update use pIndex[path] : " + path);
         String[] pIndexs = path.split(PATHSPLITSIGN);
         Object xwpfObj = xfooters.get(Integer.parseInt(pIndexs[0]));
         List<IBodyElement> ibodys=null;
@@ -580,6 +576,7 @@ public class DOCXDocumentParse extends DocumentParse {
     
     private void updateXWPFRunsWithTran(XWPFParagraph paragraph, SentenceElement sentence) {
         String text = getTranText(sentence);
+        LogUtils.writeDebugLog(logger, "tran text : "+text);
         ContentType contentType = sentence.getContentType();
         
         if (ContentType.TEXT.equals(contentType)) {
@@ -1227,12 +1224,13 @@ public class DOCXDocumentParse extends DocumentParse {
 //  更新文本框
     private void updateTXBox(XWPFParagraph paragraph, BElement bElement, boolean isTakeOriginal,
             boolean checked) {
+        LogUtils.writeDebugLog(logger, "updateTXBox [pIndex] :  " + bElement.getPath());
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
         
         BElement child = bElement;
         int index = 0;
-        int tIndex = 0;
+        String pIndex="";
         
         String path = bElement.getPath();
         String pIndexs[] = path.split(PATHSPLITSIGN);
@@ -1240,70 +1238,75 @@ public class DOCXDocumentParse extends DocumentParse {
             String[] indexs = pIndexs[i].split(PATHLINKSIGN);
             if(indexs.length==2){
                 index = Integer.parseInt(indexs[1]);
-                tIndex = Integer.parseInt(pIndexs[i+1]);
+                pIndex =pIndexs[i+1];
                 break;
             }
         }
         
-        try {
-            XmlObject[] paraObjects = textBoxObjects[index]
-                    .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
-
-            List<SentenceElement> sentenceElements = getTranSentenceElement(child, checked);
-            
-            if(!isTakeOriginal){
-                for (SentenceElement sentenceElement : sentenceElements) {
+        if(!pIndex.contains(PATHLINKSIGN)){
+            int tIndex = Integer.parseInt(pIndex);
+            try {
+                XmlObject[] paraObjects = textBoxObjects[index]
+                        .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
     
-                    String tranText = getTranText(sentenceElement);
-                    XmlObject xobj = paraObjects[tIndex];
-                    XmlCursor xmlCursor = xobj.newCursor();
-                    xmlCursor.push();// 保存当前位置
-                    xmlCursor.toLastChild();// w:r
-                    boolean updated = false;
-                    do {
-                        // 更新译文
-                        xmlCursor.toLastChild();// w:t
-                        QName qname = xmlCursor.getName();
-                        String pname = qname.getPrefix();
-                        String lname = qname.getLocalPart();
-                        if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
-    
-                            logger.info(xmlCursor.getTextValue());
-                            if (!updated) {
-                                xmlCursor.setTextValue(tranText);
-                                updated = true;
-                            } else {
-                                xmlCursor.setTextValue("");
+                List<SentenceElement> sentenceElements = getTranSentenceElement(child, checked);
+                
+                if(!isTakeOriginal){
+                    for (SentenceElement sentenceElement : sentenceElements) {
+        
+                        String tranText = getTranText(sentenceElement);
+                        XmlObject xobj = paraObjects[tIndex];
+                        XmlCursor xmlCursor = xobj.newCursor();
+                        xmlCursor.push();// 保存当前位置
+                        xmlCursor.toLastChild();// w:r
+                        boolean updated = false;
+                        do {
+                            // 更新译文
+                            xmlCursor.toLastChild();// w:t
+                            QName qname = xmlCursor.getName();
+                            String pname = qname.getPrefix();
+                            String lname = qname.getLocalPart();
+                            if (pname.equalsIgnoreCase("w") && lname.equalsIgnoreCase("t")) {
+        
+                                logger.info(xmlCursor.getTextValue());
+                                if (!updated) {
+                                    xmlCursor.setTextValue(tranText);
+                                    updated = true;
+                                } else {
+                                    xmlCursor.setTextValue("");
+                                }
+                                logger.info(xmlCursor.getTextValue());
                             }
-                            logger.info(xmlCursor.getTextValue());
-                        }
-                    } while (xmlCursor.toPrevSibling());
-                }   
-            }else{
-                for (SentenceElement sentenceElement : sentenceElements) {
-                    String tranText= getTranText(sentenceElement);
-                  
-                    XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
-                    XmlCursor xmlCursor = xobj.newCursor();
-                    xmlCursor.push();// 保存当前位置
-                    xmlCursor.toLastChild();// w:r
-                    xmlCursor.toParent();
-                    xmlCursor.toEndToken();
-                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
-                    xmlCursor.toEndToken();
-                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","br","w"));
-                   
-                    xmlCursor.pop();
-                    xmlCursor.toLastChild();// w:r
-                    xmlCursor.toParent();
-                    xmlCursor.toEndToken();
-                    xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
-                    xmlCursor.toEndToken();
-                    xmlCursor.insertElementWithText(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","t","w"), tranText);
-                } 
+                        } while (xmlCursor.toPrevSibling());
+                    }   
+                }else{
+                    for (SentenceElement sentenceElement : sentenceElements) {
+                        String tranText= getTranText(sentenceElement);
+                      
+                        XmlObject xobj = paraObjects[sentenceElement.getSentenceSerial()];
+                        XmlCursor xmlCursor = xobj.newCursor();
+                        xmlCursor.push();// 保存当前位置
+                        xmlCursor.toLastChild();// w:r
+                        xmlCursor.toParent();
+                        xmlCursor.toEndToken();
+                        xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
+                        xmlCursor.toEndToken();
+                        xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","br","w"));
+                       
+                        xmlCursor.pop();
+                        xmlCursor.toLastChild();// w:r
+                        xmlCursor.toParent();
+                        xmlCursor.toEndToken();
+                        xmlCursor.beginElement(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","r","w"));
+                        xmlCursor.toEndToken();
+                        xmlCursor.insertElementWithText(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main","t","w"), tranText);
+                    } 
+                }
+            } catch (Exception e) {
+                LogUtils.writeWarnExceptionLog(logger, e);
             }
-        } catch (Exception e) {
-            LogUtils.writeWarnExceptionLog(logger, e);
+        }else{
+            LogUtils.writeDebugLog(logger, "The TXBox is Multilayer nested ");
         }
     }
 
@@ -1449,7 +1452,9 @@ public class DOCXDocumentParse extends DocumentParse {
 //          parse txtBox
             List<BElement> childs = parseTXTBox(pIndex,index,(XWPFParagraph) body,wordSplit);
             for(BElement child:childs){
-                child.setpName(BodyElementType.TXTBOX.name());
+                //child.setpName(BodyElementType.TXTBOX.name())
+                child.setpName(BodyElementType.PARAGRAPH.name());
+                child.setTxbox(true);
                 child.setIndex(index);
             }
             bodyElements.addAll(childs);
@@ -1617,12 +1622,10 @@ public class DOCXDocumentParse extends DocumentParse {
         return pIndex+PATHSPLITSIGN+index+PATHLINKSIGN+rowNum+PATHLINKSIGN+columnNum;
     }
     
-    private void updateIBodyWithBElement(BElement bElement,List<IBodyElement> ibodys,boolean isTakeOriginal,boolean checked){
-        if(StringUtils.equals(bElement.getpName(), BodyElementType.TXTBOX.name())){
-            IBodyElement ibody = getIBodyElementTXTBox(bElement, ibodys);
+    private void updateIBodyWithBElement(BElement bElement,IBodyElement ibody,boolean isTakeOriginal,boolean checked){
+        if(bElement.isTxbox()){
             updateTXBox((XWPFParagraph)ibody,bElement,isTakeOriginal, checked);
         }else{
-            IBodyElement ibody = getIBodyElement(bElement, ibodys);
             updateIBody(ibody, bElement, isTakeOriginal, checked);
         }
     }

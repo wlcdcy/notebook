@@ -18,6 +18,7 @@ public class BElement {
      * p,t,b
      */
     String pName;
+    boolean txbox = false;
     String name;
     int rowNum;
     int columnNum;
@@ -107,6 +108,12 @@ public class BElement {
     }
     public void setpName(String pName) {
         this.pName = pName;
+    }
+    public boolean isTxbox() {
+        return txbox;
+    }
+    public void setTxbox(boolean txbox) {
+        this.txbox = txbox;
     }
     
 }
