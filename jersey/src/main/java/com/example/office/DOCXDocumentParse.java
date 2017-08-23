@@ -497,6 +497,7 @@ public class DOCXDocumentParse extends DocumentParse {
     
     private IBodyElement getIBodyElementOfHFF(BElement bElement,List<?> xfooters){
         String path = bElement.getPath();
+        LogUtils.writeDebugLog(logger, "update use pIndex[path] : " + path);
         String[] pIndexs = path.split(PATHSPLITSIGN);
         Object xwpfObj = xfooters.get(Integer.parseInt(pIndexs[0]));
         List<IBodyElement> ibodys=null;
@@ -507,9 +508,14 @@ public class DOCXDocumentParse extends DocumentParse {
         }else if (xwpfObj instanceof XWPFFootnote){
             ibodys = ((XWPFFootnote)xwpfObj).getBodyElements();
         }
+        
         Object obj=null; 
         for(int i=1;i<pIndexs.length;i++){
             obj =  getIBodyElement(pIndexs[i],ibodys);
+//          文本框元素，直接返回。
+            if(pIndexs[i].split(PATHLINKSIGN).length==2){
+                return (XWPFParagraph)obj;
+            }
             if(obj instanceof XWPFTableCell ){
                 ibodys = ((XWPFTableCell)obj).getBodyElements();
             }
