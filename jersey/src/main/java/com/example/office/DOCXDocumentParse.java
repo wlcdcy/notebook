@@ -1130,58 +1130,6 @@ public class DOCXDocumentParse extends DocumentParse {
     }
     
 //  解析段落中的文本框
-    @SuppressWarnings("unused")
-    @Deprecated
-    private List<BElement> parseTXTBoxOLD(XWPFParagraph paragraph,boolean wordSplit) {
-        XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
-                "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
-
-        List<BElement> tbxElements = new ArrayList<>();
-        int index = 0;
-        for (int i = 0; i < textBoxObjects.length; i++) {
-            try {
-                XmlObject[] paraObjects = textBoxObjects[i]
-                        .selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
-                BElement tbxElement = new BElement();
-                tbxElements.add(tbxElement);
-
-                tbxElement.setIndex(index++);
-                tbxElement.setName(BodyElementType.TXTBOX.name());
-                tbxElement.setRowNum(1);
-                tbxElement.setColumnNum(i);
-                
-                if (paraObjects.length > 0) {
-                    List<SentenceElement> sentences = new ArrayList<>();
-                    tbxElement.setSentences(sentences);
-                    int charNumber = 0;
-                    int wordNumber = 0 ;
-                    for (int j = 0; j < paraObjects.length; j++) {
-
-                        XWPFParagraph embeddedPara = new XWPFParagraph(CTP.Factory.parse(paraObjects[j].xmlText()),
-                                paragraph.getBody());
-                        String text = embeddedPara.getText();
-                        charNumber+=charNumberDeleteSpace(text);
-                        wordNumber+=wordNumberDeleteSpace(text, wordSplit);
-                        SentenceElement sentenceElement = new SentenceElement();
-                        sentenceElement.setContentType(ContentType.TEXT);
-                        sentenceElement.setSentenceSerial(j);
-                        sentenceElement.setText(text);
-                        // 分割片段内容为句
-                        String[] childTexts = splitContentFirstDeleteBR(sentenceElement.getText());
-                        sentenceElement.setChildTexts(childTexts);
-                        sentences.add(sentenceElement);
-                    }
-                    tbxElement.setCharNumber(charNumber);
-                    tbxElement.setWordNumber(wordNumber);
-                }
-            } catch (XmlException e) {
-                LogUtils.writeWarnExceptionLog(logger, e);
-            }
-        }
-        return tbxElements;
-    }
-    
-//  解析段落中的文本框
     private List<BElement> parseTXTBox(String pIndex,int index,XWPFParagraph paragraph,boolean wordSplit) {
         XmlObject[] textBoxObjects = paragraph.getCTP().selectPath(
                 "declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
@@ -1581,20 +1529,6 @@ public class DOCXDocumentParse extends DocumentParse {
             boolean wordSplit) {
         return parseIBodyElements("",bodys, document, directory, wordSplit);
     }
-
-//    private BElement createBElementByChild(List<BElement> childs){
-//        BElement bElement = new BElement();
-//        bElement.setChilds(childs);
-//        int charNumber = 0;
-//        int wordNumber = 0;
-//        for (BElement child : childs) {
-//            charNumber += child.getCharNumber();
-//            wordNumber += child.getWordNumber();
-//        }
-//        bElement.setCharNumber(charNumber);
-//        bElement.setWordNumber(wordNumber);
-//        return bElement;
-//    }
     
     private int countWordNumberOfBElements(List<BElement> bElements, boolean wordSplit) {
         int wordNumber = 0;
