@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta name="viewport"
+	content="width=device-width,height=device-height,initial-scale=1.0">
+
+<style type="text/css">
+body {
+	padding-top: 40px;
+	padding-bottom: 40px;
+	background-color: #eee;
+}
+
+.form-signin {
+	max-width: 330px;
+	padding: 15px;
+	margin: 0 auto;
+}
+
+.form-signin .form-signin-heading, .form-signin .checkbox {
+	margin-bottom: 10px;
+}
+
+.form-signin .checkbox {
+	font-weight: normal;
+}
+
+.form-signin .form-control {
+	position: relative;
+	height: auto;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	padding: 10px;
+	font-size: 16px;
+}
+
+.form-signin .form-control:focus {
+	z-index: 2;
+}
+
+.form-signin input[type="email"] {
+	margin-bottom: -1px;
+	border-bottom-right-radius: 0;
+	border-bottom-left-radius: 0;
+}
+
+.form-signin input[type="password"] {
+	margin-bottom: 10px;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+
+
+
+.tabs-below > .nav-tabs,
+.tabs-right > .nav-tabs,
+.tabs-left > .nav-tabs {
+  border-bottom: 0;
+}
+
+.tab-content > .tab-pane,
+.pill-content > .pill-pane {
+  display: none;
+}
+
+.tab-content > .active,
+.pill-content > .active {
+  display: block;
+}
+
+.tabs-below > .nav-tabs {
+  border-top: 1px solid #ddd;
+}
+
+.tabs-below > .nav-tabs > li {
+  margin-top: -1px;
+  margin-bottom: 0;
+}
+
+.tabs-below > .nav-tabs > li > a {
+  -webkit-border-radius: 0 0 4px 4px;
+     -moz-border-radius: 0 0 4px 4px;
+          border-radius: 0 0 4px 4px;
+}
+
+.tabs-below > .nav-tabs > li > a:hover,
+.tabs-below > .nav-tabs > li > a:focus {
+  border-top-color: #ddd;
+  border-bottom-color: transparent;
+}
+
+.tabs-below > .nav-tabs > .active > a,
+.tabs-below > .nav-tabs > .active > a:hover,
+.tabs-below > .nav-tabs > .active > a:focus {
+  border-color: transparent #ddd #ddd #ddd;
+}
+
+.tabs-left > .nav-tabs > li,
+.tabs-right > .nav-tabs > li {
+  float: none;
+}
+
+.tabs-left > .nav-tabs > li > a,
+.tabs-right > .nav-tabs > li > a {
+  min-width: 74px;
+  margin-right: 0;
+  margin-bottom: 3px;
+}
+
+.tabs-left > .nav-tabs {
+  float: left;
+  margin-right: 19px;
+  border-right: 1px solid #ddd;
+}
+
+.tabs-left > .nav-tabs > li > a {
+  margin-right: -1px;
+  -webkit-border-radius: 4px 0 0 4px;
+     -moz-border-radius: 4px 0 0 4px;
+          border-radius: 4px 0 0 4px;
+}
+
+.tabs-left > .nav-tabs > li > a:hover,
+.tabs-left > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #dddddd #eeeeee #eeeeee;
+}
+
+.tabs-left > .nav-tabs .active > a,
+.tabs-left > .nav-tabs .active > a:hover,
+.tabs-left > .nav-tabs .active > a:focus {
+  border-color: #ddd transparent #ddd #ddd;
+  *border-right-color: #ffffff;
+}
+
+.tabs-right > .nav-tabs {
+  float: right;
+  margin-left: 19px;
+  border-left: 1px solid #ddd;
+}
+
+.tabs-right > .nav-tabs > li > a {
+  margin-left: -1px;
+  -webkit-border-radius: 0 4px 4px 0;
+     -moz-border-radius: 0 4px 4px 0;
+          border-radius: 0 4px 4px 0;
+}
+
+.tabs-right > .nav-tabs > li > a:hover,
+.tabs-right > .nav-tabs > li > a:focus {
+  border-color: #eeeeee #eeeeee #eeeeee #dddddd;
+}
+
+.tabs-right > .nav-tabs .active > a,
+.tabs-right > .nav-tabs .active > a:hover,
+.tabs-right > .nav-tabs .active > a:focus {
+  border-color: #ddd #ddd #ddd transparent;
+  *border-left-color: #ffffff;
+}
+</style>
+
+<!-- Bootstrap CDN -->
+<!-- Latest compiled and minified CSS -->
+<!-- jquery CDN -->
+<script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+<!-- Bootstrap CDN -->
+<!-- Latest compiled and minified CSS -->
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css"
+	rel="stylesheet">
+<!-- Optional theme -->
+<link
+	href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"
+	rel="stylesheet">
+<!-- Latest compiled and minified JavaScript -->
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script type="text/javascript">
+	function p2pChat(robotIt){
+		console.log(robotIt);
+		
+	}
+	
+	function roomChat(robotIt){
+		console.log(robotIt);
+		
+	}
+	
+    var activeTab = "tab1"; //当前的tab页。默认为第一个tab页。
+    var previousTab;  //上一个打开的tab页。默认为空。
+    $(function(){
+        //实现事件响应函数，当tab页被显示时会触发
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            //获取当前被显示的tab页标签的aria-controls属性值
+            activeTab = $(e.target).attr("aria-controls");
+            //获取前一个被显示的tab页标签的aria-controls属性值
+            previousTab = $(e.relatedTarget).attr("aria-controls");
+        });
+        
+        //点击带关闭按钮tab页标签上的x后的响应事件
+        $("#closetabbtn").click(function(e){
+            $(this).parent().parent().css("display","none"); //隐藏tab头，调用remove方法就是删除了
+            $("#closetab").css("display","none"); //隐藏tab正文信息，调用remove方法就是删除了
+            if(activeTab=="closetab"){ //判断当前tab页是否是带关闭按钮的tab页，如果是，则显示上次打开的tab页
+                $('#contentnavid a[href="#'+previousTab+'"]').tab('show'); //显示tab页
+            }        
+            return false; //一定要return false，阻止事件往上冒泡
+        });
+    });
+    
+</script>
+
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<h2>机器人</h2>
+			</div>
+		</div>
+		<div class="row" id="friends">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div class="row">
+					<div class="col-lg-2">
+						<button type="button" class="btn btn-default btn-xs btn-block" onclick="p2pChat('turing')"><strong>图灵</strong></button>
+					</div>
+					<div>图灵机器人基于DeepQA深度问答技术，对中文的识别准确率高达90%，是目前中文语境下智能度最高的机器人.</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-2">
+						<button type="button" class="btn btn-default btn-xs btn-block" onclick="p2pChat('xiaoai')"><strong>小艾</strong></button>
+					</div>
+					<div>小艾机器人是基于图灵机器人定制的聊天机器人,开始和她聊天吧。</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row" id="rooms">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<h2>聊天室</h2>
+			</div>
+		</div>
+		<div class="row" id="friends">
+			<div class="col-lg-3"></div>
+			<div class="col-lg-6">
+				<div class="row">
+					<div class="col-lg-2">
+						<button type="button" class="btn btn-default btn-xs btn-block" onclick="roomChat('yingshi')"><strong>鬼吹灯</strong></button>
+					</div>
+					<div>鬼吹灯系列，交流通道已经打开，快快加入吐槽吧.</div>
+				</div>
+				<div class="row">
+					<div class="col-lg-2">
+						<button type="button" class="btn btn-default btn-xs btn-block" onclick="roomChat('xiju')"><strong>喜剧人</strong></button>
+					</div>
+					<div>喜剧创作。</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+<!-- 
+	<div class="tabbable tabs-right">
+
+  <ul class="nav nav-tabs">
+    <li role="presentation" class="active"><a href="#tab1" aria-controls="tab1" role="tab" data-toggle="tab">tab1</a></li>
+    <li role="presentation"><a href="#tab2" aria-controls="tab2" role="tab" data-toggle="tab">tab2</a></li>
+    <li role="presentation"><a href="#tab3" aria-controls="tab3" role="tab" data-toggle="tab">tab3</a></li>
+    <li role="presentation" id="closetabli"><a href="#closetab" aria-controls="closetab" role="tab" data-toggle="tab"><span>closetab</span>
+    &nbsp;<button type="button" class="close"  aria-label="Close" id="closetabbtn"><span aria-hidden="true" style="color:red">&times;</span></button>
+    </a></li>
+  </ul>
+
+  <div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="tab1">this is tab1</div>
+    <div role="tabpanel" class="tab-pane active" id="tab2">this is tab2</div>
+    <div role="tabpanel" class="tab-pane active" id="tab3">this is tab3</div>
+    <div role="tabpanel" class="tab-pane active" id="closetab">this is closetab</div>
+  </div>      
+</div>
+ -->	
+
+<div class="tabbable tabs-left">
+  <ul class="nav nav-tabs">
+    <li class="active"><a href="#tab1" data-toggle="tab">tab1</a></li>
+    <li><a href="#tab2" data-toggle="tab">tab2</a></li>
+    <li><a href="#tab3" data-toggle="tab">tab3</a></li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane active" id="tab1">this is tab1</div>
+    <div class="tab-pane" id="tab2">this is tab2</div>
+    <div class="tab-pane" id="tab3">this is tab3</div>
+  </div>
+</div>
+
+</body>
+</html>
