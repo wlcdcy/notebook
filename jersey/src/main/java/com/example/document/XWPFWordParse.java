@@ -56,12 +56,9 @@ public class XWPFWordParse extends DocumentParse {
     @Override
     public TopElement documentParse(String filePath, int subLength, int subSum) {
         File file = new File(filePath);
-        FileInputStream fins = null;
-        // FileChannel channel = null;
         XWPFDocument xdocument = null;
-        try {
-            fins = new FileInputStream(file);
-            // channel = fins.getChannel();
+        try (FileInputStream fins = new FileInputStream(file);) {
+            // FileChannel channel = fins.getChannel();
             xdocument = new XWPFDocument(fins);
             TopElement topElement = new TopElement();
             FirstElement headerElement = parseHeader(xdocument, file.getParent());
@@ -77,15 +74,6 @@ public class XWPFWordParse extends DocumentParse {
                 logger.debug(e.getMessage(), e);
             }
         } finally {
-            if (fins != null) {
-                try {
-                    fins.close();
-                } catch (IOException e) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug(e.getMessage(), e);
-                    }
-                }
-            }
             if (xdocument != null) {
                 try {
                     xdocument.close();
@@ -142,7 +130,7 @@ public class XWPFWordParse extends DocumentParse {
         FirstElement firstElement = new FirstElement();
         firstElement.setElementType("HEADER");
 
-        List<SecondElement> secondElements = new ArrayList<SecondElement>();
+        List<SecondElement> secondElements = new ArrayList<>();
         firstElement.setSecondElements(secondElements);
 
         int index_h = 0;
@@ -247,6 +235,7 @@ public class XWPFWordParse extends DocumentParse {
      * @param storage
      * @return
      */
+    @SuppressWarnings("unused")
     private SecondElement parseEndnote(XWPFDocument xdocument, int id, String storage) {
         SecondElement secondElement = null;
         XWPFFootnote endnote = xdocument.getEndnoteByID(id);
